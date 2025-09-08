@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Job Information";
+    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+}
+<div class="d-flex flex-column flex-root">
+    <div class="page d-flex flex-row flex-column-fluid">
+
+        <!-- Content -->
+        <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+            <!-- Header -->
+            <div id="kt_header" class="header align-items-stretch">
+                <div class="container-fluid d-flex align-items-center justify-content-between py-4">
+                    <h2 class="fw-bold text-dark">Chef de Partie - Royal Caribbean International</h2>
+                    <a asp-action="Index" asp-controller="Employee" class="btn btn-light">Back to Jobs</a>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="content d-flex flex-column flex-column-fluid py-10">
+                <div class="container">
+
+                    <!-- Media Carousel -->
+                    <div id="jobMediaCarousel" class="carousel slide mb-10" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded shadow-sm">
+                            <!-- Video -->
+                            <div class="carousel-item active">
+                                <video class="d-block w-100 rounded" controls autoplay muted loop>
+                                    <source src="~/assets/media/video/sample.MOV" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+
+                            <!-- Image 1 -->
+                            <div class="carousel-item">
+                                <img src="~/assets/media/jobs/kitchen1.jpg" class="d-block w-100" alt="Kitchen 1">
+                            </div>
+
+                            <!-- Image 2 -->
+                            <div class="carousel-item">
+                                <img src="~/assets/media/jobs/kitchen2.jpg" class="d-block w-100" alt="Kitchen 2">
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                    </div>
+
+
+                    <!-- Job Info -->
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Requirements -->
+                            <div class="card mb-5">
+                                <div class="card-body">
+                                    <h4 class="fw-bold mb-4">Requirements</h4>
+                                    <ul class="mb-0">
+                                        <li>At least 2 years experience as a line cook or similar role</li>
+                                        <li>Culinary degree preferred</li>
+                                        <li>Fluent in English communication</li>
+                                        <li>Ability to work in fast-paced kitchen environment</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="card mb-5">
+                                <div class="card-body">
+                                    <h4 class="fw-bold mb-4">Job Description</h4>
+                                    <p>
+                                        As a Chef de Partie, you will be responsible for preparing and plating
+                                        high-quality meals in compliance with shipboard health and safety standards.
+                                        You will supervise junior cooks, manage kitchen stations, and ensure guest satisfaction.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Company -->
+                            <div class="card mb-5">
+                                <div class="card-body">
+                                    <h4 class="fw-bold mb-4">About Royal Caribbean International</h4>
+                                    <p>
+                                        Royal Caribbean International is a global cruise brand known for its innovative
+                                        ships and vacation experiences. With a fleet of award-winning ships, RCI offers
+                                        adventures around the world with world-class hospitality.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="col-lg-4">
+                            <!-- Ratings -->
+                            <div class="card mb-5">
+                                <div class="card-body text-center">
+                                    <h5 class="fw-bold mb-3">Company Rating</h5>
+                                    <div class="mb-2">
+                                        ⭐⭐⭐⭐☆ (4.2/5)
+                                    </div>
+                                    <small class="text-muted">Based on 1,245 reviews</small>
+                                </div>
+                            </div>
+
+                            <!-- Applied Employees -->
+                            <div class="card mb-5">
+                                <div class="card-body text-center">
+                                    <h5 class="fw-bold mb-3">Applied Employees</h5>
+                                    <span class="fs-2x fw-bold text-primary">324</span>
+                                    <p class="text-muted mb-0">employees have applied</p>
+                                </div>
+                            </div>
+
+                            <!-- Apply Button -->
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <button class="btn btn-lg btn-primary w-100">Apply for this Job</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+

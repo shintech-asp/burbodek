@@ -1,0 +1,141 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+}
+<div class="d-flex flex-column flex-root">
+    <div class="page d-flex flex-row flex-column-fluid">
+
+        <!-- Sidebar Filters -->
+        <div class="aside aside-dark aside-hoverable" id="kt_aside">
+            <div class="aside-content flex-column-fluid py-5">
+                <div class="px-5">
+                    <h4 class="fw-bold text-white mb-4">Filters</h4>
+                    <!-- Job Type -->
+                    <div class="mb-4">
+                        <label class="form-label text-white">Job Type</label>
+                        <select class="form-select" data-control="select2" data-placeholder="Select type">
+                            <option></option>
+                            <option value="fulltime">Full-time</option>
+                            <option value="parttime">Part-time</option>
+                            <option value="contract">Contract</option>
+                        </select>
+                    </div>
+                    <!-- Department -->
+                    <div class="mb-4">
+                        <label class="form-label text-white">Department</label>
+                        <select class="form-select" data-control="select2" multiple data-placeholder="Choose department">
+                            <option value="deck">Deck</option>
+                            <option value="engine">Engine</option>
+                            <option value="hospitality">Hospitality</option>
+                            <option value="entertainment">Entertainment</option>
+                        </select>
+                    </div>
+                    <!-- Salary Range -->
+                    <div class="mb-4">
+                        <label class="form-label text-white">Salary Range</label>
+                        <input type="text" class="form-control form-control-sm mb-2" placeholder="Min $" />
+                        <input type="text" class="form-control form-control-sm" placeholder="Max $" />
+                    </div>
+                    <!-- Apply Button -->
+                    <button class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+            <!-- Header -->
+            <div id="kt_header" class="header align-items-stretch">
+                <div class="container-fluid d-flex flex-column align-items-center py-5">
+                    <h1 class="text-dark fw-bold mb-4">Cruise Ship Jobs</h1>
+                    <form class="d-flex w-75">
+                        <input type="text" class="form-control form-control-lg me-2" placeholder="Job title, keyword..." />
+                        <input type="text" class="form-control form-control-lg me-2" placeholder="Location" />
+                        <button type="submit" class="btn btn-lg btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Job Results -->
+            <div class="content d-flex flex-column flex-column-fluid py-5">
+                <div class="container">
+                    <h4 class="mb-5">Search Results</h4>
+
+                    <!-- Job 1 -->
+                    <div class="card mb-5 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-primary">Chef de Partie</h5>
+                            <p class="text-muted mb-2">Royal Caribbean International · Miami, FL</p>
+                            <p>Responsible for preparing high-quality meals in a fast-paced cruise ship kitchen environment.</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span class="fw-bold">$2,500 - $3,200 / month</span>
+                                <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo">Apply Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Job 2 -->
+                    <div class="card mb-5 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-primary">Housekeeping Supervisor</h5>
+                            <p class="text-muted mb-2">Carnival Cruise Line · Manila, PH</p>
+                            <p>Supervise housekeeping operations ensuring guest cabins and public areas meet high standards.</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span class="fw-bold">$1,800 - $2,200 / month</span>
+                                <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo">Apply Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Job 3 -->
+                    <div class="card mb-5 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-primary">Bartender</h5>
+                            <p class="text-muted mb-2">MSC Cruises · Barcelona, Spain</p>
+                            <p>Deliver excellent guest service while mixing and serving beverages in ship bars and lounges.</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span class="fw-bold">$1,500 - $2,000 / month</span>
+                                <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo">Apply Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Job 4 -->
+                    <div class="card mb-5 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-primary">Entertainment Host</h5>
+                            <p class="text-muted mb-2">Norwegian Cruise Line · New York, NY</p>
+                            <p>Host and coordinate entertainment activities to engage passengers throughout the voyage.</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span class="fw-bold">$2,200 - $2,800 / month</span>
+                                <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo">Apply Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Job 5 -->
+                    <div class="card mb-5 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-primary">Deck Officer</h5>
+                            <p class="text-muted mb-2">Princess Cruises · Sydney, Australia</p>
+                            <p>Assist with navigation and safety operations while ensuring compliance with maritime standards.</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span class="fw-bold">$3,000 - $4,500 / month</span>
+                                <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo">Apply Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <ul class="pagination">
+                        <li class="page-item previous disabled"><a href="#" class="page-link">Previous</a></li>
+                        <li class="page-item active"><a href="#" class="page-link">1</a></li>
+                        <li class="page-item"><a href="#" class="page-link">2</a></li>
+                        <li class="page-item"><a href="#" class="page-link">3</a></li>
+                        <li class="page-item next"><a href="#" class="page-link">Next</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
