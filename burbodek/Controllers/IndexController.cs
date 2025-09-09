@@ -8,17 +8,17 @@ namespace burbodek.Controllers
         {
             return View();
         }
-        public IActionResult SignIn()
+        public IActionResult SignIn(int? id)
         {
-            return View();
+            return View(id);
         }
-        public IActionResult SignUpClient()
+        public IActionResult SignUpClient(int? id)
         {
-            return View();
+            return View(id);
         }
-        public IActionResult SignUpEmployer()
+        public IActionResult SignUpEmployer(int? id)
         {
-            return View();
+            return View(id);
         }
     }
 }

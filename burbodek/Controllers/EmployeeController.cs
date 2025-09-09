@@ -8,6 +8,10 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
         public IActionResult JobInfo()
         {
             return View();
@@ -21,6 +25,18 @@ namespace burbodek.Controllers
             return View();
         }
         public IActionResult Reply()
+        {
+            return View();
+        }
+        public IActionResult JobApply()
+        {
+            return View();
+        }
+        public IActionResult Applications()
+        {
+            return View();
+        }
+        public IActionResult AccountSettings()
         {
             return View();
         }

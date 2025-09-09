@@ -1779,19 +1779,20 @@
 		ViewData["Title"] = "Cruise Ship Jobs";
 	}
 
-	<!--begin::Landing Page-->
-	<div class="d-flex flex-column flex-root pt-4">
+	<div class="d-flex flex-column flex-root">
 		<!--begin::Page-->
 		<div class="page d-flex flex-row flex-column-fluid">
 			<!--begin::Wrapper-->
 			<div class="d-flex flex-column flex-column-fluid">
+
 				<!--begin::Header-->
-				<div class="mb-0" id="kt_header">
-					<div class="header align-items-stretch">
+				<div id="kt_header">
+					<div class="header py-4 shadow-sm">
 						<div class="container d-flex align-items-center justify-content-between">
 							<!--begin::Logo-->
 							<a href="/" class="d-flex align-items-center">
-								<img alt="Logo" src="~/assets/media/logos/Icon.png" class="h-40px" />
+								<img alt="Logo" src="~/assets/media/logos/Icon.png" class="h-45px me-3" />
+								<span class="fw-bold fs-3 text-primary">CruiseShipJobs</span>
 							</a>
 							<!--end::Logo-->
 							<!--begin::Menu-->
@@ -1806,15 +1807,26 @@
 				<!--end::Header-->
 				<!--begin::Content-->
 				<div class="content flex-column-fluid" id="kt_content">
-					<!--begin::Hero Section-->
-					<div class="py-20 bg-light">
-						<div class="container d-flex flex-column flex-center">
-							<h1 class="fw-bolder text-dark mb-5">Find Your Career at Sea</h1>
-							<p class="fs-4 text-gray-600 text-center mb-10">
-								Explore job opportunities on luxury cruise ships worldwide.
-								Connect with top employers and set sail toward your dream career.
+					<!--begin::Hero Section with Wave-->
+					<div class="position-relative overflow-hidden">
+						<!-- Background wave shape -->
+						<svg class="position-absolute top-0 start-0 w-100 h-100" style="z-index:-2;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+							<path fill="#009EF7" fill-opacity="1" d="M0,128L40,138.7C80,149,160,171,240,165.3C320,160,400,128,480,144C560,160,640,224,720,224C800,224,880,160,960,144C1040,128,1120,160,1200,181.3C1280,203,1360,213,1400,218.7L1440,224L1440,320L0,320Z"></path>
+						</svg>
+
+						<!-- Gradient overlay -->
+						<div class="position-absolute top-0 start-0 w-100 h-100"
+							 style="background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,158,247,0.8)); z-index:-1;">
+						</div>
+
+						<div class="py-20 container text-center text-white">
+							<h1 class="fw-bolder display-4 mb-5">Find Your Career at Sea 🌊</h1>
+							<p class="fs-5 fw-light mb-8">
+								Explore exciting opportunities on luxury cruise ships.
+								<span class="fw-bold">Set sail toward your dream career today!</span>
 							</p>
-							<a asp-controller="Index" asp-action="SignUpEmployer" class="btn btn-lg btn-primary">Browse Jobs</a>
+							<a asp-controller="Index" asp-action="SignUpClient" class="btn btn-lg btn-light me-3 shadow">Browse Jobs</a>
+							<a asp-controller="Index" asp-action="SignUpEmployer" class="btn btn-lg btn-outline-light shadow">Post a Job</a>
 						</div>
 					</div>
 					<!--end::Hero Section-->
@@ -1823,34 +1835,34 @@
 						<div class="container">
 							<div class="row g-10">
 								<div class="col-lg-4">
-									<div class="card shadow-sm h-100">
-										<div class="card-body text-center">
-											<i class="ki-duotone ki-briefcase fs-2hx text-primary mb-5"></i>
+									<div class="card shadow-lg border-0 h-100 hover-elevate-up">
+										<div class="card-body text-center py-10">
+											<i class="ki-duotone ki-briefcase fs-3hx text-primary mb-5"></i>
 											<h3 class="fw-bold">Job Opportunities</h3>
 											<p class="text-gray-600">
-												Thousands of positions across various cruise lines: hospitality, entertainment, engineering, and more.
+												Thousands of positions across hospitality, entertainment, and technical fields.
 											</p>
 										</div>
 									</div>
 								</div>
 								<div class="col-lg-4">
-									<div class="card shadow-sm h-100">
-										<div class="card-body text-center">
-											<i class="ki-duotone ki-user fs-2hx text-success mb-5"></i>
+									<div class="card shadow-lg border-0 h-100 hover-elevate-up">
+										<div class="card-body text-center py-10">
+											<i class="ki-duotone ki-user fs-3hx text-success mb-5"></i>
 											<h3 class="fw-bold">Verified Employers</h3>
 											<p class="text-gray-600">
-												Partnered with trusted cruise companies ensuring real and safe opportunities.
+												Partnered with trusted cruise companies ensuring safe and authentic opportunities.
 											</p>
 										</div>
 									</div>
 								</div>
 								<div class="col-lg-4">
-									<div class="card shadow-sm h-100">
-										<div class="card-body text-center">
-											<i class="ki-duotone ki-search-list fs-2hx text-warning mb-5"></i>
+									<div class="card shadow-lg border-0 h-100 hover-elevate-up">
+										<div class="card-body text-center py-10">
+											<i class="ki-duotone ki-search-list fs-3hx text-warning mb-5"></i>
 											<h3 class="fw-bold">Easy Application</h3>
 											<p class="text-gray-600">
-												Apply online, upload your resume, and track your application in one place.
+												Apply online, upload your resume, and track everything in one platform.
 											</p>
 										</div>
 									</div>
@@ -1859,37 +1871,136 @@
 						</div>
 					</div>
 					<!--end::Features Section-->
-					<!--begin::Call to Action-->
-					<div class="py-20 bg-primary">
-						<div class="container text-center">
-							<h2 class="fw-bold text-white mb-5">Ready to Start Your Journey?</h2>
-							<a asp-controller="Index" asp-action="SignUpEmployer" class="btn btn-light btn-lg me-3">Post a Job</a>
-							<a asp-controller="Index" asp-action="SignUpClient" class="btn btn-outline-light btn-lg">Find Jobs</a>
+					<div class="container mb-3">
+						<div class="card card-flush">
+							<!--begin::Header-->
+							<div class="card-header py-7">
+								<!--begin::Statistics-->
+								<div class="m-0">
+									<!--begin::Heading-->
+									<div class="d-flex align-items-center mb-2">
+										<!--begin::Title-->
+										<span class="fs-2hx fw-bold text-gray-800 me-2 lh-1 ls-n2">35,568</span>
+										<!--end::Title-->
+									</div>
+									<!--end::Heading-->
+									<!--begin::Description-->
+									<span class="fs-6 fw-semibold text-gray-400">Who trusted us?</span>
+									<!--end::Description-->
+								</div>
+								<!--end::Statistics-->
+								<!--begin::Toolbar-->
+								<div class="card-toolbar">
+									<!--begin::Menu-->
+									<button class="btn btn-icon btn-color-gray-400 btn-active-color-primary justify-content-end" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-overflow="true">
+										<i class="ki-duotone ki-dots-square fs-1 text-gray-400 me-n1">
+											<span class="path1"></span>
+											<span class="path2"></span>
+											<span class="path3"></span>
+											<span class="path4"></span>
+										</i>
+									</button>
+									<!--begin::Menu 2-->
+									<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px" data-kt-menu="true">
+										<!--begin::Menu item-->
+										<div class="menu-item px-3">
+											<div class="menu-content fs-6 text-dark fw-bold px-3 py-4">Quick Actions</div>
+										</div>
+										<!--end::Menu item-->
+										<!--begin::Menu separator-->
+										<div class="separator mb-3 opacity-75"></div>
+										<!--end::Menu separator-->
+										<!--begin::Menu item-->
+										<div class="menu-item px-3">
+											<a href="#" class="menu-link px-3">New Ticket</a>
+										</div>
+										<!--end::Menu item-->
+										<!--begin::Menu item-->
+										<div class="menu-item px-3">
+											<a href="#" class="menu-link px-3">New Customer</a>
+										</div>
+										<!--end::Menu item-->
+										<!--begin::Menu item-->
+										<div class="menu-item px-3" data-kt-menu-trigger="hover" data-kt-menu-placement="right-start">
+											<!--begin::Menu item-->
+											<a href="#" class="menu-link px-3">
+												<span class="menu-title">New Group</span>
+												<span class="menu-arrow"></span>
+											</a>
+											<!--end::Menu item-->
+											<!--begin::Menu sub-->
+											<div class="menu-sub menu-sub-dropdown w-175px py-4">
+												<!--begin::Menu item-->
+												<div class="menu-item px-3">
+													<a href="#" class="menu-link px-3">Admin Group</a>
+												</div>
+												<!--end::Menu item-->
+												<!--begin::Menu item-->
+												<div class="menu-item px-3">
+													<a href="#" class="menu-link px-3">Staff Group</a>
+												</div>
+												<!--end::Menu item-->
+												<!--begin::Menu item-->
+												<div class="menu-item px-3">
+													<a href="#" class="menu-link px-3">Member Group</a>
+												</div>
+												<!--end::Menu item-->
+											</div>
+											<!--end::Menu sub-->
+										</div>
+										<!--end::Menu item-->
+										<!--begin::Menu item-->
+										<div class="menu-item px-3">
+											<a href="#" class="menu-link px-3">New Contact</a>
+										</div>
+										<!--end::Menu item-->
+										<!--begin::Menu separator-->
+										<div class="separator mt-3 opacity-75"></div>
+										<!--end::Menu separator-->
+										<!--begin::Menu item-->
+										<div class="menu-item px-3">
+											<div class="menu-content px-3 py-3">
+												<a class="btn btn-primary btn-sm px-4" href="#">Generate Reports</a>
+											</div>
+										</div>
+										<!--end::Menu item-->
+									</div>
+									<!--end::Menu 2-->
+									<!--end::Menu-->
+								</div>
+								<!--end::Toolbar-->
+							</div>
+							<!--end::Header-->
+							<!--begin::Body-->
+							<div class="card-body pt-0 pb-1">
+								<div id="kt_charts_widget_27" class="min-h-auto" style="min-height: 365px;"></div>
+							</div>
+							<!--end::Body-->
 						</div>
 					</div>
-					<!--end::Call to Action-->
 				</div>
 				<!--end::Content-->
 				<!--begin::Footer-->
-				<div class="footer py-5 bg-light mt-auto">
-					<div class="container d-flex flex-column flex-md-row flex-center justify-content-between">
+				<div class="footer py-5 bg-light mt-auto border-top">
+					<div class="container d-flex flex-column flex-md-row align-items-center justify-content-between">
 						<div class="text-gray-600 order-2 order-md-1">
 							© 2025 CruiseShipJobs. All Rights Reserved.
 						</div>
 						<ul class="menu menu-gray-600 menu-hover-primary fw-bold order-1 mb-3 mb-md-0">
-							<li class="menu-item"><a href="#" class="menu-link px-2">About</a></li>
-							<li class="menu-item"><a href="#" class="menu-link px-2">Contact</a></li>
-							<li class="menu-item"><a href="#" class="menu-link px-2">Privacy Policy</a></li>
+							<li class="menu-item"><a href="#" class="menu-link px-3">About</a></li>
+							<li class="menu-item"><a href="#" class="menu-link px-3">Contact</a></li>
+							<li class="menu-item"><a href="#" class="menu-link px-3">Privacy Policy</a></li>
 						</ul>
 					</div>
 				</div>
 				<!--end::Footer-->
+
 			</div>
 			<!--end::Wrapper-->
 		</div>
 		<!--end::Page-->
 	</div>
-	<!--end::Landing Page-->
+
 	<!--begin::Javascript-->
 	<script>var hostUrl = "~/assets/";</script>
 	<!--begin::Global Javascript Bundle(mandatory for all pages)-->

@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "My Applications";
+    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+}
+
+<div class="container-xxl" id="kt_content_container">
+
+    <!-- 🔹 Stats Section -->
+    <div class="row mb-8">
+
+        <!-- Total Applied -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h3 class="fw-bold">12</h3>
+                    <p class="text-muted mb-0">Total Applications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortlisted -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h3 class="fw-bold text-success">4</h3>
+                    <p class="text-muted mb-0">Shortlisted</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h3 class="fw-bold text-primary">3</h3>
+                    <p class="text-muted mb-0">Pending Review</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hired -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h3 class="fw-bold text-info">1</h3>
+                    <p class="text-muted mb-0">Hired</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Applications Table -->
+    <div class="card">
+        <div class="card-header border-0 pt-6">
+            <h2 class="fw-bold">My Applied Jobs</h2>
+            <div class="card-toolbar">
+                <div class="d-flex justify-content-end">
+                    <select class="form-select form-select-solid w-200px" data-control="select2" data-placeholder="Filter by status">
+                        <option></option>
+                        <option value="all" selected>All</option>
+                        <option value="pending">Pending</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="shortlisted">Shortlisted</option>
+                        <option value="hired">Hired</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body pt-0">
+            <div class="table-responsive">
+                <table class="table align-middle table-row-dashed gy-5">
+                    <thead>
+                        <tr class="fw-bold text-muted">
+                            <th class="min-w-200px">Job Title</th>
+                            <th class="min-w-150px">Company</th>
+                            <th class="min-w-120px">Applied Date</th>
+                            <th class="min-w-100px">Status</th>
+                            <th class="min-w-200px text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row Example -->
+                        <tr>
+                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Chef de Partie</a></td>
+                            <td>Royal Caribbean</td>
+                            <td>Aug 25, 2025</td>
+                            <td><span class="badge badge-light-warning">Reviewing</span></td>
+                            <td class="text-center">
+                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
+                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Housekeeping Supervisor</a></td>
+                            <td>Carnival Cruises</td>
+                            <td>Aug 20, 2025</td>
+                            <td><span class="badge badge-light-success">Shortlisted</span></td>
+                            <td class="text-center">
+                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
+                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Waiter / Steward</a></td>
+                            <td>Disney Cruise Line</td>
+                            <td>Aug 5, 2025</td>
+                            <td><span class="badge badge-light-info">Hired</span></td>
+                            <td class="text-center">
+                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
+                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
+                            </td>
+                        </tr>
+                        <!-- Add more rows as needed -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,8 @@
 ﻿@{
-    ViewData["Title"] = "Job Information";
+    ViewData["Title"] = "Job Application";
     Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
 }
+
 <div class="card">
 	<!--begin::Body-->
 	<div class="card-body p-lg-17">
@@ -33,488 +34,184 @@
 		<div class="d-flex flex-column flex-lg-row mb-17">
 			<!--begin::Content-->
 			<div class="flex-lg-row-fluid me-0 me-lg-20">
-				<!--begin::Job-->
-				<div class="mb-17">
-					<!--begin::Description-->
-					<div class="m-0">
-						<!--begin::Title-->
-						<h4 class="fs-1 text-gray-800 w-bolder mb-6">Junior React Developer</h4>
-						<!--end::Title-->
-						<!--begin::Text-->
-						<p class="fw-semibold fs-4 text-gray-600 mb-2">First, a disclaimer – the entire process of writing a blog post often takes more than a couple of hours, even if you can type eighty words as per minute and your writing skills are sharp.</p>
-						<!--end::Text-->
+				<!--begin::Form-->
+				<form action="m-0" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" id="kt_careers_form">
+					<!--begin::Input group-->
+					<div class="row mb-5">
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--begin::Label-->
+							<label class="required fs-5 fw-semibold mb-2">First Name</label>
+							<!--end::Label-->
+							<!--begin::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="first_name">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--end::Label-->
+							<label class="required fs-5 fw-semibold mb-2">Last Name</label>
+							<!--end::Label-->
+							<!--end::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="last_name">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
 					</div>
-					<!--end::Description-->
-					<!--begin::Accordion-->
-					<!--begin::Section-->
-					<div class="m-0">
-						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_1_1">
-							<!--begin::Icon-->
-							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
-								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								<i class="ki-duotone ki-plus-square toggle-off fs-1">
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="row mb-5">
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--begin::Label-->
+							<label class="required fs-5 fw-semibold mb-2">Email</label>
+							<!--end::Label-->
+							<!--begin::Input-->
+							<input class="form-control form-control-solid" placeholder="" name="email">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row">
+							<!--end::Label-->
+							<label class="fs-5 fw-semibold mb-2">Mobile No</label>
+							<!--end::Label-->
+							<!--end::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="mobileno">
+							<!--end::Input-->
+						</div>
+						<!--end::Col-->
+					</div>
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="row mb-5">
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--begin::Label-->
+							<label class="required fs-5 fw-semibold mb-2">Age</label>
+							<!--end::Label-->
+							<!--begin::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="age">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--end::Label-->
+							<label class="required fs-5 fw-semibold mb-2">City</label>
+							<!--end::Label-->
+							<!--end::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="city">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
+					</div>
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="d-flex flex-column mb-5 fv-row fv-plugins-icon-container">
+						<!--begin::Label-->
+						<label class="d-flex align-items-center fs-5 fw-semibold mb-2">
+							<span class="required">Position</span>
+							<span class="ms-1" data-bs-toggle="tooltip" aria-label="Your payment statements may very based on selected position" data-bs-original-title="Your payment statements may very based on selected position" data-kt-initialized="1">
+								<i class="ki-duotone ki-information fs-7">
 									<span class="path1"></span>
 									<span class="path2"></span>
 									<span class="path3"></span>
 								</i>
-							</div>
-							<!--end::Icon-->
-							<!--begin::Title-->
-							<h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Requirements</h4>
-							<!--end::Title-->
-						</div>
-						<!--end::Heading-->
-						<!--begin::Body-->
-						<div id="kt_job_1_1" class="collapse show fs-6 ms-1">
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with JavaScript</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Good time-management skills</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with React</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with HTML / CSS</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with REST API</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Git knowledge is a plus</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-						</div>
-						<!--end::Content-->
-						<!--begin::Separator-->
-						<div class="separator separator-dashed"></div>
-						<!--end::Separator-->
+							</span>
+						</label>
+						<!--end::Label-->
+						<!--begin::Select-->
+						<select name="position" data-control="select2" data-placeholder="Select a position..." class="form-select form-select-solid select2-hidden-accessible" data-select2-id="select2-data-9-afh1" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
+							<option value="Web Developer" data-select2-id="select2-data-11-dy20">Web Developer</option>
+							<option value="Web Designer">Web Designer</option>
+							<option value="Art Director">Art Director</option>
+							<option value="Finance Manager">Finance Manager</option>
+							<option value="Project Manager">Project Manager</option>
+							<option value="System Administrator">System Administrator</option>
+						</select><span class="select2 select2-container select2-container--bootstrap5" dir="ltr" data-select2-id="select2-data-10-1rt8" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single form-select form-select-solid" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-position-am-container" aria-controls="select2-position-am-container"><span class="select2-selection__rendered" id="select2-position-am-container" role="textbox" aria-readonly="true" title="Web Developer">Web Developer</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+						<!--end::Select-->
+						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
-					<!--end::Section-->
-					<!--begin::Section-->
-					<div class="m-0">
-						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_1_2">
-							<!--begin::Icon-->
-							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
-								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								<i class="ki-duotone ki-plus-square toggle-off fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-									<span class="path3"></span>
-								</i>
-							</div>
-							<!--end::Icon-->
-							<!--begin::Title-->
-							<h4 class="text-gray-700 fw-bold cursor-pointer mb-0">What is your job role?</h4>
-							<!--end::Title-->
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="row mb-5">
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--begin::Label-->
+							<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
+							<!--end::Label-->
+							<!--begin::Input-->
+							<input type="text" class="form-control form-control-solid" placeholder="" name="salary">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 						</div>
-						<!--end::Heading-->
-						<!--begin::Body-->
-						<div id="kt_job_1_2" class="collapse fs-6 ms-1">
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with JavaScript</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Good time-management skills</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with React</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with HTML / CSS</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with REST API</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Git knowledge is a plus</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
+						<!--end::Col-->
+						<!--begin::Col-->
+						<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<!--end::Label-->
+							<label class="required fs-5 fw-semibold mb-2">Srart Date</label>
+							<!--end::Label-->
+							<!--end::Input-->
+							<input type="hidden" class="form-control form-control-solid flatpickr-input" placeholder="" name="start_date" readonly="readonly"><input class="form-control form-control-solid flatpickr-input flatpickr-mobile" tabindex="1" type="date" placeholder="">
+							<!--end::Input-->
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 						</div>
-						<!--end::Content-->
-						<!--begin::Separator-->
-						<div class="separator separator-dashed"></div>
-						<!--end::Separator-->
+						<!--end::Col-->
 					</div>
-					<!--end::Section-->
-					<!--begin::Section-->
-					<div class="m-0">
-						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_1_3">
-							<!--begin::Icon-->
-							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
-								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								<i class="ki-duotone ki-plus-square toggle-off fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-									<span class="path3"></span>
-								</i>
-							</div>
-							<!--end::Icon-->
-							<!--begin::Title-->
-							<h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Job Candidate Benefits</h4>
-							<!--end::Title-->
-						</div>
-						<!--end::Heading-->
-						<!--begin::Body-->
-						<div id="kt_job_1_3" class="collapse fs-6 ms-1">
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with JavaScript</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Good time-management skills</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with React</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with HTML / CSS</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with REST API</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Git knowledge is a plus</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-						</div>
-						<!--end::Content-->
-						<!--begin::Separator-->
-						<div class="separator separator-dashed"></div>
-						<!--end::Separator-->
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="d-flex flex-column mb-5 fv-row">
+						<!--begin::Label-->
+						<label class="fs-5 fw-semibold mb-2">Website (If Any)</label>
+						<!--end::Label-->
+						<!--begin::Input-->
+						<input class="form-control form-control-solid" placeholder="" name="website">
+						<!--end::Input-->
 					</div>
-					<!--end::Section-->
-					<!--begin::Section-->
-					<div class="m-0">
-						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_1_4">
-							<!--begin::Icon-->
-							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
-								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								<i class="ki-duotone ki-plus-square toggle-off fs-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-									<span class="path3"></span>
-								</i>
-							</div>
-							<!--end::Icon-->
-							<!--begin::Title-->
-							<h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Application Terms</h4>
-							<!--end::Title-->
-						</div>
-						<!--end::Heading-->
-						<!--begin::Body-->
-						<div id="kt_job_1_4" class="collapse fs-6 ms-1">
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with JavaScript</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Good time-management skills</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with React</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with HTML / CSS</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10 mb-n1">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Experience with REST API</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-							<!--begin::Item-->
-							<div class="mb-4">
-								<!--begin::Item-->
-								<div class="d-flex align-items-center ps-10">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">Git knowledge is a plus</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Item-->
-							</div>
-							<!--end::Item-->
-						</div>
-						<!--end::Content-->
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="d-flex flex-column mb-5">
+						<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
+						<textarea class="form-control form-control-solid" rows="2" name="experience" placeholder=""></textarea>
 					</div>
-					<!--end::Section-->
-					<!--end::Accordion-->
-					<!--begin::Apply-->
-					<a asp-controller="Employee" asp-action="JobApply" class="btn btn-sm btn-primary mt-5">Apply Now</a>
-					<!--end::Apply-->
-				</div>
-				<!--end::Job-->
+					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="d-flex flex-column mb-8">
+						<label class="fs-6 fw-semibold mb-2">Application</label>
+						<textarea class="form-control form-control-solid" rows="4" name="application" placeholder=""></textarea>
+					</div>
+					<!--end::Input group-->
+					<!--begin::Separator-->
+					<div class="separator mb-8"></div>
+					<!--end::Separator-->
+					<!--begin::Submit-->
+					<button type="submit" class="btn btn-primary" id="kt_careers_submit_button">
+						<!--begin::Indicator label-->
+						<span class="indicator-label">Apply Now</span>
+						<!--end::Indicator label-->
+						<!--begin::Indicator progress-->
+						<span class="indicator-progress">
+							Please wait...
+							<span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+						</span>
+						<!--end::Indicator progress-->
+					</button>
+					<!--end::Submit-->
+				</form>
+				<!--end::Form-->
 				<!--begin::Job-->
 				<div class="mb-10 mb-lg-0">
 					<!--begin::Description-->
 					<div class="m-0">
 						<!--begin::Title-->
-						<h4 class="fs-1 text-gray-800 w-bolder mb-6">UI/UX Designer</h4>
+						<h4 class="fs-1 text-gray-800 w-bolder mb-6">Job Details</h4>
 						<!--end::Title-->
 						<!--begin::Text-->
 						<p class="fw-semibold fs-4 text-gray-600 mb-2">First, a disclaimer – the entire process of writing a blog post often takes more than a couple of hours, even if you can type eighty words as per minute and your writing skills are sharp.</p>
@@ -525,7 +222,7 @@
 					<!--begin::Section-->
 					<div class="m-0">
 						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_2_1">
+						<div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_3_1">
 							<!--begin::Icon-->
 							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
 								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
@@ -545,7 +242,7 @@
 						</div>
 						<!--end::Heading-->
 						<!--begin::Body-->
-						<div id="kt_job_2_1" class="collapse show fs-6 ms-1">
+						<div id="kt_job_3_1" class="collapse show fs-6 ms-1">
 							<!--begin::Item-->
 							<div class="mb-4">
 								<!--begin::Item-->
@@ -640,7 +337,7 @@
 					<!--begin::Section-->
 					<div class="m-0">
 						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle mb-0 active" data-bs-toggle="collapse" data-bs-target="#kt_job_2_2" aria-expanded="true">
+						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_3_2">
 							<!--begin::Icon-->
 							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
 								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
@@ -660,7 +357,7 @@
 						</div>
 						<!--end::Heading-->
 						<!--begin::Body-->
-						<div id="kt_job_2_2" class="fs-6 ms-1 collapse show" style="">
+						<div id="kt_job_3_2" class="collapse fs-6 ms-1">
 							<!--begin::Item-->
 							<div class="mb-4">
 								<!--begin::Item-->
@@ -755,7 +452,7 @@
 					<!--begin::Section-->
 					<div class="m-0">
 						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle mb-0 active" data-bs-toggle="collapse" data-bs-target="#kt_job_2_3" aria-expanded="true">
+						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_3_3">
 							<!--begin::Icon-->
 							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
 								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
@@ -775,7 +472,7 @@
 						</div>
 						<!--end::Heading-->
 						<!--begin::Body-->
-						<div id="kt_job_2_3" class="fs-6 ms-1 collapse show" style="">
+						<div id="kt_job_3_3" class="collapse fs-6 ms-1">
 							<!--begin::Item-->
 							<div class="mb-4">
 								<!--begin::Item-->
@@ -870,7 +567,7 @@
 					<!--begin::Section-->
 					<div class="m-0">
 						<!--begin::Heading-->
-						<div class="d-flex align-items-center collapsible py-3 toggle mb-0 active" data-bs-toggle="collapse" data-bs-target="#kt_job_2_4" aria-expanded="true">
+						<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_job_3_4">
 							<!--begin::Icon-->
 							<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
 								<i class="ki-duotone ki-minus-square toggle-on text-primary fs-1">
@@ -890,7 +587,7 @@
 						</div>
 						<!--end::Heading-->
 						<!--begin::Body-->
-						<div id="kt_job_2_4" class="fs-6 ms-1 collapse show" style="">
+						<div id="kt_job_3_4" class="collapse fs-6 ms-1">
 							<!--begin::Item-->
 							<div class="mb-4">
 								<!--begin::Item-->
@@ -980,10 +677,6 @@
 					</div>
 					<!--end::Section-->
 					<!--end::Accordion-->
-					<!--begin::Apply-->
-					<a asp-controller ="Employee" asp-action="JobApply" class="btn btn-sm btn-primary mt-5">
-						Apply Now</a>
-					<!--end::Apply-->
 				</div>
 				<!--end::Job-->
 			</div>
@@ -1264,37 +957,37 @@
 			<div class="card-body py-12">
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/facebook-4.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/facebook-4.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/instagram-2-1.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/instagram-2-1.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/github.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/github.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/behance.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/behance.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/pinterest-p.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/pinterest-p.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/twitter.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/twitter.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 				<!--begin::Icon-->
 				<a href="#" class="mx-4">
-					<img src="assets/media/svg/brand-logos/dribbble-icon-1.svg" class="h-30px my-2" alt="">
+					<img src="~/assets/media/svg/brand-logos/dribbble-icon-1.svg" class="h-30px my-2" alt="">
 				</a>
 				<!--end::Icon-->
 			</div>

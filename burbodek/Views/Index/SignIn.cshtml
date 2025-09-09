@@ -1,6 +1,16 @@
-﻿@{
+﻿@model int?
+@{
 	ViewData["Title"] = "Sign In";
 	Layout = null;
+	string controller = "";
+	if(Model == 1)
+	{
+		controller = "Employee";
+	}
+	else
+	{
+		controller = "Employer";
+	}
 }
 <html lang="en" data-bs-theme="light">
 <!--begin::Head-->
@@ -99,7 +109,7 @@
 							<!--end::Wrapper-->
 							<!--begin::Submit button-->
 							<div class="d-grid mb-10">
-								<button type="submit" id="kt_sign_in_submit" class="btn btn-primary">
+								<a asp-controller="@controller" asp-action="Index" class="btn btn-primary">
 									<!--begin::Indicator label-->
 									<span class="indicator-label">Sign In</span>
 									<!--end::Indicator label-->
@@ -109,7 +119,7 @@
 										<span class="spinner-border spinner-border-sm align-middle ms-2"></span>
 									</span>
 									<!--end::Indicator progress-->
-								</button>
+								</a>
 							</div>
 							<!--end::Submit button-->
 							<!--begin::Sign up-->

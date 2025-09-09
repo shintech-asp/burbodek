@@ -739,7 +739,7 @@
 										<!--begin::Notice-->
 										<div class="text-muted fw-semibold fs-6">
 											If you need more info, please
-											<a asp-controller="Index" asp-action="SignIn" class="link-primary fw-bold">Sign In</a>.
+											<a asp-controller="Index" asp-action="SignIn" asp-route-id="2" class="link-primary fw-bold">Sign In</a>.
 										</div>
 										<!--end::Notice-->
 									</div>
@@ -830,14 +830,14 @@
 	<!--begin::Javascript-->
 	<script>var hostUrl = "~/assets/";</script>
 	<!--begin::Global Javascript Bundle(mandatory for all pages)-->
-	<script src="~/assets/plugins/global/plugins.bundle.js"></script>
-	<script src="~/assets/js/scripts.bundle.js"></script>
+	<script src="~/assets/plugins/global/plugins.bundle.js" asp-append-version="true"></script>
+	<script src="~/assets/js/scripts.bundle.js" asp-append-version="true"></script>
 	<link href="~/assets/plugins/custom/select2/select2.bundle.css" rel="stylesheet" />
-	<script src="~/assets/plugins/custom/select2/select2.bundle.js"></script>
+	<script src="~/assets/plugins/custom/select2/select2.bundle.js" asp-append-version="true"></script>
 
 	<!--end::Global Javascript Bundle-->
 	<!--begin::Custom Javascript(used for this page only)-->
-	<script src="~/assets/js/custom/utilities/modals/create-account.js"></script>
+	<script src="~/assets/js/custom/utilities/modals/create-account.js" asp-append-version="true"></script>
 	<!--end::Custom Javascript-->
 
 	<!--end::Javascript-->

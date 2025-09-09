@@ -1,59 +1,60 @@
 "use strict";
 
 var KTCreateAccount = function () {
-    var e, t, i, o, a, r, s = [];
+    var modalEl, stepperEl, formEl, submitBtn, nextBtn, stepper, validations = [];
 
     return {
         init: function () {
             // Modal
-            e = document.querySelector("#kt_modal_create_account");
-            if (e) {
-                new bootstrap.Modal(e);
+            modalEl = document.querySelector("#kt_modal_create_account");
+            if (modalEl) {
+                new bootstrap.Modal(modalEl);
             }
 
             // Stepper
-            t = document.querySelector("#kt_create_account_stepper");
-            if (!t) return;
+            stepperEl = document.querySelector("#kt_create_account_stepper");
+            if (!stepperEl) return;
 
-            i = t.querySelector("#kt_create_account_form");
-            o = t.querySelector('[data-kt-stepper-action="submit"]');
-            a = t.querySelector('[data-kt-stepper-action="next"]');
-            r = new KTStepper(t);
+            formEl = stepperEl.querySelector("#kt_create_account_form");
+            submitBtn = stepperEl.querySelector('[data-kt-stepper-action="submit"]');
+            nextBtn = stepperEl.querySelector('[data-kt-stepper-action="next"]');
+            stepper = new KTStepper(stepperEl);
 
             // Step change handler
-            r.on("kt.stepper.changed", function () {
-                if (r.getCurrentStepIndex() === 5) {
+            stepper.on("kt.stepper.changed", function () {
+                let currentStep = stepper.getCurrentStepIndex();
+
+                if (currentStep === 5) {
                     // Step 5: show submit, hide next
-                    o.classList.remove("d-none");
-                    o.classList.add("d-inline-block");
-                    a.classList.add("d-none");
-                } else if (r.getCurrentStepIndex() === 6) {
+                    submitBtn.classList.remove("d-none");
+                    submitBtn.classList.add("d-inline-block");
+                    nextBtn.classList.add("d-none");
+                } else if (currentStep === 6) {
                     // Step 6: hide everything (Done)
-                    o.classList.add("d-none");
-                    a.classList.add("d-none");
+                    submitBtn.classList.add("d-none");
+                    nextBtn.classList.add("d-none");
                 } else {
-                    // Other steps: show next, hide submit
-                    o.classList.remove("d-inline-block");
-                    o.classList.remove("d-none");
-                    a.classList.remove("d-none");
+                    // Other steps: hide submit, show next
+                    submitBtn.classList.add("d-none");
+                    submitBtn.classList.remove("d-inline-block");
+                    nextBtn.classList.remove("d-none");
                 }
             });
 
             // Next step handler
-            r.on("kt.stepper.next", function (e) {
+            stepper.on("kt.stepper.next", function (step) {
                 console.log("stepper.next");
-                var t = s[e.getCurrentStepIndex() - 1];
-                if (t) {
-                    t.validate().then(function (status) {
-                        console.log("validated!");
+                var validator = validations[step.getCurrentStepIndex() - 1];
+                if (validator) {
+                    validator.validate().then(function (status) {
                         if (status === "Valid") {
-                            e.goNext();
+                            step.goNext();
                             KTUtil.scrollTop();
                         } else {
                             Swal.fire({
                                 text: "Sorry, looks like there are some errors detected, please try again.",
                                 icon: "error",
-                                buttonsStyling: !1,
+                                buttonsStyling: false,
                                 confirmButtonText: "Ok, got it!",
                                 customClass: { confirmButton: "btn btn-light" }
                             }).then(function () {
@@ -62,20 +63,20 @@ var KTCreateAccount = function () {
                         }
                     });
                 } else {
-                    e.goNext();
+                    step.goNext();
                     KTUtil.scrollTop();
                 }
             });
 
             // Previous step handler
-            r.on("kt.stepper.previous", function (e) {
+            stepper.on("kt.stepper.previous", function (step) {
                 console.log("stepper.previous");
-                e.goPrevious();
+                step.goPrevious();
                 KTUtil.scrollTop();
             });
 
             // Step 1 validation
-            s.push(FormValidation.formValidation(i, {
+            validations.push(FormValidation.formValidation(formEl, {
                 fields: {
                     account_type: {
                         validators: { notEmpty: { message: "Account type is required" } }
@@ -92,7 +93,7 @@ var KTCreateAccount = function () {
             }));
 
             // Step 2 validation
-            s.push(FormValidation.formValidation(i, {
+            validations.push(FormValidation.formValidation(formEl, {
                 fields: {
                     account_team_size: {
                         validators: { notEmpty: { message: "Team size is required" } }
@@ -115,7 +116,7 @@ var KTCreateAccount = function () {
             }));
 
             // Step 3 validation
-            s.push(FormValidation.formValidation(i, {
+            validations.push(FormValidation.formValidation(formEl, {
                 fields: {
                     business_name: {
                         validators: { notEmpty: { message: "Business name is required" } }
@@ -144,7 +145,7 @@ var KTCreateAccount = function () {
             }));
 
             // Step 4 validation
-            s.push(FormValidation.formValidation(i, {
+            validations.push(FormValidation.formValidation(formEl, {
                 fields: {
                     card_name: {
                         validators: { notEmpty: { message: "Name on card is required" } }
@@ -183,10 +184,9 @@ var KTCreateAccount = function () {
                 }
             }));
 
-            // Step 5 validation (NEW STEP)
-            s.push(FormValidation.formValidation(i, {
+            // Step 5 validation (new)
+            validations.push(FormValidation.formValidation(formEl, {
                 fields: {
-                    // Example field, replace with your step 5 fields
                     extra_info: {
                         validators: { notEmpty: { message: "Extra information is required" } }
                     }
@@ -201,45 +201,47 @@ var KTCreateAccount = function () {
                 }
             }));
 
-            // Submit button handler
-            o.addEventListener("click", function (e) {
-                s[4].validate().then(function (status) {
-                    console.log("validated!");
-                    if (status === "Valid") {
-                        e.preventDefault();
-                        o.disabled = !0;
-                        o.setAttribute("data-kt-indicator", "on");
+            // Submit button handler (Step 5)
+            submitBtn.addEventListener("click", function (e) {
+                var validator = validations[stepper.getCurrentStepIndex() - 1];
+                if (validator) {
+                    validator.validate().then(function (status) {
+                        if (status === "Valid") {
+                            e.preventDefault();
+                            submitBtn.disabled = true;
+                            submitBtn.setAttribute("data-kt-indicator", "on");
 
-                        setTimeout(function () {
-                            o.removeAttribute("data-kt-indicator");
-                            o.disabled = !1;
-                            r.goNext();
-                        }, 2000);
-                    } else {
-                        Swal.fire({
-                            text: "Sorry, looks like there are some errors detected, please try again.",
-                            icon: "error",
-                            buttonsStyling: !1,
-                            confirmButtonText: "Ok, got it!",
-                            customClass: { confirmButton: "btn btn-light" }
-                        }).then(function () {
-                            KTUtil.scrollTop();
-                        });
-                    }
-                });
+                            setTimeout(function () {
+                                submitBtn.removeAttribute("data-kt-indicator");
+                                submitBtn.disabled = false;
+                                stepper.goNext(); // go to step 6
+                            }, 2000);
+                        } else {
+                            Swal.fire({
+                                text: "Sorry, looks like there are some errors detected, please try again.",
+                                icon: "error",
+                                buttonsStyling: false,
+                                confirmButtonText: "Ok, got it!",
+                                customClass: { confirmButton: "btn btn-light" }
+                            }).then(function () {
+                                KTUtil.scrollTop();
+                            });
+                        }
+                    });
+                }
             });
 
             // Dynamic revalidation
-            $(i.querySelector('[name="card_expiry_month"]')).on("change", function () {
-                s[3].revalidateField("card_expiry_month");
+            $(formEl.querySelector('[name="card_expiry_month"]')).on("change", function () {
+                validations[3].revalidateField("card_expiry_month");
             });
 
-            $(i.querySelector('[name="card_expiry_year"]')).on("change", function () {
-                s[3].revalidateField("card_expiry_year");
+            $(formEl.querySelector('[name="card_expiry_year"]')).on("change", function () {
+                validations[3].revalidateField("card_expiry_year");
             });
 
-            $(i.querySelector('[name="business_type"]')).on("change", function () {
-                s[2].revalidateField("business_type");
+            $(formEl.querySelector('[name="business_type"]')).on("change", function () {
+                validations[2].revalidateField("business_type");
             });
         }
     };
