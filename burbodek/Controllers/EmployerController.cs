@@ -20,5 +20,29 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult JobListing()
+        {
+            return View();
+        }
+        public IActionResult AccountSettings()
+        {
+            return View();
+        }
+        public IActionResult AccountBilling()
+        {
+            return View();
+        }
+        public IActionResult AccountOverview()
+        {
+            return View();
+        }
+        public IActionResult Billing()
+        {
+            return View();
+        }
+        public IActionResult JobCreate()
+        {
+            return View();
+        }
     }
 }

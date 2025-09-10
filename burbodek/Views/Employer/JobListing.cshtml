@@ -1,0 +1,195 @@
+﻿@{
+    ViewData["Title"] = "Your Jobs";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+<!-- Page Heading -->
+<div class="card shadow-sm mb-5">
+    <div class="card-body d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
+        <h3 class="fw-bold mb-2 mb-sm-0">My Job Listings</h3>
+        <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
+    </div>
+</div>
+
+<!-- Job Listings Table -->
+<div class="card">
+    <div class="card-body">
+        <table class="table table-row-dashed align-middle gs-0 gy-4">
+            <thead>
+                <tr class="fw-semibold text-muted bg-light">
+                    <th class="ps-4">Job Title</th>
+                    <th>Applicants</th>
+                    <th>Expiration Date</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex flex-column">
+                            <span class="text-dark fw-bold">Cruise Ship Chef</span>
+                            <small class="text-muted">Royal Caribbean</small>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-light-info">23 Applicants</span></td>
+                    <td>2025-09-30</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td class="text-end pe-4">
+                        <a class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#jobViewModal">View</a>
+                        <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editJobModal">Edit</a>
+                        <a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableJobModal">Disable</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex flex-column">
+                            <span class="text-dark fw-bold">Housekeeping Supervisor</span>
+                            <small class="text-muted">Norwegian Cruise Line</small>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-light-info">15 Applicants</span></td>
+                    <td>2025-09-15</td>
+                    <td><span class="badge badge-warning">Pending</span></td>
+                    <td class="text-end pe-4">
+                        <a class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#jobViewModal">View</a>
+                        <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editJobModal">Edit</a>
+                        <a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableJobModal">Disable</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Job View Modal -->
+<div class="modal fade" id="jobViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Applicants for <span class="fw-bold">Cruise Ship Chef</span></h5>
+                <button type="button" class="btn btn-icon btn-sm btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <table class="table table-row-dashed align-middle gy-4">
+                    <thead>
+                        <tr class="fw-semibold text-muted">
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="fw-bold">John Doe</span></td>
+                            <td>john.doe@email.com</td>
+                            <td>
+                                <select class="form-select form-select-sm w-150px">
+                                    <option value="applied">Applied</option>
+                                    <option value="reviewing">Reviewing</option>
+                                    <option value="shortlisted">Shortlisted</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <a href="#" class="btn btn-sm btn-light-primary">View Profile</a>
+                                <a href="mailto:john.doe@email.com" class="btn btn-sm btn-light-success">Email</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="fw-bold">Jane Smith</span></td>
+                            <td>jane.smith@email.com</td>
+                            <td>
+                                <select class="form-select form-select-sm w-150px">
+                                    <option value="applied" selected>Applied</option>
+                                    <option value="reviewing">Reviewing</option>
+                                    <option value="shortlisted">Shortlisted</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <a href="#" class="btn btn-sm btn-light-primary">View Profile</a>
+                                <a href="mailto:jane.smith@email.com" class="btn btn-sm btn-light-success">Email</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Job View Modal -->
+<!-- Edit Job Modal -->
+<div class="modal fade" id="editJobModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Job Listing</h5>
+                <button type="button" class="btn btn-icon btn-sm btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form id="editJobForm">
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">Job Title</label>
+                        <input type="text" class="form-control" name="job_title" value="Cruise Ship Chef" />
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">Expiration Date</label>
+                        <input type="date" class="form-control" name="job_expiration" value="2025-09-30" />
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">Job Description</label>
+                        <textarea class="form-control" rows="4" name="job_description">
+Prepare delicious meals for guests and crew on board. Ensure food quality and safety.
+            </textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editJobForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Edit Job Modal -->
+<!-- Disable Job Modal -->
+<div class="modal fade" id="disableJobModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Disable Job</h5>
+                <button type="button" class="btn btn-icon btn-sm btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body text-center">
+                <p class="mb-4">Are you sure you want to disable this job listing?</p>
+                <button type="button" class="btn btn-danger me-2">Yes, Disable</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Disable Job Modal -->
+
