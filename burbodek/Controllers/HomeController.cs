@@ -27,6 +27,10 @@ namespace burbodek.Controllers
             return View();
         }
 
+        public IActionResult Application()
+        {
+            return View();
+        }
         public IActionResult Reports()
         {
             return View();
