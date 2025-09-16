@@ -6,7 +6,9 @@
 <div class="card shadow-sm mb-5">
     <div class="card-body d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
         <h3 class="fw-bold mb-2 mb-sm-0">My Job Listings</h3>
-        <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+            + Post New Job
+        </button>
     </div>
 </div>
 
@@ -61,6 +63,28 @@
     </div>
 </div>
 
+<div class="modal fade" tabindex="-1" id="kt_modal_1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modal title</h3>
+
+                <!--begin::Close-->
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+                <!--end::Close-->
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3 d-flex justify-content-evenly">
+                    <a asp-controller="Employer" asp-action="TrainingCreate" class="btn btn-success btn-sm">+ Post New Training</a>
+                    <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Job View Modal -->
 <div class="modal fade" id="jobViewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">

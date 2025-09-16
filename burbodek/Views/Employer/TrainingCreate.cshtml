@@ -1,0 +1,146 @@
+﻿@{
+    ViewData["Title"] = "Training Posting";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+<!-- Job Listing Form -->
+<div class="card mb-10">
+    <div class="card-header">
+        <h3 class="card-title">Create Training</h3>
+    </div>
+
+    <div class="card-body">
+        <form id="jobListingForm">
+            <!-- Job Title -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Training Title</label>
+                <input type="text" class="form-control" name="job_title" placeholder="e.g. Tesda certification" required />
+            </div>
+
+            <!-- Salary Range -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Price</label>
+                    <input type="number" class="form-control" name="salary_min" placeholder="e.g. 2000" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Expiration Date</label>
+                    <input type="date" class="form-control" name="expiration_date" required />
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Training Description</label>
+                <textarea class="form-control" rows="4" name="job_description" placeholder="Write a detailed training description..." required></textarea>
+            </div>
+
+            <!-- Job Description -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Training Duration</label>
+                <div class="d-flex align-items-center gap-5">
+                    <!-- From -->
+                    <div class="d-flex flex-column">
+                        <label for="dateFrom" class="form-label mb-1">From</label>
+                        <input type="date" class="form-control" id="dateFrom" name="date_from" required>
+                    </div>
+
+                    <!-- To -->
+                    <div class="d-flex flex-column">
+                        <label for="dateTo" class="form-label mb-1">To</label>
+                        <input type="date" class="form-control" id="dateTo" name="date_to" required>
+                    </div>
+                </div>
+
+            </div>
+            <!-- Requirements -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Requirements</label>
+                <ul id="requirementsList" class="list-unstyled mb-3"></ul>
+                <div class="input-group">
+                    <input type="text" id="requirementInput" class="form-control" placeholder="Add requirement..." />
+                    <button type="button" class="btn btn-primary" onclick="addRequirement()">Add</button>
+                </div>
+            </div>
+
+            <!-- Benefits -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Benefits</label>
+                <ul id="benefitsList" class="list-unstyled mb-3"></ul>
+                <div class="input-group">
+                    <input type="text" id="benefitInput" class="form-control" placeholder="Add benefit..." />
+                    <button type="button" class="btn btn-success" onclick="addBenefit()">Add</button>
+                </div>
+            </div>
+
+            <!-- Upload Media -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Upload Media (Max 10)</label>
+                <input type="file" class="form-control" name="media_files[]" id="mediaInput" accept="image/*,video/*" multiple />
+                <small class="text-muted">You can upload up to 10 pictures/videos.</small>
+                <div id="mediaPreview" class="d-flex flex-wrap gap-3 mt-3"></div>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Create Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Add Requirement
+    function addRequirement() {
+      const input = document.getElementById("requirementInput");
+      if (input.value.trim() !== "") {
+        const li = document.createElement("li");
+        li.innerHTML = `<i class="bi bi-dot text-primary"></i> ${input.value}
+          <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
+        document.getElementById("requirementsList").appendChild(li);
+        input.value = "";
+      }
+    }
+
+    // Add Benefit
+    function addBenefit() {
+      const input = document.getElementById("benefitInput");
+      if (input.value.trim() !== "") {
+        const li = document.createElement("li");
+        li.innerHTML = `<i class="bi bi-check2-circle text-success"></i> ${input.value}
+          <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
+        document.getElementById("benefitsList").appendChild(li);
+        input.value = "";
+      }
+    }
+
+    // Media Upload Preview (limit 10)
+    document.getElementById("mediaInput").addEventListener("change", function () {
+      const preview = document.getElementById("mediaPreview");
+      preview.innerHTML = "";
+      const files = Array.from(this.files).slice(0, 10); // limit 10 files
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          let element;
+          if (file.type.startsWith("image/")) {
+            element = document.createElement("img");
+            element.src = e.target.result;
+            element.className = "rounded border";
+            element.style.width = "120px";
+            element.style.height = "80px";
+            element.style.objectFit = "cover";
+          } else if (file.type.startsWith("video/")) {
+            element = document.createElement("video");
+            element.src = e.target.result;
+            element.controls = true;
+            element.className = "rounded border";
+            element.style.width = "120px";
+            element.style.height = "80px";
+          }
+          preview.appendChild(element);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+</script>

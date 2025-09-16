@@ -44,5 +44,9 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult TrainingCreate()
+        {
+            return View();
+        }
     }
 }
