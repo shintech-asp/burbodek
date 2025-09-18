@@ -124,7 +124,7 @@
 									<!--begin::Label-->
 									<div class="stepper-label">
 										<h3 class="stepper-title">Identification</h3>
-										<div class="stepper-desc fw-normal">Provide your payment info</div>
+										<div class="stepper-desc fw-normal">Provide your identification details</div>
 									</div>
 									<!--end::Label-->
 								</div>
@@ -202,7 +202,7 @@
 					<!--begin::Wrapper-->
 					<div class="w-lg-650px w-xl-700px p-10 p-lg-15 mx-auto">
 						<!--begin::Form-->
-						<form class="my-auto pb-5 fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate" id="kt_create_account_form">
+						<form class="my-auto pb-5 fv-plugins-bootstrap5 fv-plugins-framework" asp-controller="Index" asp-action="SignUpEmployer" method="post" enctype="multipart/form-data">
 							<!--begin::Step 1-->
 							<div class="current" data-kt-stepper-element="content">
 								<!--begin::Wrapper-->
@@ -236,7 +236,7 @@
 											<!--begin::Col-->
 											<div class="col-lg-6">
 												<!--begin::Option-->
-												<input type="checkbox" class="btn-check" name="training" value="personal" checked="checked" id="kt_create_account_form_account_type_personal">
+												<input type="checkbox" class="btn-check" name="isTrainingCenter" value="1" checked="checked" id="kt_create_account_form_account_type_personal">
 												<label class="btn btn-outline btn-outline-dashed btn-active-light-primary p-7 d-flex align-items-center mb-10" for="kt_create_account_form_account_type_personal">
 													<i class="ki-duotone ki-badge fs-3x me-5">
 														<span class="path1"></span>
@@ -259,7 +259,7 @@
 											<!--begin::Col-->
 											<div class="col-lg-6">
 												<!--begin::Option-->
-												<input type="checkbox" class="btn-check" name="employer" value="corporate" id="kt_create_account_form_account_type_corporate">
+												<input type="checkbox" class="btn-check" name="isEmployer" value="1" id="kt_create_account_form_account_type_corporate">
 												<label class="btn btn-outline btn-outline-dashed btn-active-light-primary p-7 d-flex align-items-center" for="kt_create_account_form_account_type_corporate">
 													<i class="ki-duotone ki-briefcase fs-3x me-5">
 														<span class="path1"></span>
@@ -306,7 +306,7 @@
 										<label class="form-label mb-3">Name of Employer</label>
 										<!--end::Label-->
 										<!--begin::Input-->
-										<input type="text" class="form-control form-control-lg form-control-solid" name="account_name" placeholder="" value="">
+										<input type="text" class="form-control form-control-lg form-control-solid" name="Users.Username" placeholder="" value="">
 										<!--end::Input-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 									</div>
@@ -334,35 +334,6 @@
 													<!--begin::Icon-->
 													<span class="symbol symbol-50px me-6">
 														<span class="symbol-label">
-															<i class="ki-duotone ki-bank fs-1 text-gray-600">
-																<span class="path1"></span>
-																<span class="path2"></span>
-															</i>
-														</span>
-													</span>
-													<!--end::Icon-->
-													<!--begin::Description-->
-													<span class="d-flex flex-column">
-														<span class="fw-bold text-gray-800 text-hover-primary fs-5">Best</span>
-														<span class="fs-6 fw-semibold text-muted">Use images to enhance your post flow</span>
-													</span>
-													<!--end:Description-->
-												</span>
-												<!--end:Label-->
-												<!--begin:Input-->
-												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" name="account_plan" value="1">
-												</span>
-												<!--end:Input-->
-											</label>
-											<!--end::Option-->
-											<!--begin:Option-->
-											<label class="d-flex flex-stack mb-5 cursor-pointer">
-												<!--begin:Label-->
-												<span class="d-flex align-items-center me-2">
-													<!--begin::Icon-->
-													<span class="symbol symbol-50px me-6">
-														<span class="symbol-label">
 															<i class="ki-duotone ki-chart fs-1 text-gray-600">
 																<span class="path1"></span>
 																<span class="path2"></span>
@@ -380,7 +351,36 @@
 												<!--end:Label-->
 												<!--begin:Input-->
 												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" checked="checked" name="account_plan" value="2">
+													<input class="form-check-input" type="radio" checked="checked" name="pPlansId" value="3">
+												</span>
+												<!--end:Input-->
+											</label>
+											<!--end::Option-->
+											<!--begin:Option-->
+											<label class="d-flex flex-stack mb-5 cursor-pointer">
+												<!--begin:Label-->
+												<span class="d-flex align-items-center me-2">
+													<!--begin::Icon-->
+													<span class="symbol symbol-50px me-6">
+														<span class="symbol-label">
+															<i class="ki-duotone ki-bank fs-1 text-gray-600">
+																<span class="path1"></span>
+																<span class="path2"></span>
+															</i>
+														</span>
+													</span>
+													<!--end::Icon-->
+													<!--begin::Description-->
+													<span class="d-flex flex-column">
+														<span class="fw-bold text-gray-800 text-hover-primary fs-5">Best</span>
+														<span class="fs-6 fw-semibold text-muted">Use images to enhance your post flow</span>
+													</span>
+													<!--end:Description-->
+												</span>
+												<!--end:Label-->
+												<!--begin:Input-->
+												<span class="form-check form-check-custom form-check-solid">
+													<input class="form-check-input" type="radio" name="pPlansId" value="2">
 												</span>
 												<!--end:Input-->
 											</label>
@@ -410,7 +410,7 @@
 												<!--end:Label-->
 												<!--begin:Input-->
 												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" name="account_plan" value="3">
+													<input class="form-check-input" type="radio" name="pPlansId" value="1">
 												</span>
 												<!--end:Input-->
 											</label>
@@ -447,49 +447,7 @@
 										<label class="form-label required">Business Name</label>
 										<!--end::Label-->
 										<!--begin::Input-->
-										<input name="business_name" class="form-control form-control-lg form-control-solid" value="">
-										<!--end::Input-->
-										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-									</div>
-									<!--end::Input group-->
-									<!--begin::Input group-->
-									<div class="fv-row mb-10 fv-plugins-icon-container">
-										<!--begin::Label-->
-										<label class="d-flex align-items-center form-label">
-											<span class="required">Shortened Descriptor</span>
-											<span class="lh-1 ms-1" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-html="true" data-bs-content="&lt;div class='p-4 rounded bg-light'&gt; &lt;div class='d-flex flex-stack text-muted mb-4'&gt; &lt;i class=&quot;ki-duotone ki-bank fs-3 me-3&quot;&gt;&lt;span class=&quot;path1&quot;&gt;&lt;/span&gt;&lt;span class=&quot;path2&quot;&gt;&lt;/span&gt;&lt;/i&gt; &lt;div class='fw-bold'&gt;INCBANK **** 1245 STATEMENT&lt;/div&gt; &lt;/div&gt; &lt;div class='d-flex flex-stack fw-semibold text-gray-600'&gt; &lt;div&gt;Amount&lt;/div&gt; &lt;div&gt;Transaction&lt;/div&gt; &lt;/div&gt; &lt;div class='separator separator-dashed my-2'&gt;&lt;/div&gt; &lt;div class='d-flex flex-stack text-dark fw-bold mb-2'&gt; &lt;div&gt;USD345.00&lt;/div&gt; &lt;div&gt;KEENTHEMES*&lt;/div&gt; &lt;/div&gt; &lt;div class='d-flex flex-stack text-muted mb-2'&gt; &lt;div&gt;USD75.00&lt;/div&gt; &lt;div&gt;Hosting fee&lt;/div&gt; &lt;/div&gt; &lt;div class='d-flex flex-stack text-muted'&gt; &lt;div&gt;USD3,950.00&lt;/div&gt; &lt;div&gt;Payrol&lt;/div&gt; &lt;/div&gt; &lt;/div&gt;" data-kt-initialized="1">
-												<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>
-											</span>
-										</label>
-										<!--end::Label-->
-										<!--begin::Input-->
-										<input name="business_descriptor" class="form-control form-control-lg form-control-solid" value="">
-										<!--end::Input-->
-										<!--begin::Hint-->
-										<div class="form-text">Customers will see this shortened version of your statement descriptor</div>
-										<!--end::Hint-->
-										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-									</div>
-									<!--end::Input group-->
-									<!--begin::Input group-->
-									<div class="fv-row mb-10 fv-plugins-icon-container" data-select2-id="select2-data-11-sdbt">
-										<!--begin::Label-->
-										<label class="form-label required">Corporation Type</label>
-										<!--end::Label-->
-										<!--begin::Input-->
-										<select name="business_type" class="form-select form-select-lg form-select-solid" data-control="select2" data-placeholder="Select..." data-allow-clear="true" data-hide-search="true" data-select2-id="select2-data-1-c5fx" tabindex="-1" aria-hidden="true" data-kt-initialized="1">
-											<option data-select2-id="select2-data-3-xtem"></option>
-											<option value="1" data-select2-id="select2-data-14-v1su">S Corporation</option>
-											<option value="1" data-select2-id="select2-data-15-plej">C Corporation</option>
-											<option value="2" data-select2-id="select2-data-16-jmg8">Sole Proprietorship</option>
-											<option value="3" data-select2-id="select2-data-17-ymyo">Non-profit</option>
-											<option value="4" data-select2-id="select2-data-18-tzy8">Limited Liability</option>
-											<option value="5" data-select2-id="select2-data-19-klhk">General Partnership</option>
-										</select>
+										<input name="BusinessName" class="form-control form-control-lg form-control-solid" value="">
 										<!--end::Input-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 									</div>
@@ -500,7 +458,7 @@
 										<label class="form-label">Business Description</label>
 										<!--end::Label-->
 										<!--begin::Input-->
-										<textarea name="business_description" class="form-control form-control-lg form-control-solid" rows="3"></textarea>
+										<textarea name="BusinessDescription" class="form-control form-control-lg form-control-solid" rows="3"></textarea>
 										<!--end::Input-->
 									</div>
 									<!--end::Input group-->
@@ -510,7 +468,7 @@
 										<label class="fs-6 fw-semibold form-label required">Contact Email</label>
 										<!--end::Label-->
 										<!--begin::Input-->
-										<input name="business_email" class="form-control form-control-lg form-control-solid" value="corp@support.com">
+										<input name="Users.Email" class="form-control form-control-lg form-control-solid" placeholder="corp@support.com">
 										<!--end::Input-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 									</div>
@@ -577,21 +535,12 @@
 										<!--end::Notice-->
 									</div>
 									<!--end::Heading-->
-									<!--begin::Input group=-->
-									<div class="fv-row mb-8 fv-plugins-icon-container">
-										<!--begin::Email-->
-										<input type="text" placeholder="Email" name="email" autocomplete="off" class="form-control bg-transparent">
-										<!--end::Email-->
-										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-									</div>
-									<!--begin::Input group-->
 									<div class="fv-row mb-8 fv-plugins-icon-container" data-kt-password-meter="true">
 										<!--begin::Wrapper-->
 										<div class="mb-1">
 											<!--begin::Input wrapper-->
 											<div class="position-relative mb-3">
-												<input class="form-control bg-transparent" type="password" placeholder="Password" name="password" autocomplete="off">
+												<input class="form-control bg-transparent" type="password" placeholder="Password" name="Users.Password" autocomplete="off">
 												<span class="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2" data-kt-password-meter-control="visibility">
 													<i class="ki-duotone ki-eye-slash fs-2"></i>
 													<i class="ki-duotone ki-eye fs-2 d-none"></i>
@@ -618,7 +567,7 @@
 									<!--end::Input group=-->
 									<div class="fv-row mb-8 fv-plugins-icon-container">
 										<!--begin::Repeat Password-->
-										<input placeholder="Repeat Password" name="confirm-password" type="password" autocomplete="off" class="form-control bg-transparent">
+										<input placeholder="Repeat Password" name="Users.ConfirmPassword" type="password" autocomplete="off" class="form-control bg-transparent">
 										<!--end::Repeat Password-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -693,7 +642,7 @@
 									</button>
 								</div>
 								<div>
-									<button type="button" class="btn btn-lg btn-primary" data-kt-stepper-action="submit">
+									<button type="submit" class="btn btn-lg btn-primary" data-kt-stepper-action="submit">
 										<span class="indicator-label">
 											Submit
 											<i class="ki-duotone ki-arrow-right fs-4 ms-2">
