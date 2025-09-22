@@ -1,0 +1,132 @@
+﻿@model burbodek.Models.EmployerDetails
+
+@{
+    ViewData["Title"] = "Employer Application Details";
+}
+
+<div class="card mb-5">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3">Employer Application Details</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">Review submitted credentials and documents</span>
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="mb-5">
+            <h4 class="fw-bold">@Model.BusinessName</h4>
+            <div class="text-gray-600 fw-semibold fs-6">
+                <p><strong>Employer ID:</strong> @Model.Id</p>
+                <p><strong>User:</strong> @Model.Users.Username (@Model.Users.Email)</p>
+                <p><strong>Business Description:</strong> @Model.BusinessDescription</p>
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge badge-light-@(Model.Status == "Approved" ? "success" : "warning")">
+                        @Model.Status
+                    </span>
+                </p>
+                <p><strong>Address:</strong> @Model.Address</p>
+            </div>
+        </div>
+        <br />
+        <br />
+        <h3 class="fw-bold mb-4">Uploaded Documents</h3>
+
+        <div class="table-responsive">
+            <table class="table align-middle table-row-dashed fs-6 gy-3">
+                <thead>
+                    <tr class="fw-bold text-muted">
+                        <th>File Name</th>
+                        <th>Details</th>
+                        <th>Preview / Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var doc in Model.Files)
+                    {
+                        <tr>
+                            <td>@doc.FileName</td>
+                            <td>@doc.ImageDetails</td>
+                            <td>
+                                @if (doc.ContentType.StartsWith("image"))
+                                {
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal-@doc.Id">
+                                        <img src="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })"
+                                             alt="Image Preview"
+                                             class="img-thumbnail"
+                                             style="max-height:80px;" />
+                                    </a>
+
+                                    <!-- Image Modal -->
+                                    <div class="modal fade" id="imageModal-@doc.Id" tabindex="-1">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-body text-center">
+                                                    <img src="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })"
+                                                         class="img-fluid rounded"
+                                                         alt="Zoomed Image" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else if (doc.ContentType == "application/pdf")
+                                {
+                                    <a href="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })" target="_blank"
+                                       class="btn btn-sm btn-light-primary">
+                                        <i class="bi bi-file-earmark-pdf"></i> View PDF
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })"
+                                       class="btn btn-sm btn-light-success">
+                                        <i class="bi bi-download"></i> Download File
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+       <div class="text-end">
+            <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
+                  asp-route-Id="@Model.Id"
+                  asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
+                  method="post">
+
+                <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
+
+                <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">Approve</button>
+                <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">Decline</button>
+            </form>
+       </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function confirmAction(action) {
+            let msg = action === "approve"
+                ? "Are you sure you want to approve this application?"
+                : "Are you sure you want to decline this application?";
+
+            Swal.fire({
+                title: 'Confirmation',
+                text: msg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // set hidden input value
+                    document.getElementById("ApprovalDetails").value = action;
+                    // submit the form
+                    document.getElementById("approvalForm").submit();
+                }
+            });
+        }
+    </script>
+}

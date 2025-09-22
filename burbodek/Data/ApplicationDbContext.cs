@@ -10,7 +10,8 @@ namespace burbodek.Data
         public DbSet<Users> Users { get; set; }
         public DbSet<Plans> Plans { get; set; }
         public DbSet<EmployerDetails> EmployerDetails { get; set; }
-        public DbSet<Images> Images { get; set; }
+        public DbSet<Files> Files { get; set; }
         public DbSet<Payments> Payments { get; set; }
+        public DbSet<Subscription> Subscription { get; set; }
     }
 }

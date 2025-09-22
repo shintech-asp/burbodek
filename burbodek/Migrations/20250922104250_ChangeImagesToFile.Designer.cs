@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922104250_ChangeImagesToFile")]
+    partial class ChangeImagesToFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,9 +86,6 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EmployerDetailsId")
-                        .HasColumnType("int");
-
                     b.Property<byte[]>("File")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -105,8 +105,6 @@ namespace burbodek.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployerDetailsId");
 
                     b.HasIndex("UsersId");
 
@@ -263,10 +261,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.Files", b =>
                 {
-                    b.HasOne("burbodek.Models.EmployerDetails", null)
-                        .WithMany("Files")
-                        .HasForeignKey("EmployerDetailsId");
-
                     b.HasOne("burbodek.Models.Users", "Users")
                         .WithMany()
                         .HasForeignKey("UsersId")
@@ -312,8 +306,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
-                    b.Navigation("Files");
-
                     b.Navigation("Subscription");
                 });
 

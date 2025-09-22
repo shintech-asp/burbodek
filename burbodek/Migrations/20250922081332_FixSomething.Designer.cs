@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922081332_FixSomething")]
+    partial class FixSomething
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +74,7 @@ namespace burbodek.Migrations
                     b.ToTable("EmployerDetails");
                 });
 
-            modelBuilder.Entity("burbodek.Models.Files", b =>
+            modelBuilder.Entity("burbodek.Models.Images", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,20 +82,9 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("EmployerDetailsId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("File")
+                    b.Property<byte[]>("Image")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageDetails")
                         .IsRequired()
@@ -106,11 +98,9 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployerDetailsId");
-
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Files");
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("burbodek.Models.Payments", b =>
@@ -261,12 +251,8 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.Files", b =>
+            modelBuilder.Entity("burbodek.Models.Images", b =>
                 {
-                    b.HasOne("burbodek.Models.EmployerDetails", null)
-                        .WithMany("Files")
-                        .HasForeignKey("EmployerDetailsId");
-
                     b.HasOne("burbodek.Models.Users", "Users")
                         .WithMany()
                         .HasForeignKey("UsersId")
@@ -312,8 +298,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
-                    b.Navigation("Files");
-
                     b.Navigation("Subscription");
                 });
 

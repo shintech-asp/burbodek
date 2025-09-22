@@ -20,6 +20,10 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult BrowseJob()
+        {
+            return View();
+        }
         public IActionResult SignIn()
         {
             return View();
@@ -113,6 +117,7 @@ namespace burbodek.Controllers
         {
             ModelState.Remove("Users.Role");
             ModelState.Remove("Users");
+            ModelState.Remove("Subscription");
             if (ModelState.IsValid)
             {
                 if (_context.Users.Any(u => u.Email == employer.Users.Email))
@@ -139,9 +144,18 @@ namespace burbodek.Controllers
                     isTrainingCenter = employer.isTrainingCenter ?? 0,
                     BusinessName = employer.BusinessName,
                     BusinessDescription = employer.BusinessDescription,
-                    pPlansId = employer.pPlansId
+                    Address = employer.Address,
+                    Latitude = employer.Latitude,
+                    Longitude = employer.Longitude
                 };
                 _context.EmployerDetails.Add(employerDetails);
+
+                var subscriptionDetails = new Subscription
+                {
+                    UsersId = user.Id,
+                    PlansId = 1
+                };
+                _context.Subscription.Add(subscriptionDetails);
                 _context.SaveChanges();
 
                 if (sec_dti != null)
@@ -149,13 +163,20 @@ namespace burbodek.Controllers
                     using var ms = new MemoryStream();
                     sec_dti.CopyTo(ms);
 
-                    var images = new Images
+                    // Detect file type
+                    var contentType = sec_dti.ContentType;              // e.g. "image/jpeg", "application/pdf"
+                    var extension = Path.GetExtension(sec_dti.FileName); // e.g. ".jpg", ".pdf"
+
+                    var file = new Files
                     {
-                        Image = ms.ToArray(),
+                        File = ms.ToArray(),
                         UsersId = user.Id,
                         ImageDetails = "sec_dti",
+                        FileName = sec_dti.FileName,
+                        ContentType = contentType
                     };
-                    _context.Images.Add(images);
+
+                    _context.Files.Add(file);
                     _context.SaveChanges();
                 }
                 if (bir_certificate != null)
@@ -163,13 +184,19 @@ namespace burbodek.Controllers
                     using var ms = new MemoryStream();
                     bir_certificate.CopyTo(ms);
 
-                    var images = new Images
+                    // Detect file type
+                    var contentType = bir_certificate.ContentType;
+                    var extension = Path.GetExtension(bir_certificate.FileName);
+
+                    var file = new Files
                     {
-                        Image = ms.ToArray(),
+                        File = ms.ToArray(),
                         UsersId = user.Id,
                         ImageDetails = "bir_certificate",
+                        FileName = bir_certificate.FileName,
+                        ContentType = contentType
                     };
-                    _context.Images.Add(images);
+                    _context.Files.Add(file);
                     _context.SaveChanges();
                 }
                 if (business_permit != null)
@@ -177,13 +204,19 @@ namespace burbodek.Controllers
                     using var ms = new MemoryStream();
                     business_permit.CopyTo(ms);
 
-                    var images = new Images
+                    // Detect file type
+                    var contentType = business_permit.ContentType;
+                    var extension = Path.GetExtension(business_permit.FileName);
+
+                    var file = new Files
                     {
-                        Image = ms.ToArray(),
+                        File = ms.ToArray(),
                         UsersId = user.Id,
                         ImageDetails = "business_permit",
+                        FileName = business_permit.FileName,
+                        ContentType = contentType
                     };
-                    _context.Images.Add(images);
+                    _context.Files.Add(file);
                     _context.SaveChanges();
                 }
                 if (poea_license != null)
@@ -191,13 +224,19 @@ namespace burbodek.Controllers
                     using var ms = new MemoryStream();
                     poea_license.CopyTo(ms);
 
-                    var images = new Images
+                    // Detect file type
+                    var contentType = poea_license.ContentType;
+                    var extension = Path.GetExtension(poea_license.FileName);
+
+                    var file = new Files
                     {
-                        Image = ms.ToArray(),
+                        File = ms.ToArray(),
                         UsersId = user.Id,
                         ImageDetails = "poea_license",
+                        FileName = poea_license.FileName,
+                        ContentType = contentType
                     };
-                    _context.Images.Add(images);
+                    _context.Files.Add(file);
                     _context.SaveChanges();
                 }
                 if (proof_partnership != null)
@@ -205,13 +244,19 @@ namespace burbodek.Controllers
                     using var ms = new MemoryStream();
                     proof_partnership.CopyTo(ms);
 
-                    var images = new Images
+                    // Detect file type
+                    var contentType = proof_partnership.ContentType;
+                    var extension = Path.GetExtension(proof_partnership.FileName);
+
+                    var file = new Files
                     {
-                        Image = ms.ToArray(),
+                        File = ms.ToArray(),
                         UsersId = user.Id,
                         ImageDetails = "proof_partnership",
+                        FileName = proof_partnership.FileName,
+                        ContentType = contentType
                     };
-                    _context.Images.Add(images);
+                    _context.Files.Add(file);
                     _context.SaveChanges();
                 }
                 return RedirectToAction("SignIn", "Index");
