@@ -2001,7 +2001,7 @@
 									<!--end::Menu item-->
 									<!--begin::Menu item-->
 									<div class="menu-item px-5">
-										<a asp-controller="Index" asp-action="Index" class="menu-link px-5">Sign Out</a>
+										<a asp-controller="Index" asp-action="Logout" class="menu-link px-5">Sign Out</a>
 									</div>
 									<!--end::Menu item-->
 								</div>
@@ -2071,86 +2071,88 @@
 											</div>
 										</div>
 									</div>
+									@if (@User.FindFirst("Status")?.Value == "Approved")
+									{
 									<div class="menu-item pt-5">
 										<!--begin:Menu content-->
 										<div class="menu-content">
 											<span class="menu-heading fw-bold text-uppercase fs-7">Functions</span>
 										</div>
 									</div>
-
-									<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-										<!--begin:Menu link-->
-										<span class="menu-link">
-											<span class="menu-icon">
-												<i class="ki-duotone ki-element-11 fs-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-													<span class="path4"></span>
-												</i>
+										<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+											<!--begin:Menu link-->
+											<span class="menu-link">
+												<span class="menu-icon">
+													<i class="ki-duotone ki-element-11 fs-2">
+														<span class="path1"></span>
+														<span class="path2"></span>
+														<span class="path3"></span>
+														<span class="path4"></span>
+													</i>
+												</span>
+												<span class="menu-title">Jobs</span>
+												<span class="menu-arrow"></span>
 											</span>
-											<span class="menu-title">Jobs</span>
-											<span class="menu-arrow"></span>
-										</span>
-										<!--end:Menu link-->
-										<!--begin:Menu sub-->
-										<div class="menu-sub menu-sub-accordion">
-											<!--begin:Menu item-->
-											<div class="menu-item">
-												<!--begin:Menu link-->
-												<a class="menu-link" asp-controller="Employer" asp-action="JobListing">
-													<span class="menu-bullet">
-														<span class="bullet bullet-dot"></span>
-													</span>
-													<span class="menu-title">Job Listing</span>
-												</a>
-												<!--end:Menu link-->
-											</div>
-											<!--begin:Menu item-->
-											<div class="menu-item">
-												<!--begin:Menu link-->
-												<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
-													<span class="menu-bullet">
-														<span class="bullet bullet-dot"></span>
-													</span>
-													<span class="menu-title">Create Job</span>
-												</a>
-												<!--end:Menu link-->
+											<!--end:Menu link-->
+											<!--begin:Menu sub-->
+											<div class="menu-sub menu-sub-accordion">
+												<!--begin:Menu item-->
+												<div class="menu-item">
+													<!--begin:Menu link-->
+													<a class="menu-link" asp-controller="Employer" asp-action="JobListing">
+														<span class="menu-bullet">
+															<span class="bullet bullet-dot"></span>
+														</span>
+														<span class="menu-title">Job Listing</span>
+													</a>
+													<!--end:Menu link-->
+												</div>
+												<!--begin:Menu item-->
+												<div class="menu-item">
+													<!--begin:Menu link-->
+													<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
+														<span class="menu-bullet">
+															<span class="bullet bullet-dot"></span>
+														</span>
+														<span class="menu-title">Create Job</span>
+													</a>
+													<!--end:Menu link-->
+												</div>
 											</div>
 										</div>
-                                    </div>
-									<div class="menu-item">
-										<!--begin:Menu link-->
-										<a class="menu-link" asp-controller="Employer" asp-action="Message">
-											<span class="menu-icon">
-												<i class="ki-duotone ki-briefcase">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-											</span>
-											<span class="menu-title">Message</span>
-										</a>
-										<!--end:Menu link-->
-									</div>
-									<div class="menu-item pt-5">
-										<!--begin:Menu content-->
-										<div class="menu-content">
-											<span class="menu-heading fw-bold text-uppercase fs-7">Settings</span>
+										<div class="menu-item">
+											<!--begin:Menu link-->
+											<a class="menu-link" asp-controller="Employer" asp-action="Message">
+												<span class="menu-icon">
+													<i class="ki-duotone ki-briefcase">
+														<span class="path1"></span>
+														<span class="path2"></span>
+													</i>
+												</span>
+												<span class="menu-title">Message</span>
+											</a>
+											<!--end:Menu link-->
 										</div>
-									</div>
-									<div class="menu-item">
-										<!--begin:Menu link-->
-										<a class="menu-link" asp-controller="Employer" asp-action="AccountOverview">
-											<span class="menu-icon">
-												<i class="ki-duotone ki-filter-tablet">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-											</span>
-											<span class="menu-title">Account Settings</span>
-										</a>
-										<!--end:Menu link-->
-									</div>
+										<div class="menu-item pt-5">
+											<!--begin:Menu content-->
+											<div class="menu-content">
+												<span class="menu-heading fw-bold text-uppercase fs-7">Settings</span>
+											</div>
+										</div>
+										<div class="menu-item">
+											<!--begin:Menu link-->
+											<a class="menu-link" asp-controller="Employer" asp-action="AccountOverview">
+												<span class="menu-icon">
+													<i class="ki-duotone ki-filter-tablet">
+														<span class="path1"></span>
+														<span class="path2"></span>
+													</i>
+												</span>
+												<span class="menu-title">Account Settings</span>
+											</a>
+											<!--end:Menu link-->
+										</div>
+									}
 								</div>
 								<!--end::Menu-->
 							</div>

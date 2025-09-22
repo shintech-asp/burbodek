@@ -2,7 +2,7 @@
 	ViewData["Title"] = "Sign Up";
 	Layout = null;
 }
-
+@model Users;
 <html lang="en" data-bs-theme="light">
 <!--begin::Head-->
 <head>
@@ -36,7 +36,7 @@
 					<!--begin::Wrapper-->
 					<div class="w-lg-500px p-10">
 						<!--begin::Form-->
-						<form class="form w-100 fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate" id="kt_sign_up_form" data-kt-redirect-url="../../demo1/dist/authentication/layouts/corporate/sign-in.html" action="#">
+						<form class="form w-100 fv-plugins-bootstrap5 fv-plugins-framework" asp-controller="Index" asp-action="SignUpClient" method="post">
 							<!--begin::Heading-->
 							<div class="text-center mb-11">
 								<!--begin::Title-->
@@ -50,9 +50,16 @@
 							<!--begin::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
 								<!--begin::Email-->
-								<input type="text" placeholder="Email" name="email" autocomplete="off" class="form-control bg-transparent">
+								<input type="text" placeholder="Email" name="Email" autocomplete="off" class="form-control bg-transparent">
 								<!--end::Email-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="Email" class="text-danger"></span></div>
+							</div>
+							<!--begin::Input group=-->
+							<div class="fv-row mb-8 fv-plugins-icon-container">
+								<!--begin::Email-->
+								<input type="text" placeholder="Username" name="Username" autocomplete="off" class="form-control bg-transparent">
+								<!--end::Email-->
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="Username" class="text-danger"></span></div>
 							</div>
 							<!--begin::Input group-->
 							<div class="fv-row mb-8 fv-plugins-icon-container" data-kt-password-meter="true">
@@ -60,7 +67,7 @@
 								<div class="mb-1">
 									<!--begin::Input wrapper-->
 									<div class="position-relative mb-3">
-										<input class="form-control bg-transparent" type="password" placeholder="Password" name="password" autocomplete="off">
+										<input class="form-control bg-transparent" type="password" placeholder="Password" name="Password" autocomplete="off">
 										<span class="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2" data-kt-password-meter-control="visibility">
 											<i class="ki-duotone ki-eye-slash fs-2"></i>
 											<i class="ki-duotone ki-eye fs-2 d-none"></i>
@@ -80,15 +87,15 @@
 								<!--begin::Hint-->
 								<div class="text-muted">Use 8 or more characters with a mix of letters, numbers &amp; symbols.</div>
 								<!--end::Hint-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="Password" class="text-danger"></span></div>
 							</div>
 							<!--end::Input group=-->
 							<!--end::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
 								<!--begin::Repeat Password-->
-								<input placeholder="Repeat Password" name="confirm-password" type="password" autocomplete="off" class="form-control bg-transparent">
+								<input placeholder="Repeat Password" name="ConfirmPassword" type="password" autocomplete="off" class="form-control bg-transparent">
 								<!--end::Repeat Password-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="ConfirmPassword" class="text-danger"></span></div>
 							</div>
 							<!--end::Input group=-->
 							<!--begin::Accept-->
@@ -121,7 +128,7 @@
 							<!--begin::Sign up-->
 							<div class="text-gray-500 text-center fw-semibold fs-6">
 								Already have an Account?
-								<a asp-controller="Index" asp-action="SignIn" asp-route-id="1" class="link-primary fw-semibold">Sign in</a>
+								<a asp-controller="Index" asp-action="SignIn" class="link-primary fw-semibold">Sign in</a>
 							</div>
 							<!--end::Sign up-->
 						</form>
@@ -252,7 +259,7 @@
 	<script src="~/assets/js/custom/authentication/sign-up/general.js"></script>
 	<!--end::Custom Javascript-->
 	<!--end::Javascript-->
-
+	<partial name="_ValidationScriptsPartial" />
 
 	<svg id="SvgjsSvg1001" width="2" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" style="overflow: hidden; top: -100%; left: -100%; position: absolute; opacity: 0;"><defs id="SvgjsDefs1002"></defs><polyline id="SvgjsPolyline1003" points="0,0"></polyline><path id="SvgjsPath1004" d="M0 0 "></path></svg>
 </body><!--end::Body-->

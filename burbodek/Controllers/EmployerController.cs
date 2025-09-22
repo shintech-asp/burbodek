@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace burbodek.Controllers
 {
+    [Authorize(Roles = "Employer")]
     public class EmployerController : Controller
     {
         public IActionResult Index()
