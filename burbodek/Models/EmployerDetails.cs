@@ -13,7 +13,5 @@
         public string Address { get; set; }
         public string Latitude { get; set; }
         public string Longitude { get; set; }
-        public List<Subscription> Subscription { get; set; }
-        public List<Files> Files { get; set; }
     }
 }

@@ -35,15 +35,15 @@ namespace burbodek.Controllers
         }
         public IActionResult Application()
         {
-            var application = _context.EmployerDetails
-                .Include(e => e.Users)
+            var application = _context.Users
+                .Include(e => e.EmployerDetails)
                 .Include(e => e.Subscription)
                 .ToList();
 
             foreach (var emp in application)
             {
                 emp.Subscription = _context.Subscription
-                    .Where(s => s.UsersId == emp.UsersId)
+                    .Where(s => s.UsersId == emp.Id)
                     .Include(e => e.Plans)
                     .ToList();
             }
@@ -53,17 +53,17 @@ namespace burbodek.Controllers
 
         public IActionResult ApplicationDetails(int id)
         {
-            var employer = _context.EmployerDetails
-                .Include(e => e.Users)
+            var employer = _context.Users
+                .Include(e => e.EmployerDetails)
                 .Include(e => e.Subscription)
                 .Include(e => e.Files)
                 .FirstOrDefault(e => e.Id == id);
 
             employer.Files = _context.Files
-                .Where(f => f.UsersId == employer.UsersId)
+                .Where(f => f.UsersId == employer.Id)
                 .ToList();
             employer.Subscription = _context.Subscription
-                .Where(s => s.UsersId == employer.UsersId)
+                .Where(s => s.UsersId == employer.Id)
                 .Include(e => e.Plans)
                 .ToList();
             if (employer == null) return NotFound();
@@ -96,6 +96,7 @@ namespace burbodek.Controllers
                 var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
 
                 data.Expiration = DateTime.Now;
+                data.Status = "Expired";
                 _context.Subscription.Update(data);
                 var employer = _context.EmployerDetails.Where(u => u.Id == Id).FirstOrDefault();
                 employer.Status = "Decline";
@@ -108,6 +109,7 @@ namespace burbodek.Controllers
                 var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
 
                 data.Expiration = DateTime.Now.AddMonths(1);
+                data.Status = "Current";
                 _context.Subscription.Update(data);
                 var employer = _context.EmployerDetails.Where(u => u.Id == Id).FirstOrDefault();
                 employer.Status = "Approved";

@@ -51,7 +51,9 @@ namespace burbodek.Controllers
                     new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role),
-                    new Claim("Status", user.EmployerDetails?.Status ?? "N/A"),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired")
                 };
 
                 var identity = new ClaimsIdentity(claims, "MyCookieAuth");
