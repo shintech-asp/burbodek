@@ -1,0 +1,198 @@
+﻿@{
+    ViewData["Title"] = "Payment Details"; 
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model List<PaymentDetails>;
+<div class="card card-flush pt-3 mb-5 mb-lg-10" data-kt-subscriptions-form="pricing">
+    <!--begin::Card header-->
+    <div class="card-header">
+        <!--begin::Card title-->
+        <div class="card-title">
+            <h2 class="fw-bold">Payment Method</h2>
+        </div>
+        <!--begin::Card title-->
+        <!--begin::Card toolbar-->
+        <div class="card-toolbar">
+            <a href="#" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_new_card">
+                New Method
+            </a>
+        </div>
+        <!--end::Card toolbar-->
+    </div>
+    <!--end::Card header-->
+    <!--begin::Card body-->
+    <div class="card-body pt-0">
+        <!--begin::Options-->
+        <div id="kt_create_new_payment_method">
+            <!--begin::Option-->
+            @if (Model.Count != 0)
+            {
+                @foreach (var data in Model)
+                {
+                    <div class="py-1">
+                        <!--begin::Header-->
+                        <div class="py-3 d-flex flex-stack flex-wrap">
+                            <!--begin::Toggle-->
+                            <div class="d-flex align-items-center collapsible toggle " data-bs-toggle="collapse" data-bs-target="#kt_create_new_payment_method_1">
+                                <!--begin::Arrow-->
+                                <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+                                    <i class="ki-duotone ki-minus-square toggle-on text-primary fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="ki-duotone ki-plus-square toggle-off fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                </div>
+                                <!--end::Arrow-->
+                                <!--begin::Logo-->
+                                <img src="~/assets/media/svg/card-logos/gcash.jpeg" class="w-40px me-3" alt="">
+                                <!--end::Logo-->
+                                <!--begin::Summary-->
+                                <div class="me-3">
+                                    <div class="d-flex align-items-center fw-bold">
+                                        Gcash
+                                    </div>
+                                </div>
+                                <!--end::Summary-->
+                            </div>
+                            <!--end::Toggle-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Body-->
+                        <div id="kt_create_new_payment_method_1" class="collapse show fs-6 ps-10">
+                            <!--begin::Details-->
+                            <div class="d-flex flex-wrap py-5">
+                                <!--begin::Col-->
+                                <div class="flex-equal me-5">
+                                    <table class="table table-flush fw-semibold gy-1">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-muted min-w-125px w-125px">Name</td>
+                                                <td class="text-gray-800">@data.Name</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted min-w-125px w-125px">Number</td>
+                                                @{
+                                                    string maskedPhone = data.PhoneNumber;
+                                                    if (!string.IsNullOrEmpty(maskedPhone) && maskedPhone.Length > 5)
+                                                    {
+                                                        maskedPhone = maskedPhone.Substring(0, maskedPhone.Length - 5)
+                                                        + new string('*', 5);
+                                                    }
+                                                }
+                                                <td class="text-gray-800">@maskedPhone</td>
+
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted min-w-125px w-125px">Type</td>
+                                                <td class="text-gray-800">Gcash</td>
+                                            </tr>
+                                    </table>
+                                </div>
+                                <!--end::Col-->
+                            </div>
+                            <!--end::Details-->
+                        </div>
+                        <!--end::Body-->
+                    </div>
+                    @if (Model.Count > 1)
+                    {
+                        <div class="separator separator-dashed"></div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="text-center py-1">
+                    <p class="fst-italic">Please add payment method</p>
+                </div>
+            }
+            <!--end::Option-->
+        </div>
+        <!--end::Options-->
+    </div>
+    <!--end::Card body-->
+</div>
+<!--end::Modal - New Product--><!--begin::Modal - New Card-->
+<div class="modal fade" id="kt_modal_new_card" tabindex="-1" aria-hidden="true">
+    <!--begin::Modal dialog-->
+    <div class="modal-dialog modal-dialog-centered mw-650px">
+        <!--begin::Modal content-->
+        <div class="modal-content">
+            <!--begin::Modal header-->
+            <div class="modal-header">
+                <!--begin::Modal title-->
+                <h2>Add New Card</h2>
+                <!--end::Modal title-->
+                <!--begin::Close-->
+                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+                <!--end::Close-->
+            </div>
+            <!--end::Modal header-->
+            <!--begin::Modal body-->
+            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                <!--begin::Form-->
+                <form asp-controller="Employer" asp-action="PaymentDetails" method="post">
+                    <!--begin::Input group-->
+                    <div class="d-flex flex-column mb-7 fv-row">
+                        <!--begin::Label-->
+                        <label class="d-flex align-items-center fs-6 fw-semibold form-label mb-2">
+                            <span class="required">Name</span>
+
+
+                            <span class="ms-1" data-bs-toggle="tooltip" title="Specify a card holder's name">
+                                <i class="ki-duotone ki-information-5 text-gray-500 fs-6"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                            </span>
+                        </label>
+                        <!--end::Label-->
+
+                        <input type="text" class="form-control form-control-solid" name="Name" placeholder="Max Doe" />
+                    </div>
+                    <!--end::Input group-->
+                    <!--begin::Input group-->
+                    <div class="d-flex flex-column mb-7 fv-row">
+                        <!--begin::Label-->
+                        <label class="required fs-6 fw-semibold form-label mb-2">Phone Number</label>
+                        <!--end::Label-->
+                        <!--begin::Input wrapper-->
+                        <div class="position-relative">
+                            <!--begin::Input-->
+                            <input type="number" class="form-control form-control-solid" placeholder="Enter card number" name="PhoneNumber"/>
+                            <!--end::Input-->
+                            <!--begin::Card logos-->
+                            <div class="position-absolute translate-middle-y top-50 end-0 me-5">
+                                <i class="ki-duotone ki-wallet">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                    <span class="path4"></span>
+                                </i>
+                            </div>
+                            <!--end::Card logos-->
+                        </div>
+                        <!--end::Input wrapper-->
+                    </div>
+                    <!--end::Input group-->
+                    <!--begin::Actions-->
+                    <div class="text-center pt-15">
+                        <button type="reset" id="kt_modal_new_card_cancel" class="btn btn-light me-3">
+                            Discard
+                        </button>
+
+                        <button type="submit" id="kt_modal_new_card_submit" class="btn btn-primary">
+                            <span class="indicator-label">
+                                Submit
+                            </span>
+                            <span class="indicator-progress">
+                                Please wait... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <!--end::Actions-->
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Modal body-->
+        </div>
+        <!--end::Modal content-->
+    </div>
+    <!--end::Modal dialog-->
+</div>

@@ -2071,7 +2071,7 @@
 											</div>
 										</div>
 									</div>
-									@if (@User.FindFirst("Status")?.Value == "Approved")
+									@if (@User.FindFirst("Status")?.Value == "Approved" && @User.FindFirst("isSubscriber")?.Value != "False")
 									{
 									<div class="menu-item pt-5">
 										<!--begin:Menu content-->
@@ -4316,6 +4316,7 @@
 	<!--end::Custom Javascript-->
 	<script src="~/assets/js/custom/apps/inbox/compose.js"></script>
 	<script src="~/assets/js/custom/apps/inbox/reply.js"></script>
+	@RenderSection("Scripts", required: false)
 </body>
 <!--end::Body-->
 </html>

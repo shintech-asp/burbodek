@@ -15,6 +15,10 @@
 	<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
 	<link href="~/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css">
 	<link href="~/assets/css/style.bundle.css" rel="stylesheet" type="text/css">
+	<link href="~/assets/css/leaflet.css" rel="stylesheet"/>
+	<style>
+    #map { height: 500px; }
+	</style>
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -310,116 +314,28 @@
 										<!--end::Input-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 									</div>
-									<!--end::Input group-->
 									<!--begin::Input group-->
-									<div class="mb-0 fv-row fv-plugins-icon-container">
+									<div class="mb-10 fv-row fv-plugins-icon-container">
 										<!--begin::Label-->
-										<label class="d-flex align-items-center form-label mb-5">
-											Select Account Plan
-											<span class="ms-1" data-bs-toggle="tooltip" aria-label="Monthly billing will be based on your account plan" data-bs-original-title="Monthly billing will be based on your account plan" data-kt-initialized="1">
-												<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>
-											</span>
-										</label>
+										<label class="form-label mb-3">Address</label>
 										<!--end::Label-->
-										<!--begin::Options-->
-										<div class="mb-0">
-											<!--begin:Option-->
-											<label class="d-flex flex-stack mb-5 cursor-pointer">
-												<!--begin:Label-->
-												<span class="d-flex align-items-center me-2">
-													<!--begin::Icon-->
-													<span class="symbol symbol-50px me-6">
-														<span class="symbol-label">
-															<i class="ki-duotone ki-chart fs-1 text-gray-600">
-																<span class="path1"></span>
-																<span class="path2"></span>
-															</i>
-														</span>
-													</span>
-													<!--end::Icon-->
-													<!--begin::Description-->
-													<span class="d-flex flex-column">
-														<span class="fw-bold text-gray-800 text-hover-primary fs-5">Pro</span>
-														<span class="fs-6 fw-semibold text-muted">Use images to your post time</span>
-													</span>
-													<!--end:Description-->
-												</span>
-												<!--end:Label-->
-												<!--begin:Input-->
-												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" checked="checked" name="pPlansId" value="3">
-												</span>
-												<!--end:Input-->
-											</label>
-											<!--end::Option-->
-											<!--begin:Option-->
-											<label class="d-flex flex-stack mb-5 cursor-pointer">
-												<!--begin:Label-->
-												<span class="d-flex align-items-center me-2">
-													<!--begin::Icon-->
-													<span class="symbol symbol-50px me-6">
-														<span class="symbol-label">
-															<i class="ki-duotone ki-bank fs-1 text-gray-600">
-																<span class="path1"></span>
-																<span class="path2"></span>
-															</i>
-														</span>
-													</span>
-													<!--end::Icon-->
-													<!--begin::Description-->
-													<span class="d-flex flex-column">
-														<span class="fw-bold text-gray-800 text-hover-primary fs-5">Best</span>
-														<span class="fs-6 fw-semibold text-muted">Use images to enhance your post flow</span>
-													</span>
-													<!--end:Description-->
-												</span>
-												<!--end:Label-->
-												<!--begin:Input-->
-												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" name="pPlansId" value="2">
-												</span>
-												<!--end:Input-->
-											</label>
-											<!--end::Option-->
-											<!--begin:Option-->
-											<label class="d-flex flex-stack mb-0 cursor-pointer">
-												<!--begin:Label-->
-												<span class="d-flex align-items-center me-2">
-													<!--begin::Icon-->
-													<span class="symbol symbol-50px me-6">
-														<span class="symbol-label">
-															<i class="ki-duotone ki-chart-pie-4 fs-1 text-gray-600">
-																<span class="path1"></span>
-																<span class="path2"></span>
-																<span class="path3"></span>
-															</i>
-														</span>
-													</span>
-													<!--end::Icon-->
-													<!--begin::Description-->
-													<span class="d-flex flex-column">
-														<span class="fw-bold text-gray-800 text-hover-primary fs-5">Basic</span>
-														<span class="fs-6 fw-semibold text-muted">Use images to enhance time travel rivers</span>
-													</span>
-													<!--end:Description-->
-												</span>
-												<!--end:Label-->
-												<!--begin:Input-->
-												<span class="form-check form-check-custom form-check-solid">
-													<input class="form-check-input" type="radio" name="pPlansId" value="1">
-												</span>
-												<!--end:Input-->
-											</label>
-											<!--end::Option-->
-										</div>
-										<!--end::Options-->
+										<!--begin::Input-->
+										<input type="text" class="form-control form-control-lg form-control-solid" name="Address" placeholder="" value="">
+										<!--end::Input-->
 										<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 									</div>
 									<!--end::Input group-->
+									<!--begin::Input group-->
+									<div class="mb-10 fv-row fv-plugins-icon-container">
+										<!--begin::Label-->
+										<label class="form-label mb-3">Pin your location</label>
+										<!--end::Label-->
+										<div id="map"></div>
+										<input type="hidden" id="Latitude" name="Latitude">
+										<input type="hidden" id="Longitude" name="Longitude">
+									</div>
+									<!--end::Input group-->
+
 								</div>
 								<!--end::Wrapper-->
 							</div>
@@ -684,15 +600,41 @@
 	<script src="~/assets/js/scripts.bundle.js" asp-append-version="true"></script>
 	<link href="~/assets/plugins/custom/select2/select2.bundle.css" rel="stylesheet" />
 	<script src="~/assets/plugins/custom/select2/select2.bundle.js" asp-append-version="true"></script>
-
+    <script src="~/assets/js/leaflet.js" asp-append-version="true"></script>
 	<!--end::Global Javascript Bundle-->
 	<!--begin::Custom Javascript(used for this page only)-->
 	<script src="~/assets/js/custom/utilities/modals/create-account.js" asp-append-version="true"></script>
 	<!--end::Custom Javascript-->
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
+				   // Default: Batangas Port
+		const batangasPort = [13.7586, 121.0584];
+		const map = L.map('map').setView(batangasPort, 13);
 
-			// Get form elements
+		// Base tiles
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		  attribution: '© OpenStreetMap contributors',
+		  maxZoom: 19
+		}).addTo(map);
+
+		// Default marker
+		let marker = L.marker(batangasPort).addTo(map)
+		  .bindPopup("📍 Batangas Port (Default)").openPopup();
+
+		// 📌 Allow manual pinning by clicking map
+		map.on('click', function(e) {
+		  const coords = e.latlng;
+
+		  // Move marker
+		  marker.setLatLng(coords)
+			.bindPopup(`📍 Selected Location<br>Lat: ${coords.lat.toFixed(5)}, Lng: ${coords.lng.toFixed(5)}`)
+			.openPopup();
+
+		  // Update hidden inputs
+		  document.getElementById("Latitude").value = coords.lat;
+		  document.getElementById("Longitude").value = coords.lng;
+		});
+
 			const trainingCheckbox = document.getElementById('kt_create_account_form_account_type_personal');
 			const employerCheckbox = document.getElementById('kt_create_account_form_account_type_corporate');
 

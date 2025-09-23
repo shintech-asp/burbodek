@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922081332_FixSomething")]
+    partial class FixSomething
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +74,7 @@ namespace burbodek.Migrations
                     b.ToTable("EmployerDetails");
                 });
 
-            modelBuilder.Entity("burbodek.Models.Files", b =>
+            modelBuilder.Entity("burbodek.Models.Images", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,17 +82,9 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("File")
+                    b.Property<byte[]>("Image")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageDetails")
                         .IsRequired()
@@ -105,33 +100,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Files");
-                });
-
-            modelBuilder.Entity("burbodek.Models.PaymentDetails", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("PaymentDetails");
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("burbodek.Models.Payments", b =>
@@ -210,19 +179,21 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("EmployerDetailsId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("Expiration")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("PlansId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmployerDetailsId");
 
                     b.HasIndex("PlansId");
 
@@ -280,21 +251,10 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.Files", b =>
+            modelBuilder.Entity("burbodek.Models.Images", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("Files")
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("burbodek.Models.PaymentDetails", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("PaymentDetails")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -315,6 +275,10 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.Subscription", b =>
                 {
+                    b.HasOne("burbodek.Models.EmployerDetails", null)
+                        .WithMany("Subscription")
+                        .HasForeignKey("EmployerDetailsId");
+
                     b.HasOne("burbodek.Models.Plans", "Plans")
                         .WithMany()
                         .HasForeignKey("PlansId")
@@ -322,7 +286,7 @@ namespace burbodek.Migrations
                         .IsRequired();
 
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("Subscription")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -332,15 +296,14 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
+                {
+                    b.Navigation("Subscription");
+                });
+
             modelBuilder.Entity("burbodek.Models.Users", b =>
                 {
                     b.Navigation("EmployerDetails");
-
-                    b.Navigation("Files");
-
-                    b.Navigation("PaymentDetails");
-
-                    b.Navigation("Subscription");
                 });
 #pragma warning restore 612, 618
         }
