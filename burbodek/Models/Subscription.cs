@@ -17,5 +17,6 @@
                 Status = "Expired";
             }
         }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

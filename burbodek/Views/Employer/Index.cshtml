@@ -37,7 +37,7 @@ else
 				</strong>
 			</div>
 		}
-		else if (Model.PlansId != 1 && Model.Expiration > DateTime.Now.AddDays(5))
+		else if (Model.PlansId != 1 && Model.Expiration < DateTime.Now.AddDays(5))
 		{
 			<div class="alert alert-warning">
 				<strong>

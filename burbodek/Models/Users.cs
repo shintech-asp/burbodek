@@ -29,5 +29,6 @@ namespace burbodek.Models
         public List<Subscription>? Subscription { get; set; }
         public List<Files>? Files { get; set; }
         public List<PaymentDetails>? PaymentDetails { get; set; }
+        public List<Payments>? Payments { get; set; }
     }
 }

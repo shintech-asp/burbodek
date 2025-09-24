@@ -86,6 +86,16 @@ namespace burbodek.Controllers
         {
             // Remove Role from validation if it's not set by the form
             ModelState.Remove("Role");
+
+            // ✅ Basic null/empty checks
+            if (string.IsNullOrWhiteSpace(user.Username) ||
+                string.IsNullOrWhiteSpace(user.Email) ||
+                string.IsNullOrWhiteSpace(user.Password))
+            {
+                ModelState.AddModelError("", "All fields are required.");
+                return View(user);
+            }
+
             if (ModelState.IsValid)
             {
                 if (_context.Users.Any(u => u.Email == user.Email))
@@ -93,9 +103,11 @@ namespace burbodek.Controllers
                     ModelState.AddModelError("Email", "Email is already registered.");
                     return View(user);
                 }
+
                 // Assign default role
                 user.Role = "Client";
                 user.DateCreated = DateTime.Now;
+
                 // ✅ Hash the password
                 var passwordHasher = new PasswordHasher<Users>();
                 user.Password = passwordHasher.HashPassword(user, user.Password);
@@ -104,22 +116,41 @@ namespace burbodek.Controllers
                 _context.Users.Add(user);
                 _context.SaveChanges();
 
-                // ✅ Redirect to Sign In page
                 return RedirectToAction("SignIn", "Index");
             }
 
             return View(user);
         }
+
         public IActionResult SignUpEmployer()
         {
             return View();
         }
         [HttpPost]
-        public IActionResult SignUpEmployer(EmployerDetails employer, IFormFile? sec_dti, IFormFile? bir_certificate, IFormFile? business_permit, IFormFile? poea_license, IFormFile? proof_partnership)
+        public IActionResult SignUpEmployer(
+            EmployerDetails employer,
+            IFormFile? sec_dti,
+            IFormFile? bir_certificate,
+            IFormFile? business_permit,
+            IFormFile? poea_license,
+            IFormFile? proof_partnership)
         {
             ModelState.Remove("Users.Role");
             ModelState.Remove("Users");
             ModelState.Remove("Subscription");
+
+            // ✅ Basic validation
+            if (employer.Users == null ||
+                string.IsNullOrWhiteSpace(employer.Users.Username) ||
+                string.IsNullOrWhiteSpace(employer.Users.Email) ||
+                string.IsNullOrWhiteSpace(employer.Users.Password) ||
+                string.IsNullOrWhiteSpace(employer.BusinessName) ||
+                string.IsNullOrWhiteSpace(employer.Address))
+            {
+                ModelState.AddModelError("", "Please fill in all required fields.");
+                return View(employer);
+            }
+
             if (ModelState.IsValid)
             {
                 if (_context.Users.Any(u => u.Email == employer.Users.Email))
@@ -127,6 +158,8 @@ namespace burbodek.Controllers
                     ModelState.AddModelError("Email", "Email is already registered.");
                     return View(employer);
                 }
+
+                // ✅ Create user
                 var user = new Users
                 {
                     Username = employer.Users.Username,
@@ -135,10 +168,13 @@ namespace burbodek.Controllers
                     Role = "Employer",
                     DateCreated = DateTime.Now
                 };
+
                 var passwordHasher = new PasswordHasher<Users>();
                 user.Password = passwordHasher.HashPassword(user, user.Password);
                 _context.Users.Add(user);
                 _context.SaveChanges();
+
+                // ✅ Employer details
                 var employerDetails = new EmployerDetails
                 {
                     UsersId = user.Id,
@@ -152,6 +188,7 @@ namespace burbodek.Controllers
                 };
                 _context.EmployerDetails.Add(employerDetails);
 
+                // ✅ Default subscription
                 var subscriptionDetails = new Subscription
                 {
                     UsersId = user.Id,
@@ -160,111 +197,40 @@ namespace burbodek.Controllers
                 _context.Subscription.Add(subscriptionDetails);
                 _context.SaveChanges();
 
-                if (sec_dti != null)
+                // ✅ File uploads
+                void SaveFile(IFormFile? file, string details)
                 {
-                    using var ms = new MemoryStream();
-                    sec_dti.CopyTo(ms);
-
-                    // Detect file type
-                    var contentType = sec_dti.ContentType;              // e.g. "image/jpeg", "application/pdf"
-                    var extension = Path.GetExtension(sec_dti.FileName); // e.g. ".jpg", ".pdf"
-
-                    var file = new Files
+                    if (file != null)
                     {
-                        File = ms.ToArray(),
-                        UsersId = user.Id,
-                        ImageDetails = "sec_dti",
-                        FileName = sec_dti.FileName,
-                        ContentType = contentType
-                    };
+                        using var ms = new MemoryStream();
+                        file.CopyTo(ms);
 
-                    _context.Files.Add(file);
-                    _context.SaveChanges();
+                        var newFile = new Files
+                        {
+                            File = ms.ToArray(),
+                            UsersId = user.Id,
+                            ImageDetails = details,
+                            FileName = file.FileName,
+                            ContentType = file.ContentType
+                        };
+
+                        _context.Files.Add(newFile);
+                        _context.SaveChanges();
+                    }
                 }
-                if (bir_certificate != null)
-                {
-                    using var ms = new MemoryStream();
-                    bir_certificate.CopyTo(ms);
 
-                    // Detect file type
-                    var contentType = bir_certificate.ContentType;
-                    var extension = Path.GetExtension(bir_certificate.FileName);
+                SaveFile(sec_dti, "sec_dti");
+                SaveFile(bir_certificate, "bir_certificate");
+                SaveFile(business_permit, "business_permit");
+                SaveFile(poea_license, "poea_license");
+                SaveFile(proof_partnership, "proof_partnership");
 
-                    var file = new Files
-                    {
-                        File = ms.ToArray(),
-                        UsersId = user.Id,
-                        ImageDetails = "bir_certificate",
-                        FileName = bir_certificate.FileName,
-                        ContentType = contentType
-                    };
-                    _context.Files.Add(file);
-                    _context.SaveChanges();
-                }
-                if (business_permit != null)
-                {
-                    using var ms = new MemoryStream();
-                    business_permit.CopyTo(ms);
-
-                    // Detect file type
-                    var contentType = business_permit.ContentType;
-                    var extension = Path.GetExtension(business_permit.FileName);
-
-                    var file = new Files
-                    {
-                        File = ms.ToArray(),
-                        UsersId = user.Id,
-                        ImageDetails = "business_permit",
-                        FileName = business_permit.FileName,
-                        ContentType = contentType
-                    };
-                    _context.Files.Add(file);
-                    _context.SaveChanges();
-                }
-                if (poea_license != null)
-                {
-                    using var ms = new MemoryStream();
-                    poea_license.CopyTo(ms);
-
-                    // Detect file type
-                    var contentType = poea_license.ContentType;
-                    var extension = Path.GetExtension(poea_license.FileName);
-
-                    var file = new Files
-                    {
-                        File = ms.ToArray(),
-                        UsersId = user.Id,
-                        ImageDetails = "poea_license",
-                        FileName = poea_license.FileName,
-                        ContentType = contentType
-                    };
-                    _context.Files.Add(file);
-                    _context.SaveChanges();
-                }
-                if (proof_partnership != null)
-                {
-                    using var ms = new MemoryStream();
-                    proof_partnership.CopyTo(ms);
-
-                    // Detect file type
-                    var contentType = proof_partnership.ContentType;
-                    var extension = Path.GetExtension(proof_partnership.FileName);
-
-                    var file = new Files
-                    {
-                        File = ms.ToArray(),
-                        UsersId = user.Id,
-                        ImageDetails = "proof_partnership",
-                        FileName = proof_partnership.FileName,
-                        ContentType = contentType
-                    };
-                    _context.Files.Add(file);
-                    _context.SaveChanges();
-                }
                 return RedirectToAction("SignIn", "Index");
             }
+
             return View(employer);
         }
+
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("MyCookieAuth");
