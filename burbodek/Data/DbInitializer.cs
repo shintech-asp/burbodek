@@ -31,8 +31,8 @@ namespace burbodek.Data
                 context.SaveChanges();
             }
             if (!context.Plans.Any(u => u.PlanName == "Basic"
-                         || u.PlanName == "Plus"
-                         || u.PlanName == "Business"))
+                         || u.PlanName == "Monthly"
+                         || u.PlanName == "Annual"))
             {
                 var plans = new List<Plans>
                     {
@@ -45,17 +45,17 @@ namespace burbodek.Data
                         },
                         new Plans
                         {
-                            PlanName = "Best",
-                            PlanDetails = "For growing users",
+                            PlanName = "Monthly",
+                            PlanDetails = "Enjoy 31 days of our product for only 1999 only per month.",
                             Price = 1999,
-                            Discount = 15
+                            Discount = 0
                         },
                         new Plans
                         {
-                            PlanName = "Pro",
-                            PlanDetails = "For teams and enterprises",
-                            Price = 4999,
-                            Discount = 10
+                            PlanName = "Annual",
+                            PlanDetails = "Enjoy a whole year of our product without any limitation with 20% off from the original price!",
+                            Price = 23988,
+                            Discount = 20
                         }
                     };
 

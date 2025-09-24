@@ -43,8 +43,8 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://localhost:7280/Payments/Success",
-                        cancel_url = "https://localhost:7280/Payments/Cancel",
+                        success_url = "https://localhost:7136/Employer/SuccessPayment",
+                        cancel_url = "https://localhost:7136/Employer/CancelledPayment",
                         billing = new
                         {
                             name = name,
