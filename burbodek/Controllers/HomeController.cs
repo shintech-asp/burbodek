@@ -37,16 +37,10 @@ namespace burbodek.Controllers
         {
             var application = _context.Users
                 .Include(e => e.EmployerDetails)
-                .Include(e => e.Subscription)
+                .Include(e => e.Subscription.Where(u => u.Status == "Current"))
+                .ThenInclude(u => u.Plans)
+                .Where(e => e.Role == "Employer")
                 .ToList();
-
-            foreach (var emp in application)
-            {
-                emp.Subscription = _context.Subscription
-                    .Where(s => s.UsersId == emp.Id)
-                    .Include(e => e.Plans)
-                    .ToList();
-            }
 
             return View(application);
         }
@@ -111,7 +105,7 @@ namespace burbodek.Controllers
                 data.Expiration = DateTime.Now.AddMonths(1);
                 data.Status = "Current";
                 _context.Subscription.Update(data);
-                var employer = _context.EmployerDetails.Where(u => u.Id == Id).FirstOrDefault();
+                var employer = _context.EmployerDetails.Where(u => u.UsersId == Id).FirstOrDefault();
                 employer.Status = "Approved";
                 _context.EmployerDetails.Update(employer);
                 _context.SaveChanges();
