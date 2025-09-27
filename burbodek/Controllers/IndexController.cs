@@ -1,4 +1,5 @@
 ﻿using burbodek.Data;
+using burbodek.Filters;
 using burbodek.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +10,8 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace burbodek.Controllers
 {
+    [RedirectIfAuthenticated]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public class IndexController : Controller
     {
         ApplicationDbContext _context;
@@ -229,13 +232,6 @@ namespace burbodek.Controllers
             }
 
             return View(employer);
-        }
-
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync("MyCookieAuth");
-            HttpContext.Session.Clear();
-            return RedirectToAction("Index", "Index");
         }
     }
 }
