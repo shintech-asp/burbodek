@@ -1,4 +1,5 @@
-﻿<html lang="en" data-bs-theme="light">
+﻿@using System.Security.Claims
+<html lang="en" data-bs-theme="light">
 <!--begin::Head-->
 <head>
 	<base href="../">
@@ -1857,10 +1858,17 @@
 											<!--begin::Username-->
 											<div class="d-flex flex-column">
 												<div class="fw-bold d-flex align-items-center fs-5">
-													Robert Fox
-													<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span>
+													@User.FindFirst(ClaimTypes.Name)?.Value
+													@if (@User.FindFirst("Plan")?.Value == "Basic")
+													{
+														<span class="badge badge-light-warning fw-bold fs-8 px-2 py-1 ms-2">@User.FindFirst("Plan")?.Value</span>
+													}
+													else
+													{
+														<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span>
+													}
 												</div>
-												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">robert@kt.com</a>
+												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">@User.FindFirst(ClaimTypes.Email)?.Value</a>
 											</div>
 											<!--end::Username-->
 										</div>

@@ -42,6 +42,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.UpdateExpiredSubscriptionsOnStartup();
+    db.SaveChanges();
+}
+
+
 app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions
 {

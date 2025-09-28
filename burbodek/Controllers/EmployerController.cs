@@ -2,10 +2,12 @@
 using burbodek.Models;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 
 namespace burbodek.Controllers
 {
@@ -22,7 +24,7 @@ namespace burbodek.Controllers
         public IActionResult Index()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var data = _context.Subscription.Where(u => u.UsersId == userId && u.Expiration > DateTime.Now && u.Status == "Current").FirstOrDefault();
+            var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
             return View(data);
         }
 
@@ -126,7 +128,7 @@ namespace burbodek.Controllers
         {
             return View();
         }
-        public IActionResult SuccessPayment()
+        public async Task<IActionResult> SuccessPayment()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
@@ -187,6 +189,35 @@ namespace burbodek.Controllers
             };
             _context.Payments.Add(payment);
             _context.SaveChanges();
+            // after saving subscription changes
+            await HttpContext.SignOutAsync("MyCookieAuth"); // clear old cookie
+
+            var user = _context.Users
+                        .Include(u => u.EmployerDetails)
+                        .FirstOrDefault(u => u.Id == userId);
+            var claims = new List<Claim>
+            {
+                new Claim("UsersId", user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                new Claim("SubscriberType", _context.Subscription
+                    .Where(u => u.Status == "Current" && u.UsersId == user.Id)
+                    .Select(s => s.PlansId.ToString())
+                    .FirstOrDefault() ?? "Expired"),
+                new Claim("Plan", _context.Subscription
+                    .Include(s => s.Plans)
+                    .Where(s => s.Status == "Current" && s.UsersId == user.Id)
+                    .Select(s => s.Plans.PlanName)
+                    .FirstOrDefault() ?? "None")
+            };
+
+            var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync("MyCookieAuth", principal);
 
             return View(subscription); // you can show details in success view
         }
@@ -222,15 +253,22 @@ namespace burbodek.Controllers
         public IActionResult Billing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var users = _context.Users
-                        .Include(u => u.EmployerDetails)
-                        .Include(u => u.Payments)
-                        .Include(u => u.Subscription.Where(s => s.Status == "Current"))
-                            .ThenInclude(s => s.Plans) 
-                        .Include(u => u.PaymentDetails)
-                        .FirstOrDefault(u => u.Id == userId);
-            return View(users);
+
+            var user = _context.Users
+                .Include(u => u.EmployerDetails)
+                .Include(u => u.Payments)
+                .Include(u => u.Subscription.Where(s => s.Status == "Current"))
+                    .ThenInclude(s => s.Plans)
+                .Include(u => u.PaymentDetails)
+                .Where(u => u.Id == userId)
+                .FirstOrDefault();
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
         }
+
         public IActionResult JobCreate()
         {
             return View();

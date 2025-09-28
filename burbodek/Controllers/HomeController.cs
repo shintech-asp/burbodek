@@ -102,7 +102,7 @@ namespace burbodek.Controllers
             {
                 var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
 
-                data.Expiration = DateTime.Now.AddMonths(1);
+                data.Expiration = null;
                 data.Status = "Current";
                 _context.Subscription.Update(data);
                 var employer = _context.EmployerDetails.Where(u => u.UsersId == Id).FirstOrDefault();
