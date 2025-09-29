@@ -1,7 +1,9 @@
-﻿@{
+﻿@using Humanizer
+@{
     ViewData["Title"] = "Your Jobs";
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
+@model List<Jobs>
 <!-- Page Heading -->
 <div class="card shadow-sm mb-5">
     <div class="card-body d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
@@ -26,38 +28,50 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="ps-4">
-                        <div class="d-flex flex-column">
-                            <span class="text-dark fw-bold">Cruise Ship Chef</span>
-                            <small class="text-muted">Royal Caribbean</small>
-                        </div>
-                    </td>
-                    <td><span class="badge badge-light-info">23 Applicants</span></td>
-                    <td>2025-09-30</td>
-                    <td><span class="badge badge-success">Active</span></td>
-                    <td class="text-end pe-4">
-                        <a class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#jobViewModal">View</a>
-                        <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editJobModal">Edit</a>
-                        <a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableJobModal">Disable</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="ps-4">
-                        <div class="d-flex flex-column">
-                            <span class="text-dark fw-bold">Housekeeping Supervisor</span>
-                            <small class="text-muted">Norwegian Cruise Line</small>
-                        </div>
-                    </td>
-                    <td><span class="badge badge-light-info">15 Applicants</span></td>
-                    <td>2025-09-15</td>
-                    <td><span class="badge badge-warning">Pending</span></td>
-                    <td class="text-end pe-4">
-                        <a class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#jobViewModal">View</a>
-                        <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editJobModal">Edit</a>
-                        <a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableJobModal">Disable</a>
-                    </td>
-                </tr>
+                @if(Model.Count > 0)
+                {
+                    foreach (var data in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex flex-column">
+                                    <span class="text-dark fw-bold">@data.JobTitle</span>
+                                    <small class="text-muted">@data.JobType</small>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-light-info">0 Applicants</span></td>
+                            <td>@data.ExpirationDate.Humanize()</td>
+                            @{
+                                string badge;
+                                string status;
+                                if (data.ExpirationDate > DateTime.Now)
+                                {
+                                    badge = "badge-success";
+                                    status = "Active";
+                                }
+                                else
+                                {
+                                    badge = "badge-danger";
+                                    status = "Expired";
+                                }
+                            }
+                            <td><span class="badge @badge">@status</span></td>
+                            <td class="text-end pe-4">
+                                <a class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#jobViewModal">View</a>
+                                <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editJobModal">Edit</a>
+                                <a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableJobModal">Disable</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="fst-italic text-center">
+                            No Job Posted Yet
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250929094204_JobRequirementsTbl")]
+    partial class JobRequirementsTbl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,139 +109,6 @@ namespace burbodek.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("Files");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobBenefits", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Benefit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("JobsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobsId");
-
-                    b.ToTable("JobBenefits");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobMedia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("JobsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobsId");
-
-                    b.ToTable("JobMedia");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobRequirements", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Requirement")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobsId");
-
-                    b.ToTable("JobRequirements");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobRole", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobsId");
-
-                    b.ToTable("JobRole");
-                });
-
-            modelBuilder.Entity("burbodek.Models.Jobs", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ExpirationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("JobDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("JobType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("SalaryMax")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SalaryMin")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("Jobs");
                 });
 
             modelBuilder.Entity("burbodek.Models.PaymentDetails", b =>
@@ -421,61 +291,6 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.JobBenefits", b =>
-                {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobBenefits")
-                        .HasForeignKey("JobsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jobs");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobMedia", b =>
-                {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobMedia")
-                        .HasForeignKey("JobsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jobs");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobRequirements", b =>
-                {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobRequirements")
-                        .HasForeignKey("JobsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jobs");
-                });
-
-            modelBuilder.Entity("burbodek.Models.JobRole", b =>
-                {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobRole")
-                        .HasForeignKey("JobsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jobs");
-                });
-
-            modelBuilder.Entity("burbodek.Models.Jobs", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("burbodek.Models.PaymentDetails", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
@@ -515,17 +330,6 @@ namespace burbodek.Migrations
                     b.Navigation("Plans");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("burbodek.Models.Jobs", b =>
-                {
-                    b.Navigation("JobBenefits");
-
-                    b.Navigation("JobMedia");
-
-                    b.Navigation("JobRequirements");
-
-                    b.Navigation("JobRole");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

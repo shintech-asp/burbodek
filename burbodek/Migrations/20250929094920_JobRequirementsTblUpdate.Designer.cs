@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250929094920_JobRequirementsTblUpdate")]
+    partial class JobRequirementsTblUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,28 +181,6 @@ namespace burbodek.Migrations
                     b.ToTable("JobRequirements");
                 });
 
-            modelBuilder.Entity("burbodek.Models.JobRole", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobsId");
-
-                    b.ToTable("JobRole");
-                });
-
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
                 {
                     b.Property<int>("Id")
@@ -216,11 +197,6 @@ namespace burbodek.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("JobType")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -454,17 +430,6 @@ namespace burbodek.Migrations
                     b.Navigation("Jobs");
                 });
 
-            modelBuilder.Entity("burbodek.Models.JobRole", b =>
-                {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobRole")
-                        .HasForeignKey("JobsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jobs");
-                });
-
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
@@ -524,8 +489,6 @@ namespace burbodek.Migrations
                     b.Navigation("JobMedia");
 
                     b.Navigation("JobRequirements");
-
-                    b.Navigation("JobRole");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

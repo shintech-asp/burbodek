@@ -1,22 +1,49 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using burbodek.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace burbodek.Controllers
 {
     [Authorize(Roles = "Client")]
     public class EmployeeController : Controller
     {
+        ApplicationDbContext _context;
+        public EmployeeController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
         public IActionResult Index()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobMedia)
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobRole)
+                        .Where(u => u.ExpirationDate > DateTime.Now)
+                        .ToList();
+            return View(data);
         }
         public IActionResult Dashboard()
         {
             return View();
         }
-        public IActionResult JobInfo()
+        public IActionResult JobInfo(int Id)
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobMedia)
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobRole)
+                        .Where(u => u.Id == Id)
+                        .FirstOrDefault();
+            return View(data);
         }
         public IActionResult Message()
         {

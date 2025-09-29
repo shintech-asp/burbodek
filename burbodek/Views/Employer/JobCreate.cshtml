@@ -9,35 +9,49 @@
     </div>
 
     <div class="card-body">
-        <form id="jobListingForm">
+        <form asp-controller="Employer" asp-action="JobCreate" method="post" enctype="multipart/form-data">
             <!-- Job Title -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Job Title</label>
-                <input type="text" class="form-control" name="job_title" placeholder="e.g. Cruise Ship Chef" required />
+                <input type="text" class="form-control" name="JobTitle" placeholder="e.g. Cruise Ship Chef" required />
             </div>
 
             <!-- Salary Range -->
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Minimum Salary</label>
-                    <input type="number" class="form-control" name="salary_min" placeholder="e.g. 2000" required />
+                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" required />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Maximum Salary</label>
-                    <input type="number" class="form-control" name="salary_max" placeholder="e.g. 4000" required />
+                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" required />
                 </div>
             </div>
 
             <!-- Expiration Date -->
-            <div class="mb-5">
-                <label class="form-label fw-bold">Expiration Date</label>
-                <input type="date" class="form-control" name="expiration_date" required />
+            <div class="row mb-5">
+                <div class="col">
+                    <label class="form-label fw-bold">Expiration Date</label>
+                    <input type="date" class="form-control" name="ExpirationDate" required />
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold">Job Type</label>
+                    <select class="form-select" name="JobType" required>
+                        <option hidden selected>Select job type</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Temporary">Temporary</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Volunteer">Volunteer</option>
+                        </select>
+                </div>
             </div>
 
             <!-- Job Description -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Job Description</label>
-                <textarea class="form-control" rows="4" name="job_description" placeholder="Write a detailed job description..." required></textarea>
+                <textarea class="form-control" rows="4" name="JobDescription" placeholder="Write a detailed job description..." required></textarea>
             </div>
 
             <!-- Requirements -->
@@ -45,8 +59,18 @@
                 <label class="form-label fw-bold">Requirements</label>
                 <ul id="requirementsList" class="list-unstyled mb-3"></ul>
                 <div class="input-group">
-                    <input type="text" id="requirementInput" class="form-control" placeholder="Add requirement..." />
+                    <input type="text" id="requirementInput" class="form-control" name="Requirement[]" placeholder="Add requirement..." />
                     <button type="button" class="btn btn-primary" onclick="addRequirement()">Add</button>
+                </div>
+            </div>
+
+            <!-- Role -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Roles</label>
+                <ul id="rolesList" class="list-unstyled mb-3"></ul>
+                <div class="input-group">
+                    <input type="text" id="roleInput" class="form-control" name="Role[]" placeholder="Add requirement..." />
+                    <button type="button" class="btn btn-primary" onclick="addRole()">Add</button>
                 </div>
             </div>
 
@@ -55,7 +79,7 @@
                 <label class="form-label fw-bold">Benefits</label>
                 <ul id="benefitsList" class="list-unstyled mb-3"></ul>
                 <div class="input-group">
-                    <input type="text" id="benefitInput" class="form-control" placeholder="Add benefit..." />
+                    <input type="text" id="benefitInput" class="form-control" name="Benefit[]" placeholder="Add benefit..." />
                     <button type="button" class="btn btn-success" onclick="addBenefit()">Add</button>
                 </div>
             </div>
@@ -63,7 +87,7 @@
             <!-- Upload Media -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Upload Media (Max 10)</label>
-                <input type="file" class="form-control" name="media_files[]" id="mediaInput" accept="image/*,video/*" multiple />
+                <input type="file" class="form-control" name="JobMedia" id="mediaInput" accept="image/*,video/*" multiple />
                 <small class="text-muted">You can upload up to 10 pictures/videos.</small>
                 <div id="mediaPreview" class="d-flex flex-wrap gap-3 mt-3"></div>
             </div>
@@ -82,24 +106,41 @@
       const input = document.getElementById("requirementInput");
       if (input.value.trim() !== "") {
         const li = document.createElement("li");
-        li.innerHTML = `<i class="bi bi-dot text-primary"></i> ${input.value}
+        li.innerHTML = `
+          <i class="bi bi-dot text-primary"></i> ${input.value}
+          <input type="hidden" name="JobRequirements" value="${input.value}" />
           <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
         document.getElementById("requirementsList").appendChild(li);
         input.value = "";
       }
     }
-
+    // Add Requirement
+    function addRole() {
+      const input = document.getElementById("roleInput");
+      if (input.value.trim() !== "") {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <i class="bi bi-dot text-primary"></i> ${input.value}
+          <input type="hidden" name="JobRole" value="${input.value}" />
+          <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
+        document.getElementById("rolesList").appendChild(li);
+        input.value = "";
+      }
+    }
     // Add Benefit
     function addBenefit() {
       const input = document.getElementById("benefitInput");
       if (input.value.trim() !== "") {
         const li = document.createElement("li");
-        li.innerHTML = `<i class="bi bi-check2-circle text-success"></i> ${input.value}
+        li.innerHTML = `
+          <i class="bi bi-check2-circle text-success"></i> ${input.value}
+          <input type="hidden" name="JobBenefits" value="${input.value}" />
           <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
         document.getElementById("benefitsList").appendChild(li);
         input.value = "";
       }
     }
+
 
     // Media Upload Preview (limit 10)
     document.getElementById("mediaInput").addEventListener("change", function () {

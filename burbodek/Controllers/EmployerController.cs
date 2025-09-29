@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Data;
 using System.Security.Claims;
 
 namespace burbodek.Controllers
@@ -238,7 +239,15 @@ namespace burbodek.Controllers
         }
         public IActionResult JobListing()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobRole)
+                        .Include(u => u.JobMedia)
+                        .Where(u => u.UsersId == userId)
+                        .ToList();
+            return View(data);
         }
         public IActionResult AccountSettings()
         {
@@ -275,6 +284,93 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        [HttpPost]
+        public async Task<IActionResult> JobCreate(JobCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill up all the details.";
+                return View(model);
+            }
+
+            var job = new Jobs
+            {
+                UsersId = int.Parse(User.FindFirst("UsersId")?.Value),
+                JobTitle = model.JobTitle,
+                JobType = model.JobType,
+                SalaryMin = model.SalaryMin,
+                SalaryMax = model.SalaryMax,
+                ExpirationDate = model.ExpirationDate,
+                JobDescription = model.JobDescription
+            };
+
+            _context.Jobs.Add(job);
+            await _context.SaveChangesAsync();
+
+            // Requirements (many)
+            foreach (var requirement in model.JobRequirements ?? Enumerable.Empty<string>())
+            {
+                var JobRequirements = new JobRequirements
+                {
+                    JobsId = job.Id,
+                    Requirement = requirement
+                };
+                _context.JobRequirements.Add(JobRequirements);
+            }
+            // Roles (many)
+            foreach (var role in model.JobRole ?? Enumerable.Empty<string>())
+            {
+                var JobRole = new JobRole
+                {
+                    JobsId = job.Id,
+                    Role = role
+                };
+                _context.JobRole.Add(JobRole);
+            }
+
+            // Benefits (many)
+            foreach (var benefit in model.JobBenefits ?? Enumerable.Empty<string>())
+            {
+                var JobBenefits = new JobBenefits
+                {
+                    JobsId = job.Id,
+                    Benefit = benefit
+                };
+                _context.JobBenefits.Add(JobBenefits);
+            }
+
+            // Media (many)
+            foreach (var file in model.JobMedia ?? Enumerable.Empty<IFormFile>())
+            {
+                if (file.Length > 0)
+                {
+                    // Generate unique file name (to avoid conflicts)
+                    var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
+
+                    // Ensure directory exists
+                    Directory.CreateDirectory(Path.GetDirectoryName(uploadPath)!);
+
+                    // Save file to disk
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Save only path + type in DB
+                    var JobMedia = new JobMedia
+                    {
+                        JobsId = job.Id,
+                        FilePath = $"/uploads/{fileName}",
+                        FileType = file.ContentType
+                    };
+                    _context.JobMedia.Add(JobMedia);
+                }
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
         public IActionResult TrainingCreate()
         {
             return View();
