@@ -57,7 +57,9 @@ namespace burbodek.Controllers
                     new Claim("Status", user.EmployerDetails?.Status ?? "none"),
                     new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
                     new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
-                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None")
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
                 };
 
                 var identity = new ClaimsIdentity(claims, "MyCookieAuth");
@@ -132,12 +134,12 @@ namespace burbodek.Controllers
         }
         [HttpPost]
         public IActionResult SignUpEmployer(
-            EmployerDetails employer,
-            IFormFile? sec_dti,
-            IFormFile? bir_certificate,
-            IFormFile? business_permit,
-            IFormFile? poea_license,
-            IFormFile? proof_partnership)
+    EmployerDetails employer,
+    IFormFile? sec_dti,
+    IFormFile? bir_certificate,
+    IFormFile? business_permit,
+    IFormFile? poea_license,
+    IFormFile? proof_partnership)
         {
             ModelState.Remove("Users.Role");
             ModelState.Remove("Users");
@@ -206,16 +208,31 @@ namespace burbodek.Controllers
                 {
                     if (file != null)
                     {
-                        using var ms = new MemoryStream();
-                        file.CopyTo(ms);
+                        // Ensure uploads directory exists
+                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
 
+                        // Unique filename to avoid collisions
+                        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        // Save file physically
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            file.CopyTo(stream);
+                        }
+
+                        // Save metadata in DB
                         var newFile = new Files
                         {
-                            File = ms.ToArray(),
                             UsersId = user.Id,
                             ImageDetails = details,
-                            FileName = file.FileName,
-                            ContentType = file.ContentType
+                            FileName = file.FileName, // original name
+                            ContentType = file.ContentType,
+                            File = $"/uploads/{uniqueFileName}" // relative path for serving
                         };
 
                         _context.Files.Add(newFile);
@@ -234,5 +251,6 @@ namespace burbodek.Controllers
 
             return View(employer);
         }
+
     }
 }

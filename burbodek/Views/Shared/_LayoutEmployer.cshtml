@@ -2082,16 +2082,32 @@
 													<!--end:Menu link-->
 												</div>
 												<!--begin:Menu item-->
-												<div class="menu-item">
-													<!--begin:Menu link-->
-													<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
-														<span class="menu-bullet">
-															<span class="bullet bullet-dot"></span>
-														</span>
-														<span class="menu-title">Create Job</span>
-													</a>
-													<!--end:Menu link-->
-												</div>
+												@if (User.FindFirst("isTrainingCenter")?.Value == "True")
+												{
+													<div class="menu-item">
+														<!--begin:Menu link-->
+														<a class="menu-link" asp-controller="Employer" asp-action="TrainingCreate">
+															<span class="menu-bullet">
+																<span class="bullet bullet-dot"></span>
+															</span>
+															<span class="menu-title">Create Training</span>
+														</a>
+														<!--end:Menu link-->
+													</div>
+												}
+												@if (User.FindFirst("isEmployer")?.Value == "True")
+												{
+													<div class="menu-item">
+														<!--begin:Menu link-->
+														<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
+															<span class="menu-bullet">
+																<span class="bullet bullet-dot"></span>
+															</span>
+															<span class="menu-title">Create Job</span>
+														</a>
+														<!--end:Menu link-->
+													</div>
+												}
 											</div>
 										</div>
 										<div class="menu-item">

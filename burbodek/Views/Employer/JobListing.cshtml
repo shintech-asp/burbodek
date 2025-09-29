@@ -78,8 +78,16 @@
 
             <div class="modal-body">
                 <div class="mb-3 d-flex justify-content-evenly">
-                    <a asp-controller="Employer" asp-action="TrainingCreate" class="btn btn-success btn-sm">+ Post New Training</a>
-                    <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
+                    @if (User.FindFirst("isTrainingCenter")?.Value == "True")
+                    {
+                        <a asp-controller="Employer" asp-action="TrainingCreate" class="btn btn-success btn-sm">+ Post New Training</a>
+                        
+                    }
+                    @if (User.FindFirst("isEmployer")?.Value == "True")
+                    {
+                        <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
+                        
+                    }
                 </div>
             </div>
         </div>

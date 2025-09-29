@@ -211,7 +211,9 @@ namespace burbodek.Controllers
                     .Include(s => s.Plans)
                     .Where(s => s.Status == "Current" && s.UsersId == user.Id)
                     .Select(s => s.Plans.PlanName)
-                    .FirstOrDefault() ?? "None")
+                    .FirstOrDefault() ?? "None"),
+                new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
             };
 
             var identity = new ClaimsIdentity(claims, "MyCookieAuth");
