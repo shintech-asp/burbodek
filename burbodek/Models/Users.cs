@@ -27,6 +27,7 @@ namespace burbodek.Models
         public IFormFile? CapturedIdFile { get; set; }
         public EmployerDetails? EmployerDetails { get; set; }
         public List<Subscription>? Subscription { get; set; }
+        public List<JobApplication>? JobApplication { get; set; }
         public List<Files>? Files { get; set; }
         public List<PaymentDetails>? PaymentDetails { get; set; }
         public List<Payments>? Payments { get; set; }

@@ -1,5 +1,4 @@
-﻿using burbodek.Migrations;
-using burbodek.Models;
+﻿using burbodek.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +17,11 @@ namespace burbodek.Data
         public DbSet<JobBenefits> JobBenefits { get; set; }
         public DbSet<JobRole> JobRole { get; set; }
         public DbSet<JobMedia> JobMedia { get; set; }
+        public DbSet<JobApplication> JobApplication { get; set; }
         public DbSet<JobRequirements> JobRequirements { get; set; }
-        public DbSet<Models.Subscription> Subscription { get; set; }
+        public DbSet<Subscription> Subscription { get; set; }
 
-        public DbSet<Models.PaymentDetails> PaymentDetails { get; set; }
+        public DbSet<PaymentDetails> PaymentDetails { get; set; }
         public void UpdateExpiredSubscriptionsOnStartup()
         {
             var basicPlan = Plans.FirstOrDefault(p => p.PlanName == "Basic");
@@ -54,7 +54,7 @@ namespace burbodek.Data
                 // Add back Basic only if they don’t already have a Current one
                 if (!existingCurrentBasics.Contains(userId))
                 {
-                    Subscription.Add(new Models.Subscription
+                    Subscription.Add(new Subscription
                     {
                         UsersId = userId,
                         PlansId = basicPlan.Id,

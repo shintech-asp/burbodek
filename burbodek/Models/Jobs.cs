@@ -17,5 +17,7 @@ namespace burbodek.Models
         public ICollection<JobBenefits> JobBenefits { get; set; } = new List<JobBenefits>();
         public ICollection<JobMedia> JobMedia { get; set; } = new List<JobMedia>();
         public ICollection<JobRole> JobRole { get; set; } = new List<JobRole>();
+        public List<JobApplication>? JobApplication { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

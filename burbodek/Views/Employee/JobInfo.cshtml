@@ -243,7 +243,7 @@
 					<!--end::Section-->
 					<!--end::Accordion-->
 					<!--begin::Apply-->
-					<a asp-controller="Employee" asp-action="JobApply" class="btn btn-sm btn-primary mt-5">Apply Now</a>
+					<a asp-controller="Employee" asp-action="JobApply" asp-route-Id="@Model.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
 					<!--end::Apply-->
 				</div>
 				<!--end::Job-->
@@ -279,9 +279,17 @@
 									<!--end::Bullet-->
 									<!--begin::Label-->
 									<div class="text-gray-600 fw-semibold fs-6">₱@Model.SalaryMin.ToString("N0") - ₱@Model.SalaryMax.ToString("N0") / month</div>
+									
 									<!--end::Label-->
 								</div>
 								<!--end::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									<div class="text-gray-600 fw-semibold fs-6">@Model.JobType</div>
+								</div>
 							</div>
 							<!--end::Section-->
 						</div>

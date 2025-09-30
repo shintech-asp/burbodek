@@ -242,12 +242,21 @@ namespace burbodek.Controllers
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Jobs
                         .Include(u => u.JobBenefits)
+                        .Include(u => u.JobApplication)
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
                         .Where(u => u.UsersId == userId)
                         .ToList();
-            return View(data);
+            var jobs = _context.JobApplication.FirstOrDefault();
+                    
+
+            var jobList = new JobListingViewModel
+            {
+                JobsList = data,
+                JobApplication = jobs
+            };
+            return View(jobList);
         }
         public IActionResult AccountSettings()
         {
