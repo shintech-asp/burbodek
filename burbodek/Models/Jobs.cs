@@ -19,5 +19,6 @@ namespace burbodek.Models
         public ICollection<JobRole> JobRole { get; set; } = new List<JobRole>();
         public List<JobApplication>? JobApplication { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? isArchived { get; set; }
     }
 }

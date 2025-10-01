@@ -124,6 +124,25 @@ namespace burbodek.Controllers
                 return RedirectToAction("Subscription", "Employer");
             }
         }
+        public IActionResult JobDetails(int Id)
+        {
+            var data = _context.Jobs
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobApplication)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobRole)
+                        .Include(u => u.JobMedia)
+                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
 
         public IActionResult CancelledPayment()
         {
@@ -237,6 +256,27 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult getJobApplicants(int id)
+        {
+            var data = _context.JobApplication
+                .Where(u => u.JobsId == id)
+                .Select(u => new {
+                    u.Id,
+                    u.FirstName,
+                    u.LastName,
+                    u.MobileNo,
+                    u.ExpectedSalary,
+                    u.CV,
+                    u.ApplicationLetter,
+                    u.City,
+                    u.Age,
+                    u.Status
+                })
+                .ToList();
+
+            return Json(new { count = data.Count, data = data });
+        }
+
         public IActionResult JobListing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -246,7 +286,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
-                        .Where(u => u.UsersId == userId)
+                        .Where(u => u.UsersId == userId && u.isArchived == null)
                         .ToList();
             var jobs = _context.JobApplication.FirstOrDefault();
                     
@@ -288,13 +328,118 @@ namespace burbodek.Controllers
 
             return View(user);
         }
+        public IActionResult JobEdit(int Id)
+        {
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication)
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
+        [HttpPost]
+        public IActionResult JobEdit(int Id, Jobs model, List<string> Role, List<string> Requirement, List<string> Benefit)
+        {
+            ModelState.Remove("Users");
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill up all the details.";
+                var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication)
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+                if (data == null)
+                {
+                    return NotFound(); // or redirect to an error page
+                }
+
+                return View(data);
+            }
+            var submitEdit = _context.Jobs.Find(Id);
+            submitEdit.JobTitle = model.JobTitle;
+            submitEdit.JobType = model.JobType;
+            submitEdit.SalaryMin = model.SalaryMin;
+            submitEdit.SalaryMax = model.SalaryMax;
+            submitEdit.ExpirationDate = model.ExpirationDate;
+            submitEdit.JobDescription = model.JobDescription;
+            var requirements = _context.JobRequirements.Where(u => u.JobsId == Id).ToList();
+            foreach (var req in requirements)
+            {
+                _context.JobRequirements.Remove(req);
+            }
+            foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
+            {
+                var JobRequirements = new JobRequirements
+                {
+                    JobsId = Id,
+                    Requirement = requirement
+                };
+                _context.JobRequirements.Add(JobRequirements);
+            }
+            var benefits = _context.JobBenefits.Where(u => u.JobsId == Id).ToList();
+            foreach (var ben in benefits)
+            {
+                _context.JobBenefits.Remove(ben);
+            }
+            foreach (var benefit in Benefit ?? Enumerable.Empty<string>())
+            {
+                var JobBenefits = new JobBenefits
+                {
+                    JobsId = Id,
+                    Benefit = benefit
+                };
+                _context.JobBenefits.Add(JobBenefits);
+            }
+            var roles = _context.JobRole.Where(u => u.JobsId == Id).ToList();
+            foreach (var rol in roles)
+            {
+                _context.JobRole.Remove(rol);
+            }
+            foreach (var role in Role ?? Enumerable.Empty<string>())
+            {
+                var JobRole = new JobRole
+                {
+                    JobsId = Id,
+                    Role = role
+                };
+                _context.JobRole.Add(JobRole);
+            }
+            _context.Jobs.Update(submitEdit);
+            _context.SaveChanges();
+            TempData["success"] = "Job details successfully edited";
+            return RedirectToAction("JobListing");
+        }
+        public IActionResult JobDelete(int Id)
+        {
+            var data = _context.Jobs.Find(Id);
+            data.isArchived = DateTime.Now;
+            _context.Jobs.Update(data);
+            _context.SaveChanges();
+            TempData["success"] = "Job successfully deleted!";
+            return RedirectToAction("JobListing");
+        }
         public IActionResult JobCreate()
         {
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> JobCreate(JobCreateViewModel model)
+        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit)
         {
             if (!ModelState.IsValid)
             {
@@ -317,7 +462,7 @@ namespace burbodek.Controllers
             await _context.SaveChangesAsync();
 
             // Requirements (many)
-            foreach (var requirement in model.JobRequirements ?? Enumerable.Empty<string>())
+            foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
             {
                 var JobRequirements = new JobRequirements
                 {
@@ -327,7 +472,7 @@ namespace burbodek.Controllers
                 _context.JobRequirements.Add(JobRequirements);
             }
             // Roles (many)
-            foreach (var role in model.JobRole ?? Enumerable.Empty<string>())
+            foreach (var role in Role ?? Enumerable.Empty<string>())
             {
                 var JobRole = new JobRole
                 {
@@ -338,7 +483,7 @@ namespace burbodek.Controllers
             }
 
             // Benefits (many)
-            foreach (var benefit in model.JobBenefits ?? Enumerable.Empty<string>())
+            foreach (var benefit in Benefit ?? Enumerable.Empty<string>())
             {
                 var JobBenefits = new JobBenefits
                 {

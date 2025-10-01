@@ -1,30 +1,30 @@
 ﻿@{
-    ViewData["Title"] = "Create Job";
+    ViewData["Title"] = "Edit Job Details";
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
-<!-- Job Listing Form -->
+@model Jobs;
 <div class="card mb-10">
     <div class="card-header">
         <h3 class="card-title">Create Job Listing</h3>
     </div>
 
     <div class="card-body">
-        <form asp-controller="Employer" asp-action="JobCreate" method="post" enctype="multipart/form-data">
+        <form asp-controller="Employer" asp-action="JobEdit" method="post" enctype="multipart/form-data">
             <!-- Job Title -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Job Title</label>
-                <input type="text" class="form-control" name="JobTitle" placeholder="e.g. Cruise Ship Chef" required />
+                <input type="text" class="form-control" name="JobTitle" placeholder="e.g. Cruise Ship Chef" value="@Model.JobTitle" required />
             </div>
 
             <!-- Salary Range -->
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Minimum Salary</label>
-                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" required />
+                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" value="@Model.SalaryMin" required />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Maximum Salary</label>
-                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" required />
+                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" value="@Model.SalaryMax" required />
                 </div>
             </div>
 
@@ -32,35 +32,36 @@
             <div class="row mb-5">
                 <div class="col">
                     <label class="form-label fw-bold">Expiration Date</label>
-                    <input type="date" class="form-control" name="ExpirationDate" required />
+                    <input type="date" class="form-control" name="ExpirationDate" value="@Model.ExpirationDate.Date" required />
                 </div>
                 <div class="col">
                     <label class="form-label fw-bold">Job Type</label>
                     <select class="form-select" name="JobType" required>
-                        <option hidden selected>Select job type</option>
+                        <option value="@Model.JobType" hidden selected>@Model.JobType</option>
                         <option value="Full-time">Full-time</option>
                         <option value="Part-time">Part-time</option>
                         <option value="Contract">Contract</option>
                         <option value="Temporary">Temporary</option>
                         <option value="Internship">Internship</option>
                         <option value="Volunteer">Volunteer</option>
-                        </select>
+                    </select>
                 </div>
             </div>
 
             <!-- Job Description -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Job Description</label>
-                <textarea class="form-control" rows="4" name="JobDescription" placeholder="Write a detailed job description..." required></textarea>
+                <textarea class="form-control" rows="4" name="JobDescription"JobType placeholder="Write a detailed job description..." required>@Model.JobDescription</textarea>
             </div>
 
             <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Requirements</label>
                 <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select roles...">
-                    <option value="Curriculum Vitae">Curriculum Vitae</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="5 Years Experience">5 Years Experience</option>
+                    @foreach (var data in Model.JobRequirements)
+                    {
+                        <option value="@data.Requirement" selected>@data.Requirement</option>
+                    }
                 </select>
             </div>
 
@@ -68,18 +69,20 @@
             <div class="mb-5">
                 <label class="form-label fw-bold">Roles</label>
                 <select id="rolesSelect" name="Role[]" multiple placeholder="Add or select roles...">
-                    <option value="Responsible for database maintainability">Responsible for database maintainability</option>
-                    <option value="Responsible for ship direction">Responsible for ship direction</option>
-                    <option value="Responsible for the engine">Responsible for the engine</option>
+                    @foreach (var data in Model.JobRole)
+                    {
+                        <option value="@data.Role" selected>@data.Role</option>
+                    }
                 </select>
             </div>
             <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Benefits</label>
                 <select id="benefitSelect" name="Benefit[]" multiple placeholder="Add or select roles...">
-                    <option value="Bonus">Bonus</option>
-                    <option value="13th month pay">13th month pay</option>
-                    <option value="Paid leaves">Paid leaves</option>
+                    @foreach (var data in Model.JobBenefits)
+                    {
+                        <option value="@data.Benefit" selected>@data.Benefit</option>
+                    }
                 </select>
             </div>
 
@@ -93,12 +96,12 @@
 
             <!-- Submit -->
             <div class="text-end">
-                <button type="submit" class="btn btn-primary">Create Job</button>
+                <button type="submit" class="btn btn-warning">Submit Edit</button>
             </div>
         </form>
     </div>
 </div>
-@section Scripts{
+@section Scripts {
     <script>
         new TomSelect("#rolesSelect", {
           plugins: ['remove_button'],
@@ -155,4 +158,3 @@
         });
     </script>
 }
-

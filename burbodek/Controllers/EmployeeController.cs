@@ -24,7 +24,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobRole)
-                        .Where(u => u.ExpirationDate > DateTime.Now)
+                        .Where(u => u.ExpirationDate > DateTime.Now && u.isArchived == null)
                         .ToList();
             return View(data);
         }
@@ -42,7 +42,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobRole)
-                        .Where(u => u.Id == Id)
+                        .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
             return View(data);
         }
@@ -69,7 +69,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobApplication.Where(a => a.AppliedBy == userId))
-                        .Where(u => u.Id == Id)
+                        .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
 
 
