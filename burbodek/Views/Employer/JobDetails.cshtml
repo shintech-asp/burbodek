@@ -114,11 +114,20 @@
 													{
 														<tr>
 															<td>@data.FirstName, @data.LastName</td>
-															<td><a href="@data.CV" class="btn btn-sm btn-success" target="_blank">Applicant CV</a></td>
+															<td>
+																<a href="@data.CV" target="_blank">
+																	applicants_cv
+																</a>
+															</td>
+
 															<td>
 																<span class="badge badge-primary">@data.Status</span>
 															</td>
-															<td><a class="btn btn-primary btn-sm">More info</a></td>
+															<td class="text-center">
+																<a class="btn btn-sm btn-primary" asp-action="ApplicantInfo" asp-controller="Employer" asp-route-ApplicantId="@data.AppliedBy" asp-route-Id="@Model.Id">
+																	View
+																</a>
+															</td>
 														</tr>
 													}
 												}

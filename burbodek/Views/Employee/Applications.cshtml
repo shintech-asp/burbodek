@@ -1,6 +1,12 @@
-﻿@{
+﻿@model List<JobApplication>;
+@{
     ViewData["Title"] = "My Applications";
     Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+    int totalPending = Model.Count(a => a.Status == "Applied");
+    int totalApplication = Model.Count();
+    int totalInterview = Model.Count(a => a.Status == "Interview");
+    int totalRejected = Model.Count(a => a.Status == "Rejected");
+
 }
 
 <div class="container-xxl" id="kt_content_container">
@@ -12,7 +18,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <h3 class="fw-bold">12</h3>
+                    <h3 class="fw-bold">@totalApplication</h3>
                     <p class="text-muted mb-0">Total Applications</p>
                 </div>
             </div>
@@ -22,8 +28,8 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <h3 class="fw-bold text-success">4</h3>
-                    <p class="text-muted mb-0">Shortlisted</p>
+                    <h3 class="fw-bold text-success">@totalInterview</h3>
+                    <p class="text-muted mb-0">For Interview</p>
                 </div>
             </div>
         </div>
@@ -32,7 +38,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <h3 class="fw-bold text-primary">3</h3>
+                    <h3 class="fw-bold text-primary">@totalPending</h3>
                     <p class="text-muted mb-0">Pending Review</p>
                 </div>
             </div>
@@ -42,8 +48,8 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <h3 class="fw-bold text-info">1</h3>
-                    <p class="text-muted mb-0">Hired</p>
+                    <h3 class="fw-bold text-info">@totalRejected</h3>
+                    <p class="text-muted mb-0">Rejected</p>
                 </div>
             </div>
         </div>
@@ -80,40 +86,57 @@
                             <th class="min-w-200px text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Row Example -->
-                        <tr>
-                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Chef de Partie</a></td>
-                            <td>Royal Caribbean</td>
-                            <td>Aug 25, 2025</td>
-                            <td><span class="badge badge-light-warning">Reviewing</span></td>
-                            <td class="text-center">
-                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
-                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Housekeeping Supervisor</a></td>
-                            <td>Carnival Cruises</td>
-                            <td>Aug 20, 2025</td>
-                            <td><span class="badge badge-light-success">Shortlisted</span></td>
-                            <td class="text-center">
-                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
-                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">Waiter / Steward</a></td>
-                            <td>Disney Cruise Line</td>
-                            <td>Aug 5, 2025</td>
-                            <td><span class="badge badge-light-info">Hired</span></td>
-                            <td class="text-center">
-                                <a href="#" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
-                                <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
-                            </td>
-                        </tr>
-                        <!-- Add more rows as needed -->
-                    </tbody>
+                    @if (Model.Count > 0)
+                    {
+                        <tbody>
+                            <!-- Row Example -->
+                            @foreach (var data in Model)
+                            {
+
+                                <tr>
+                                    <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">@data.Jobs.JobTitle</a></td>
+                                    <td>@data.Jobs.Users.Username</td>
+                                    <td>
+                                        @data.CreatedAt.ToString("MMMM dd yyyy")
+                                    </td>
+                                    @{
+                                        string badge;
+                                        if (data.Status == "Applied")
+                                        {
+                                            badge = "badge-light-primary";
+                                        }
+                                        else if (data.Status == "Interview")
+                                        {
+                                            badge = "badge-light-success";
+                                        }
+                                        else if (data.Status == "Hired")
+                                        {
+                                            badge = "badge-light-info";
+                                        }
+                                        else
+                                        {
+                                            badge = "badge-light-danger";
+                                        }
+                                    }
+                                    <td><span class="badge @badge">@data.Status</span></td>
+                                    <td class="text-center">
+                                        <a asp-action="ApplicationDetails" asp-controller="Employee" asp-route-Id="@data.Jobs.Id" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
+                                        <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
+                                    </td>
+                                </tr>
+                            }
+                            <!-- Add more rows as needed -->
+                        </tbody>
+                    }
+                    else
+                    {
+                        <tbody>
+                            <tr>
+                                <td class="text-center fst-italic" colspan="5">No jobs applied</td>
+                            </tr>
+                        </tbody>
+                    }
+
                 </table>
             </div>
         </div>

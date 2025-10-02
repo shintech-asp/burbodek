@@ -328,6 +328,65 @@ namespace burbodek.Controllers
 
             return View(user);
         }
+        public IActionResult ApplicantInfo(int Id, int ApplicantId)
+        {
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication.Where(a => a.AppliedBy == ApplicantId))
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .Where(u => u.Id == Id && u.isArchived == null)
+                       .FirstOrDefault();
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
+        [HttpPost]
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id)
+        {
+            // Get the applicant for this job
+            var getStatus = _context.JobApplication
+                .FirstOrDefault(u => u.AppliedBy == ApplicantId && u.JobsId == Id);
+
+            if (getStatus == null)
+            {
+                TempData["error"] = "Applicant not found.";
+                return RedirectToAction("JobDetails", new { Id });
+            }
+
+            // Load job with related entities
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication.Where(a => a.AppliedBy == ApplicantId))
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+            if (getStatus.Status == Status)
+            {
+                TempData["success"] = "Data submitted. Nothing changed.";
+            }
+            else
+            {
+                getStatus.Status = Status;
+                _context.Update(getStatus);
+                _context.SaveChanges();
+                TempData["success"] = "Applicant status updated successfully.";
+            }
+
+            return View(data);
+        }
+
         public IActionResult JobEdit(int Id)
         {
             var data = _context.Jobs

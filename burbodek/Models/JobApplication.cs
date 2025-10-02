@@ -17,5 +17,6 @@
         public string ApplicationLetter { get; set; }
         public string CV { get; set; }
         public string Status { get; set; } = "Applied";
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

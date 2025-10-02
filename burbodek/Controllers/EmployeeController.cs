@@ -1,5 +1,6 @@
 ﻿using burbodek.Data;
 using burbodek.Models;
+using burbodek.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,20 +15,63 @@ namespace burbodek.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public IActionResult Index(string keyword, string location, int page = 1)
         {
+            int pageSize = 10;
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var data = _context.Jobs
-                        .Include(u => u.Users)
-                            .ThenInclude(u => u.EmployerDetails)
-                        .Include(u => u.JobRequirements)
-                        .Include(u => u.JobMedia)
-                        .Include(u => u.JobBenefits)
-                        .Include(u => u.JobRole)
-                        .Where(u => u.ExpirationDate > DateTime.Now && u.isArchived == null)
-                        .ToList();
-            return View(data);
+
+            var query = _context.Jobs
+                .Include(j => j.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                .Include(j => j.JobApplication)
+                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null);
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(j =>
+                    j.JobTitle.Contains(keyword) ||
+                    j.JobDescription.Contains(keyword) ||
+                    j.JobRole.Any(r => r.Role.Contains(keyword)));
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                query = query.Where(j => j.Users.EmployerDetails.Address.Contains(location));
+            }
+
+            int totalJobs = query.Count();
+
+            var jobs = query
+                .OrderByDescending(j => j.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(j => new JobItemViewModel
+                {
+                    Id = j.Id,
+                    JobTitle = j.JobTitle,
+                    JobDescription = j.JobDescription,
+                    EmployerAddress = j.Users.EmployerDetails.Address,
+                    SalaryMin = j.SalaryMin,
+                    SalaryMax = j.SalaryMax,
+                    CreatedAt = j.CreatedAt,
+                    AlreadyApplied = j.JobApplication.Any(a => a.AppliedBy == userId)
+                })
+                .AsNoTracking()
+                .ToList();
+
+            var viewModel = new JobListViewModel
+            {
+                Jobs = jobs,
+                CurrentPage = page,
+                TotalPages = (int)Math.Ceiling(totalJobs / (double)pageSize),
+                Keyword = keyword,
+                Location = location
+            };
+
+            return View(viewModel);
         }
+
+
         public IActionResult Dashboard()
         {
             return View();
@@ -138,7 +182,36 @@ namespace burbodek.Controllers
         }
         public IActionResult Applications()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            var applications = _context.JobApplication
+                .Where(a => a.AppliedBy == userId)
+                .Include(a => a.Jobs)
+                    .ThenInclude(a => a.Users)
+                .ToList();
+
+            return View(applications);
+        }
+        public IActionResult ApplicationDetails(int Id)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication.Where(a => a.AppliedBy == userId))
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .Where(u => u.Id == Id && u.isArchived == null)
+                       .FirstOrDefault();
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
         }
         public IActionResult AccountSettings()
         {
