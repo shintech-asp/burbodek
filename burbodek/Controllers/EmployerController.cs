@@ -2,10 +2,13 @@
 using burbodek.Models;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Data;
+using System.Security.Claims;
 
 namespace burbodek.Controllers
 {
@@ -22,7 +25,7 @@ namespace burbodek.Controllers
         public IActionResult Index()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var data = _context.Subscription.Where(u => u.UsersId == userId && u.Expiration > DateTime.Now && u.Status == "Current").FirstOrDefault();
+            var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
             return View(data);
         }
 
@@ -121,12 +124,31 @@ namespace burbodek.Controllers
                 return RedirectToAction("Subscription", "Employer");
             }
         }
+        public IActionResult JobDetails(int Id)
+        {
+            var data = _context.Jobs
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobApplication)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobRole)
+                        .Include(u => u.JobMedia)
+                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
 
         public IActionResult CancelledPayment()
         {
             return View();
         }
-        public IActionResult SuccessPayment()
+        public async Task<IActionResult> SuccessPayment()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
@@ -187,6 +209,37 @@ namespace burbodek.Controllers
             };
             _context.Payments.Add(payment);
             _context.SaveChanges();
+            // after saving subscription changes
+            await HttpContext.SignOutAsync("MyCookieAuth"); // clear old cookie
+
+            var user = _context.Users
+                        .Include(u => u.EmployerDetails)
+                        .FirstOrDefault(u => u.Id == userId);
+            var claims = new List<Claim>
+            {
+                new Claim("UsersId", user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                new Claim("SubscriberType", _context.Subscription
+                    .Where(u => u.Status == "Current" && u.UsersId == user.Id)
+                    .Select(s => s.PlansId.ToString())
+                    .FirstOrDefault() ?? "Expired"),
+                new Claim("Plan", _context.Subscription
+                    .Include(s => s.Plans)
+                    .Where(s => s.Status == "Current" && s.UsersId == user.Id)
+                    .Select(s => s.Plans.PlanName)
+                    .FirstOrDefault() ?? "None"),
+                new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+            };
+
+            var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync("MyCookieAuth", principal);
 
             return View(subscription); // you can show details in success view
         }
@@ -203,9 +256,47 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult getJobApplicants(int id)
+        {
+            var data = _context.JobApplication
+                .Where(u => u.JobsId == id)
+                .Select(u => new {
+                    u.Id,
+                    u.FirstName,
+                    u.LastName,
+                    u.MobileNo,
+                    u.ExpectedSalary,
+                    u.CV,
+                    u.ApplicationLetter,
+                    u.City,
+                    u.Age,
+                    u.Status
+                })
+                .ToList();
+
+            return Json(new { count = data.Count, data = data });
+        }
+
         public IActionResult JobListing()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobApplication)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobRole)
+                        .Include(u => u.JobMedia)
+                        .Where(u => u.UsersId == userId && u.isArchived == null)
+                        .ToList();
+            var jobs = _context.JobApplication.FirstOrDefault();
+                    
+
+            var jobList = new JobListingViewModel
+            {
+                JobsList = data,
+                JobApplication = jobs
+            };
+            return View(jobList);
         }
         public IActionResult AccountSettings()
         {
@@ -222,19 +313,277 @@ namespace burbodek.Controllers
         public IActionResult Billing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var users = _context.Users
-                        .Include(u => u.EmployerDetails)
-                        .Include(u => u.Payments)
-                        .Include(u => u.Subscription.Where(s => s.Status == "Current"))
-                            .ThenInclude(s => s.Plans) 
-                        .Include(u => u.PaymentDetails)
-                        .FirstOrDefault(u => u.Id == userId);
-            return View(users);
+
+            var user = _context.Users
+                .Include(u => u.EmployerDetails)
+                .Include(u => u.Payments)
+                .Include(u => u.Subscription.Where(s => s.Status == "Current"))
+                    .ThenInclude(s => s.Plans)
+                .Include(u => u.PaymentDetails)
+                .Where(u => u.Id == userId)
+                .FirstOrDefault();
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+        public IActionResult ApplicantInfo(int Id, int ApplicantId)
+        {
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication.Where(a => a.AppliedBy == ApplicantId))
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .Where(u => u.Id == Id && u.isArchived == null)
+                       .FirstOrDefault();
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
+        [HttpPost]
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id)
+        {
+            // Get the applicant for this job
+            var getStatus = _context.JobApplication
+                .FirstOrDefault(u => u.AppliedBy == ApplicantId && u.JobsId == Id);
+
+            if (getStatus == null)
+            {
+                TempData["error"] = "Applicant not found.";
+                return RedirectToAction("JobDetails", new { Id });
+            }
+
+            // Load job with related entities
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication.Where(a => a.AppliedBy == ApplicantId))
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+            if (getStatus.Status == Status)
+            {
+                TempData["success"] = "Data submitted. Nothing changed.";
+            }
+            else
+            {
+                getStatus.Status = Status;
+                _context.Update(getStatus);
+                _context.SaveChanges();
+                TempData["success"] = "Applicant status updated successfully.";
+            }
+
+            return View(data);
+        }
+
+        public IActionResult JobEdit(int Id)
+        {
+            var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication)
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
+        [HttpPost]
+        public IActionResult JobEdit(int Id, Jobs model, List<string> Role, List<string> Requirement, List<string> Benefit)
+        {
+            ModelState.Remove("Users");
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill up all the details.";
+                var data = _context.Jobs
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.JobBenefits)
+                       .Include(u => u.JobApplication)
+                       .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRole)
+                       .Include(u => u.JobMedia)
+                       .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+
+                if (data == null)
+                {
+                    return NotFound(); // or redirect to an error page
+                }
+
+                return View(data);
+            }
+            var submitEdit = _context.Jobs.Find(Id);
+            submitEdit.JobTitle = model.JobTitle;
+            submitEdit.JobType = model.JobType;
+            submitEdit.SalaryMin = model.SalaryMin;
+            submitEdit.SalaryMax = model.SalaryMax;
+            submitEdit.ExpirationDate = model.ExpirationDate;
+            submitEdit.JobDescription = model.JobDescription;
+            var requirements = _context.JobRequirements.Where(u => u.JobsId == Id).ToList();
+            foreach (var req in requirements)
+            {
+                _context.JobRequirements.Remove(req);
+            }
+            foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
+            {
+                var JobRequirements = new JobRequirements
+                {
+                    JobsId = Id,
+                    Requirement = requirement
+                };
+                _context.JobRequirements.Add(JobRequirements);
+            }
+            var benefits = _context.JobBenefits.Where(u => u.JobsId == Id).ToList();
+            foreach (var ben in benefits)
+            {
+                _context.JobBenefits.Remove(ben);
+            }
+            foreach (var benefit in Benefit ?? Enumerable.Empty<string>())
+            {
+                var JobBenefits = new JobBenefits
+                {
+                    JobsId = Id,
+                    Benefit = benefit
+                };
+                _context.JobBenefits.Add(JobBenefits);
+            }
+            var roles = _context.JobRole.Where(u => u.JobsId == Id).ToList();
+            foreach (var rol in roles)
+            {
+                _context.JobRole.Remove(rol);
+            }
+            foreach (var role in Role ?? Enumerable.Empty<string>())
+            {
+                var JobRole = new JobRole
+                {
+                    JobsId = Id,
+                    Role = role
+                };
+                _context.JobRole.Add(JobRole);
+            }
+            _context.Jobs.Update(submitEdit);
+            _context.SaveChanges();
+            TempData["success"] = "Job details successfully edited";
+            return RedirectToAction("JobListing");
+        }
+        public IActionResult JobDelete(int Id)
+        {
+            var data = _context.Jobs.Find(Id);
+            data.isArchived = DateTime.Now;
+            _context.Jobs.Update(data);
+            _context.SaveChanges();
+            TempData["success"] = "Job successfully deleted!";
+            return RedirectToAction("JobListing");
         }
         public IActionResult JobCreate()
         {
             return View();
         }
+        [HttpPost]
+        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill up all the details.";
+                return View(model);
+            }
+
+            var job = new Jobs
+            {
+                UsersId = int.Parse(User.FindFirst("UsersId")?.Value),
+                JobTitle = model.JobTitle,
+                JobType = model.JobType,
+                SalaryMin = model.SalaryMin,
+                SalaryMax = model.SalaryMax,
+                ExpirationDate = model.ExpirationDate,
+                JobDescription = model.JobDescription
+            };
+
+            _context.Jobs.Add(job);
+            await _context.SaveChangesAsync();
+
+            // Requirements (many)
+            foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
+            {
+                var JobRequirements = new JobRequirements
+                {
+                    JobsId = job.Id,
+                    Requirement = requirement
+                };
+                _context.JobRequirements.Add(JobRequirements);
+            }
+            // Roles (many)
+            foreach (var role in Role ?? Enumerable.Empty<string>())
+            {
+                var JobRole = new JobRole
+                {
+                    JobsId = job.Id,
+                    Role = role
+                };
+                _context.JobRole.Add(JobRole);
+            }
+
+            // Benefits (many)
+            foreach (var benefit in Benefit ?? Enumerable.Empty<string>())
+            {
+                var JobBenefits = new JobBenefits
+                {
+                    JobsId = job.Id,
+                    Benefit = benefit
+                };
+                _context.JobBenefits.Add(JobBenefits);
+            }
+
+            // Media (many)
+            foreach (var file in model.JobMedia ?? Enumerable.Empty<IFormFile>())
+            {
+                if (file.Length > 0)
+                {
+                    // Generate unique file name (to avoid conflicts)
+                    var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
+
+                    // Ensure directory exists
+                    Directory.CreateDirectory(Path.GetDirectoryName(uploadPath)!);
+
+                    // Save file to disk
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Save only path + type in DB
+                    var JobMedia = new JobMedia
+                    {
+                        JobsId = job.Id,
+                        FilePath = $"/uploads/{fileName}",
+                        FileType = file.ContentType
+                    };
+                    _context.JobMedia.Add(JobMedia);
+                }
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
         public IActionResult TrainingCreate()
         {
             return View();

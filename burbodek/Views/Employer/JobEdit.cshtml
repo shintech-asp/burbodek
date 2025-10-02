@@ -1,0 +1,160 @@
+﻿@{
+    ViewData["Title"] = "Edit Job Details";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model Jobs;
+<div class="card mb-10">
+    <div class="card-header">
+        <h3 class="card-title">Create Job Listing</h3>
+    </div>
+
+    <div class="card-body">
+        <form asp-controller="Employer" asp-action="JobEdit" method="post" enctype="multipart/form-data">
+            <!-- Job Title -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Job Title</label>
+                <input type="text" class="form-control" name="JobTitle" placeholder="e.g. Cruise Ship Chef" value="@Model.JobTitle" required />
+            </div>
+
+            <!-- Salary Range -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Minimum Salary</label>
+                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" value="@Model.SalaryMin" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Maximum Salary</label>
+                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" value="@Model.SalaryMax" required />
+                </div>
+            </div>
+
+            <!-- Expiration Date -->
+            <div class="row mb-5">
+                <div class="col">
+                    <label class="form-label fw-bold">Expiration Date</label>
+                    <input type="date" class="form-control" name="ExpirationDate" value="@Model.ExpirationDate.Date" required />
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold">Job Type</label>
+                    <select class="form-select" name="JobType" required>
+                        <option value="@Model.JobType" hidden selected>@Model.JobType</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Temporary">Temporary</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Volunteer">Volunteer</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Job Description</label>
+                <textarea class="form-control" rows="4" name="JobDescription"JobType placeholder="Write a detailed job description..." required>@Model.JobDescription</textarea>
+            </div>
+
+            <!-- Requirements -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Requirements</label>
+                <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select roles...">
+                    @foreach (var data in Model.JobRequirements)
+                    {
+                        <option value="@data.Requirement" selected>@data.Requirement</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Role -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Roles</label>
+                <select id="rolesSelect" name="Role[]" multiple placeholder="Add or select roles...">
+                    @foreach (var data in Model.JobRole)
+                    {
+                        <option value="@data.Role" selected>@data.Role</option>
+                    }
+                </select>
+            </div>
+            <!-- Requirements -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Benefits</label>
+                <select id="benefitSelect" name="Benefit[]" multiple placeholder="Add or select roles...">
+                    @foreach (var data in Model.JobBenefits)
+                    {
+                        <option value="@data.Benefit" selected>@data.Benefit</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Upload Media -->
+            <div class="mb-5">
+                <label class="form-label fw-bold">Upload Media (Max 10)</label>
+                <input type="file" class="form-control" name="JobMedia" id="mediaInput" accept="image/*,video/*" multiple />
+                <small class="text-muted">You can upload up to 10 pictures/videos.</small>
+                <div id="mediaPreview" class="d-flex flex-wrap gap-3 mt-3"></div>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-end">
+                <button type="submit" class="btn btn-warning">Submit Edit</button>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        new TomSelect("#rolesSelect", {
+          plugins: ['remove_button'],
+          persist: false,
+          create: true,
+          delimiter: ',',
+          placeholder: 'Select or add roles...'
+        });
+        new TomSelect("#requirementSelect", {
+          plugins: ['remove_button'],
+          persist: false,
+          create: true,
+          delimiter: ',',
+          placeholder: 'Select or add requirements...'
+        });
+        new TomSelect("#benefitSelect", {
+          plugins: ['remove_button'],
+          persist: false,
+          create: true,
+          delimiter: ',',
+          placeholder: 'Select or add benefits...'
+        });
+
+
+        // Media Upload Preview (limit 10)
+        document.getElementById("mediaInput").addEventListener("change", function () {
+          const preview = document.getElementById("mediaPreview");
+          preview.innerHTML = "";
+          const files = Array.from(this.files).slice(0, 10); // limit 10 files
+
+          files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              let element;
+              if (file.type.startsWith("image/")) {
+                element = document.createElement("img");
+                element.src = e.target.result;
+                element.className = "rounded border";
+                element.style.width = "120px";
+                element.style.height = "80px";
+                element.style.objectFit = "cover";
+              } else if (file.type.startsWith("video/")) {
+                element = document.createElement("video");
+                element.src = e.target.result;
+                element.controls = true;
+                element.className = "rounded border";
+                element.style.width = "120px";
+                element.style.height = "80px";
+              }
+              preview.appendChild(element);
+            };
+            reader.readAsDataURL(file);
+          });
+        });
+    </script>
+}

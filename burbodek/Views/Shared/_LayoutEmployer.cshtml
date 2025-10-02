@@ -1,4 +1,5 @@
-﻿<html lang="en" data-bs-theme="light">
+﻿@using System.Security.Claims
+<html lang="en" data-bs-theme="light">
 <!--begin::Head-->
 <head>
 	<base href="../">
@@ -16,6 +17,7 @@
 	<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
 	<link href="~/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css">
 	<link href="~/assets/css/style.bundle.css" rel="stylesheet" type="text/css">
+	<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">;
 	<style type="text/css">
 		.vis-time-axis {
 			overflow: hidden;
@@ -1857,10 +1859,17 @@
 											<!--begin::Username-->
 											<div class="d-flex flex-column">
 												<div class="fw-bold d-flex align-items-center fs-5">
-													Robert Fox
-													<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span>
+													@User.FindFirst(ClaimTypes.Name)?.Value
+													@if (@User.FindFirst("Plan")?.Value == "Basic")
+													{
+														<span class="badge badge-light-warning fw-bold fs-8 px-2 py-1 ms-2">@User.FindFirst("Plan")?.Value</span>
+													}
+													else
+													{
+														<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span>
+													}
 												</div>
-												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">robert@kt.com</a>
+												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">@User.FindFirst(ClaimTypes.Email)?.Value</a>
 											</div>
 											<!--end::Username-->
 										</div>
@@ -2074,16 +2083,32 @@
 													<!--end:Menu link-->
 												</div>
 												<!--begin:Menu item-->
-												<div class="menu-item">
-													<!--begin:Menu link-->
-													<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
-														<span class="menu-bullet">
-															<span class="bullet bullet-dot"></span>
-														</span>
-														<span class="menu-title">Create Job</span>
-													</a>
-													<!--end:Menu link-->
-												</div>
+												@if (User.FindFirst("isTrainingCenter")?.Value == "True")
+												{
+													<div class="menu-item">
+														<!--begin:Menu link-->
+														<a class="menu-link" asp-controller="Employer" asp-action="TrainingCreate">
+															<span class="menu-bullet">
+																<span class="bullet bullet-dot"></span>
+															</span>
+															<span class="menu-title">Create Training</span>
+														</a>
+														<!--end:Menu link-->
+													</div>
+												}
+												@if (User.FindFirst("isEmployer")?.Value == "True")
+												{
+													<div class="menu-item">
+														<!--begin:Menu link-->
+														<a class="menu-link" asp-controller="Employer" asp-action="JobCreate">
+															<span class="menu-bullet">
+																<span class="bullet bullet-dot"></span>
+															</span>
+															<span class="menu-title">Create Job</span>
+														</a>
+														<!--end:Menu link-->
+													</div>
+												}
 											</div>
 										</div>
 										<div class="menu-item">
@@ -4279,11 +4304,13 @@
 	<script src="~/assets/js/custom/utilities/modals/create-campaign.js"></script>
 	<script src="~/assets/js/custom/utilities/modals/new-card.js"></script>
 	<script src="~/assets/js/custom/utilities/modals/users-search.js"></script>
+
 	<!--end::Custom Javascript-->
 	<script src="~/assets/js/custom/apps/inbox/compose.js"></script>
 	<script src="~/assets/js/custom/apps/inbox/reply.js"></script>
 
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js" asp-append-version="true"></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
 			@if (TempData["Success"] != null)

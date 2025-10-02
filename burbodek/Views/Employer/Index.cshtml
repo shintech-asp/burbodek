@@ -27,17 +27,7 @@ else
 {
 	@if (Model != null)
 	{
-		@if (Model.PlansId == 1)
-		{
-			<div class="alert alert-warning">
-				<strong>
-					Your free subscription will expire @Model.Expiration.Humanize(false).
-					Please avail our subscription to continue using our services.
-					<a class="btn btn-primary btn-sm" asp-action="Subscription" asp-controller="Employer">Avail now</a>.
-				</strong>
-			</div>
-		}
-		else if (Model.PlansId != 1 && Model.Expiration < DateTime.Now.AddDays(5))
+		if (Model.PlansId != 1 && Model.Expiration < DateTime.Now.AddDays(5))
 		{
 			<div class="alert alert-warning">
 				<strong>
@@ -1727,9 +1717,7 @@ else
 	{
 		<div class="alert alert-danger">
 			<strong>
-				Your subscription is expired.
-				Please renew your subscription to continue using our services.
-				<a class="btn btn-primary btn-sm" href="/Subscription/Renew">Renew now</a>.
+				There is an error rendering your website please contact admin for support
 			</strong>
 		</div>
 	}

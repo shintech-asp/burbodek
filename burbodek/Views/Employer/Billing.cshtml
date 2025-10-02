@@ -125,9 +125,13 @@
                                                 if (term == "Annual")
                                                 {
                                                     term = "1 Year";
-                                                }else
+                                                }else if(term == "Monthly")
                                                 {
                                                     term = "1 Month";
+                                                }
+                                                else
+                                                {
+                                                    term = "No limit";
                                                 }
                                                 if(data.Plans.PlanName == "Annual")
                                                 {
@@ -217,16 +221,38 @@
                     <h6 class="mb-8 fw-bolder text-gray-600 text-hover-primary">PAYMENT DETAILS</h6>
                     <!--end::Title-->
                     <!--begin::Item-->
+                    @if (Model.PaymentDetails?.Count != 0)
+                    {
                     <div class="mb-6">
                         <div class="fw-semibold text-gray-600 fs-7">Gcash:</div>
                         @{
-                            string maskedPhone = Model.PaymentDetails.FirstOrDefault().PhoneNumber;
-                            if (!string.IsNullOrEmpty(maskedPhone) && maskedPhone.Length > 5)
+
+                            string maskedPhone = "N/A";
+
+                            // More defensive approach
+                            if (Model?.PaymentDetails != null && Model.PaymentDetails.Any())
                             {
-                                maskedPhone = maskedPhone.Substring(0, maskedPhone.Length - 5) + new string('*', 5);
-                            }
-                        }
-                        <div class="fw-bold text-gray-800 fs-6">@maskedPhone</div>
+                                var paymentDetail = Model.PaymentDetails.FirstOrDefault();
+                                if (paymentDetail != null)
+                                {
+                                    var phone = paymentDetail.PhoneNumber;
+                                    if (!string.IsNullOrEmpty(phone))
+                                    {
+                                        if (phone.Length > 5)
+                                        {
+                                            maskedPhone = phone.Substring(0, phone.Length - 5) + new string('*', 5);
+                                        }
+                                        else
+                                        {
+                                            maskedPhone = phone;
+                                        }
+                                    }
+                                }
+                                }
+                         }
+                            <div class="fw-bold text-gray-800 fs-6">@maskedPhone</div>
+
+
                     </div>
                     <!--end::Item-->
                     <!--begin::Item-->
@@ -237,6 +263,8 @@
                             @Model.PaymentDetails.FirstOrDefault().Name
                         </div>
                     </div>
+
+                    }
                     <!--end::Item-->
                     <!--begin::Item-->
                     <div class="mb-15">
