@@ -288,13 +288,21 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Where(u => u.UsersId == userId && u.isArchived == null)
                         .ToList();
+            var training = _context.Training
+                        .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingRequirements)
+                        .Include(u => u.TrainingMedia)
+                        .Where(u => u.UsersId == userId && u.isArchived == null)
+                        .ToList();
+
             var jobs = _context.JobApplication.FirstOrDefault();
                     
 
             var jobList = new JobListingViewModel
             {
                 JobsList = data,
-                JobApplication = jobs
+                JobApplication = jobs,
+                TrainingList = training
             };
             return View(jobList);
         }
@@ -587,6 +595,82 @@ namespace burbodek.Controllers
         public IActionResult TrainingCreate()
         {
             return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> TrainingCreate(TrainingCreateViewModel model,  List<string> Requirement, List<string> Benefit)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill up all the details.";
+                return View(model);
+            }
+
+            var train = new Training
+            {
+                UsersId = int.Parse(User.FindFirst("UsersId")?.Value),
+                Name = model.Name,
+                Price = model.Price,
+                Expiration = model.Expiration,
+                TrainingDescription = model.TrainingDescription,
+                DurationFrom = model.DurationFrom,
+                DurationTo = model.DurationTo
+            };
+
+            _context.Training.Add(train);
+            await _context.SaveChangesAsync();
+
+            // Requirements (many)
+            foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
+            {
+                var TrainingRequirements = new TrainingRequirements
+                {
+                    TrainingId = train.Id,
+                    Requirement = requirement
+                };
+                _context.TrainingRequirements.Add(TrainingRequirements);
+            }
+
+            // Benefits (many)
+            foreach (var benefit in Benefit ?? Enumerable.Empty<string>())
+            {
+                var TrainingBenefits = new TrainingBenefits
+                {
+                    TrainingId = train.Id,
+                    Benefit = benefit
+                };
+                _context.TrainingBenefits.Add(TrainingBenefits);
+            }
+
+            // Media (many)
+            foreach (var file in model.TrainingMedia ?? Enumerable.Empty<IFormFile>())
+            {
+                if (file.Length > 0)
+                {
+                    // Generate unique file name (to avoid conflicts)
+                    var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
+
+                    // Ensure directory exists
+                    Directory.CreateDirectory(Path.GetDirectoryName(uploadPath)!);
+
+                    // Save file to disk
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Save only path + type in DB
+                    var TrainingMedia = new TrainingMedia
+                    {
+                        TrainingId = train.Id,
+                        FilePath = $"/uploads/{fileName}",
+                        FileType = file.ContentType
+                    };
+                    _context.TrainingMedia.Add(TrainingMedia);
+                }
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
     }
 }
