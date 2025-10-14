@@ -9,29 +9,29 @@
     </div>
 
     <div class="card-body">
-        <form id="jobListingForm">
+        <form asp-controller="Employer" asp-action="TrainingCreate" method="POST" enctype="multipart/form-data">
             <!-- Job Title -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Training Title</label>
-                <input type="text" class="form-control" name="job_title" placeholder="e.g. Tesda certification" required />
+                <input type="text" class="form-control" name="Name" placeholder="e.g. Tesda certification" required />
             </div>
 
             <!-- Salary Range -->
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Price</label>
-                    <input type="number" class="form-control" name="salary_min" placeholder="e.g. 2000" required />
+                    <input type="number" class="form-control" name="Price" placeholder="e.g. 2000" required />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Expiration Date</label>
-                    <input type="date" class="form-control" name="expiration_date" required />
+                    <input type="date" class="form-control" name="Expiration" required />
                 </div>
             </div>
 
             <!-- Job Description -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Training Description</label>
-                <textarea class="form-control" rows="4" name="job_description" placeholder="Write a detailed training description..." required></textarea>
+                <textarea class="form-control" rows="4" name="TrainingDescription" placeholder="Write a detailed training description..." required></textarea>
             </div>
 
             <!-- Job Description -->
@@ -41,41 +41,44 @@
                     <!-- From -->
                     <div class="d-flex flex-column">
                         <label for="dateFrom" class="form-label mb-1">From</label>
-                        <input type="date" class="form-control" id="dateFrom" name="date_from" required>
+                        <input type="date" class="form-control" id="DurationFrom" name="date_from" required>
                     </div>
 
                     <!-- To -->
                     <div class="d-flex flex-column">
                         <label for="dateTo" class="form-label mb-1">To</label>
-                        <input type="date" class="form-control" id="dateTo" name="date_to" required>
+                        <input type="date" class="form-control" id="DurationTo" name="date_to" required>
                     </div>
                 </div>
 
             </div>
+
             <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Requirements</label>
-                <ul id="requirementsList" class="list-unstyled mb-3"></ul>
-                <div class="input-group">
-                    <input type="text" id="requirementInput" class="form-control" placeholder="Add requirement..." />
-                    <button type="button" class="btn btn-primary" onclick="addRequirement()">Add</button>
-                </div>
+                <select id="requirementSelectTraining" name="Requirement[]" multiple placeholder="Add or select requirements...">
+                    <option value="Curriculum Vitae">Curriculum Vitae</option>
+                    <option value="Diploma">Payment</option>
+                    <option value="5 Years Experience">Proof of payment</option>
+                    <option value="Diploma">Payment</option>
+                    <option value="5 Years Experience">Proof of payment</option>
+                </select>
             </div>
 
-            <!-- Benefits -->
+            <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Benefits</label>
-                <ul id="benefitsList" class="list-unstyled mb-3"></ul>
-                <div class="input-group">
-                    <input type="text" id="benefitInput" class="form-control" placeholder="Add benefit..." />
-                    <button type="button" class="btn btn-success" onclick="addBenefit()">Add</button>
-                </div>
+                <select id="benefitSelectTraining" name="Benefit[]" multiple placeholder="Add or select benefits...">
+                    <option value="Bonus">Bonus</option>
+                    <option value="13th month pay">13th month pay</option>
+                    <option value="Paid leaves">Paid leaves</option>
+                </select>
             </div>
 
             <!-- Upload Media -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Upload Media (Max 10)</label>
-                <input type="file" class="form-control" name="media_files[]" id="mediaInput" accept="image/*,video/*" multiple />
+                <input type="file" class="form-control" name="TrainingMedia" id="mediaInput" accept="image/*,video/*" multiple />
                 <small class="text-muted">You can upload up to 10 pictures/videos.</small>
                 <div id="mediaPreview" class="d-flex flex-wrap gap-3 mt-3"></div>
             </div>
@@ -88,30 +91,22 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 <script>
-    // Add Requirement
-    function addRequirement() {
-      const input = document.getElementById("requirementInput");
-      if (input.value.trim() !== "") {
-        const li = document.createElement("li");
-        li.innerHTML = `<i class="bi bi-dot text-primary"></i> ${input.value}
-          <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
-        document.getElementById("requirementsList").appendChild(li);
-        input.value = "";
-      }
-    }
-
-    // Add Benefit
-    function addBenefit() {
-      const input = document.getElementById("benefitInput");
-      if (input.value.trim() !== "") {
-        const li = document.createElement("li");
-        li.innerHTML = `<i class="bi bi-check2-circle text-success"></i> ${input.value}
-          <button type="button" class="btn btn-sm btn-light-danger ms-2" onclick="this.parentElement.remove()">Remove</button>`;
-        document.getElementById("benefitsList").appendChild(li);
-        input.value = "";
-      }
-    }
+    new TomSelect("#requirementSelectTraining", {
+          plugins: ['remove_button'],
+          persist: false,
+          create: true,
+          delimiter: ',',
+          placeholder: 'Select or add requirements...'
+        });
+    new TomSelect("#benefitSelectTraining", {
+        plugins: ['remove_button'],
+        persist: false,
+        create: true,
+        delimiter: ',',
+        placeholder: 'Select or add benefits...'
+    });
 
     // Media Upload Preview (limit 10)
     document.getElementById("mediaInput").addEventListener("change", function () {
