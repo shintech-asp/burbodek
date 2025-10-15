@@ -15,6 +15,14 @@
 	<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
 	<link href="~/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css">
 	<link href="~/assets/css/style.bundle.css" rel="stylesheet" type="text/css">
+	<link href="https://unpkg.com/filepond@4.31.1/dist/filepond.min.css" rel="stylesheet" type="text/css" />
+
+	<!-- Image Preview Plugin CSS -->
+	<link href="https://unpkg.com/filepond-plugin-image-preview@4.6.12/dist/filepond-plugin-image-preview.min.css" rel="stylesheet" type="text/css" />
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+	<!-- PDF Preview Plugin CSS -->
+	<link href="https://unpkg.com/filepond-plugin-pdf-preview@1.0.4/dist/filepond-plugin-pdf-preview.min.css" rel="stylesheet" type="text/css" />
 	<style type="text/css">
 		.vis-time-axis {
 			overflow: hidden;
@@ -4235,7 +4243,17 @@
 	<!--end::Custom Javascript-->
 	<!--end::Custom Javascript-->
 	<script src="~/assets/js/custom/apps/inbox/compose.js"></script>
+	<!-- Plugins --><!-- FilePond Core JS -->
+	<script src="https://unpkg.com/filepond@4.31.1/dist/filepond.min.js"></script>
 
+	<!-- Image Preview Plugin JS -->
+	<script src="https://unpkg.com/filepond-plugin-image-preview@4.6.12/dist/filepond-plugin-image-preview.min.js"></script>
+
+	<!-- PDF Preview Plugin JS -->
+	<script src="https://unpkg.com/filepond-plugin-pdf-preview@1.0.4/dist/filepond-plugin-pdf-preview.min.js"></script>
+	<!-- Core -->
+	<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+	<script src="https://unpkg.com/filepond@4/dist/filepond.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {

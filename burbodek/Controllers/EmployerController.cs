@@ -266,7 +266,12 @@ namespace burbodek.Controllers
                     u.LastName,
                     u.MobileNo,
                     u.ExpectedSalary,
-                    u.CV,
+                    u.Resume,
+                    u.SeamansBook,
+                    u.Diploma,
+                    u.Coe,
+                    u.Tor,
+                    u.PassportId,
                     u.ApplicationLetter,
                     u.City,
                     u.Age,
@@ -522,7 +527,13 @@ namespace burbodek.Controllers
                 SalaryMin = model.SalaryMin,
                 SalaryMax = model.SalaryMax,
                 ExpirationDate = model.ExpirationDate,
-                JobDescription = model.JobDescription
+                JobDescription = model.JobDescription,
+                Diploma = model.Diploma,
+                Resume = model.Resume,
+                Tor = model.Tor,
+                Coe = model.Coe,
+                SeamansBook = model.SeamansBook,
+                PassportId = model.PassportId
             };
 
             _context.Jobs.Add(job);

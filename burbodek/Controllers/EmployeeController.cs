@@ -116,46 +116,64 @@ namespace burbodek.Controllers
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
 
+            var userInfo = _context.JobApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
+                        .FirstOrDefault();
 
-            return View(data);
+            var viewModel = new JobApplyViewModel
+            {
+                Jobs = data,
+                UserInfo = userInfo
+            };
+            return View(viewModel);
         }
         [HttpPost]
-        public async Task<IActionResult> JobApply(JobApplication model, int Id, IFormFile CVUpload)
-        { 
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> JobApply(JobApplication model, int Id, IFormFile? ResumeFile, IFormFile? CoeFile, IFormFile? TorFile, IFormFile? SeamansBookFile, IFormFile? PassportIdFile, IFormFile? DiplomaFile)
+        {
+            // Remove unrelated properties from ModelState
             ModelState.Remove("Jobs");
             ModelState.Remove("AppliedBy");
             ModelState.Remove("CV");
 
             model.JobsId = Id;
-            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
+            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value ?? throw new InvalidOperationException("User ID not found"));
+
+            // Debug: Log all received files
+            Console.WriteLine($"ResumeFile: {(ResumeFile != null ? ResumeFile.FileName : "null")}");
+            Console.WriteLine($"CoeFile: {(CoeFile != null ? CoeFile.FileName : "null")}");
+            Console.WriteLine($"TorFile: {(TorFile != null ? TorFile.FileName : "null")}");
+            Console.WriteLine($"SeamansBookFile: {(SeamansBookFile != null ? SeamansBookFile.FileName : "null")}");
+            Console.WriteLine($"PassportIdFile: {(PassportIdFile != null ? PassportIdFile.FileName : "null")}");
+            Console.WriteLine($"DiplomaFile: {(DiplomaFile != null ? DiplomaFile.FileName : "null")}");
 
             if (!ModelState.IsValid)
             {
+                foreach (var error in ModelState)
+                {
+                    Console.WriteLine($"Key: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
                 TempData["error"] = "Please fill all the required fields!";
                 return View(model);
             }
 
-            string cvPath = null;
-
-            if (CVUpload != null && CVUpload.Length > 0)
+            // File upload logic (refactored for reuse)
+            async Task<string> SaveFile(IFormFile? file)
             {
-                // Ensure uploads folder exists
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cv");
+                if (file == null || file.Length == 0) return null;
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "requirements");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                // Generate unique filename
-                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CVUpload.FileName);
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                // Save file in wwwroot/uploads/cv/
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    await CVUpload.CopyToAsync(stream);
+                    await file.CopyToAsync(stream);
                 }
 
-                // Save relative path only (to serve via browser later)
-                cvPath = "/uploads/cv/" + uniqueFileName;
+                return "/uploads/requirements/" + uniqueFileName;
             }
 
             var jobApplication = new JobApplication
@@ -171,7 +189,12 @@ namespace burbodek.Controllers
                 StartDate = model.StartDate,
                 Experience = model.Experience,
                 ApplicationLetter = model.ApplicationLetter,
-                CV = cvPath // ✅ only path is stored, not the actual file
+                Resume = await SaveFile(ResumeFile),
+                Diploma = await SaveFile(DiplomaFile),
+                PassportId = await SaveFile(PassportIdFile),
+                Tor = await SaveFile(TorFile),
+                Coe = await SaveFile(CoeFile),
+                SeamansBook = await SaveFile(SeamansBookFile)
             };
 
             _context.JobApplication.Add(jobApplication);

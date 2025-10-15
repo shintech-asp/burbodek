@@ -191,22 +191,89 @@
 				</div>
 				<!--end::Input group-->
 				<!-- Upload Media -->
-				<div class="mb-5">
-					<div>
-						<label class="form-label fw-bold">Upload CV</label>
+				@if (Model.Coe)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Certificate of Employment</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Coe" />
+							</div>
+						</div>
 					</div>
-					<a href="@Model.JobApplication?.FirstOrDefault()?.CV" target="_blank">Applicant CV</a>
-				</div>
+				}
+				@if (Model.Tor)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Transcript of Records</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Tor" />
+							</div>
+						</div>
+					</div>
+				}
+				@if (Model.Diploma)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Diploma</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Diploma" />
+							</div>
+						</div>
+					</div>
+				}
+				@if (Model.PassportId)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Passport Id</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.PassportId" />
+							</div>
+						</div>
+					</div>
+				}
+				@if (Model.Resume)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Resume</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Resume" />
+							</div>
+						</div>
+					</div>
+				}
+				@if (Model.SeamansBook)
+				{
+					<div class="mb-5">
+						<div>
+							<label class="form-label fw-bold required">Seaman's Book</label>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.SeamansBook" />
+							</div>
+						</div>
+					</div>
+				}
 
 				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Id" asp-route-ApplicantId="@Model.JobApplication?.FirstOrDefault()?.AppliedBy">
 					<div class="mb-5">
-						<select class="form-select" name="Status">
-							<option value="@Model.JobApplication.FirstOrDefault()?.Status" hidden selected>@Model.JobApplication.FirstOrDefault()?.Status</option>
-							<option value="Applied">Applied</option>
-							<option value="Interview">Interview</option>
-							<option value="Interview">Hired</option>
-							<option value="Interview">Reject</option>
-						</select>
+						<label class="form-label">Application Status</label>
+						<input type="text" class="form-control" readonly value="@Model.JobApplication.FirstOrDefault()?.Status" />
 					</div>
 					<!--begin::Separator-->
 					<div class="separator mb-8"></div>
@@ -223,3 +290,110 @@
 	</div>
 	<!--end::Body-->
 </div>
+@section Scripts {
+	<style>
+		.filepond--image-preview-wrapper {
+			cursor: zoom-in;
+			transition: transform 0.3s ease;
+		}
+
+			.filepond--image-preview-wrapper:hover img {
+				transform: scale(1.1);
+			}
+
+		/* Full screen overlay for click */
+		.image-zoom-overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.9);
+			z-index: 9999;
+			cursor: zoom-out;
+			justify-content: center;
+			align-items: center;
+		}
+
+			.image-zoom-overlay.active {
+				display: flex;
+			}
+
+			.image-zoom-overlay img {
+				max-width: 90%;
+				max-height: 90%;
+				object-fit: contain;
+			}
+	</style>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			FilePond.registerPlugin(
+				FilePondPluginImagePreview,
+				FilePondPluginPdfPreview
+			);
+
+			FilePond.setOptions({
+				allowMultiple: false,
+				acceptedFileTypes: ['image/*', 'application/pdf'],
+				fileValidateTypeLabelExpectedTypes: 'Expects an image or PDF',
+				allowImagePreview: true,
+				allowPdfPreview: true,
+				pdfPreviewHeight: 240,
+				pdfComponentExtraParams: 'toolbar=0&navpanes=0&scrollbar=0&view=fitH&page=1',
+				server: null,
+				storeAsFile: true,
+				chunkUploads: false,
+				allowReorder: false,
+				allowRemove: false,
+				allowReplace: false,
+				instantUpload: false,
+				allowRevert: false
+			});
+
+			// Create overlay element
+			const overlay = document.createElement('div');
+			overlay.className = 'image-zoom-overlay';
+			overlay.innerHTML = '<img src="" alt="Zoomed image">';
+			document.body.appendChild(overlay);
+
+			overlay.addEventListener('click', () => {
+				overlay.classList.remove('active');
+			});
+
+			const inputs = document.querySelectorAll('.filepond');
+			inputs.forEach(input => {
+				const pond = FilePond.create(input);
+				const defaultFile = input.dataset.defaultFile;
+
+				if (defaultFile) {
+					pond.addFile(defaultFile);
+				}
+
+				pond.on('addfile', (error, file) => {
+					if (error) {
+						alert('Invalid file: Only images and PDFs allowed.');
+					}
+
+					// Add zoom for images
+					if (!error && file.file.type.startsWith('image/')) {
+						setTimeout(() => {
+							const wrapper = pond.element.querySelector('.filepond--image-preview-wrapper');
+							if (wrapper) {
+								wrapper.addEventListener('click', (e) => {
+									e.preventDefault();
+									e.stopPropagation();
+
+									const imgSrc = file.source || URL.createObjectURL(file.file);
+									overlay.querySelector('img').src = imgSrc;
+									overlay.classList.add('active');
+								});
+							}
+						}, 100);
+					}
+				});
+			});
+		});
+	</script>
+}
