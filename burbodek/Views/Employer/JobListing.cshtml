@@ -4,11 +4,14 @@
     ViewData["Title"] = "Your listings";
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
-@model JobListingViewModel;
+@model JobListingViewModel
+
+<!-- Include moment.js for date formatting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
 <!-- Page Heading -->
 <div class="card shadow-sm mb-5">
     <div class="card-body d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
-
         <h3 class="fw-bold mb-2 mb-sm-0">My Listings</h3>
         @if (bool.Parse(User.FindFirst("isTrainingCenter")?.Value) && bool.Parse(User.FindFirst("isEmployer")?.Value))
         {
@@ -28,25 +31,34 @@
                 + Post New Job
             </button>
         }
-        
     </div>
 </div>
 
 <!-- Job Listings Table -->
 <div class="card">
     <div class="card-body">
+        <div class="text-end mb-5">
+            @if (bool.Parse(User.FindFirst("isTrainingCenter")?.Value) && bool.Parse(User.FindFirst("isEmployer")?.Value))
+            {
+                <select id="selectListing" class="form-select w-25">
+                    <option value="Job">Jobs</option>
+                    <option value="Training">Training</option>
+                </select>
+            }
+        </div>
+
         <table class="table table-row-dashed align-middle gs-0 gy-4">
             <thead>
                 <tr class="fw-semibold text-muted bg-light">
-                    <th class="ps-4">Job Title</th>
+                    <th class="ps-4" id="title">Title</th>
                     <th>Applicants</th>
                     <th>Expiration Date</th>
                     <th>Status</th>
                     <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                @if(Model.JobsList.Count > 0)
+            <tbody id="jobBody">
+                @if (Model.JobsList.Any())
                 {
                     foreach (var data in Model.JobsList)
                     {
@@ -57,76 +69,41 @@
                                     <small class="text-muted">@data.JobType</small>
                                 </div>
                             </td>
-                            @{
-                                int status1 = 0;
-                                if(data.JobApplication?.Count > 0)
-                                {
-                                    status1 = data.JobApplication.Count;
-                                }
-
-                            }
-                            <td><span class="badge badge-light-info">@status1 Applicants</span></td>
+                            <td><span class="badge badge-light-info">@(data.JobApplication?.Count ?? 0) Applicants</span></td>
                             <td>@data.ExpirationDate.Humanize()</td>
-                            @{
-                                string badge;
-                                string status;
-                                if (data.ExpirationDate > DateTime.Now)
-                                {
-                                    badge = "badge-success";
-                                    status = "Active";
-                                }
-                                else
-                                {
-                                    badge = "badge-danger";
-                                    status = "Expired";
-                                }
-                            }
-                            <td><span class="badge @badge">@status</span></td>
+                            <td>
+                                <span class="badge @(data.ExpirationDate > DateTime.Now ? "badge-success" : "badge-danger")">
+                                    @(data.ExpirationDate > DateTime.Now ? "Active" : "Expired")
+                                </span>
+                            </td>
                             <td class="text-end pe-4">
                                 <a class="btn btn-light btn-sm" asp-action="JobDetails" asp-controller="Employer" asp-route-Id="@data.Id">View</a>
                             </td>
                         </tr>
                     }
-                }else if (Model.TrainingList.Count > 0)
+                }
+                else if (Model.TrainingList.Any())
                 {
                     foreach (var data in Model.TrainingList)
                     {
-                    <tr>
-                        <td class="ps-4">
-                            <div class="d-flex flex-column">
-                                <span class="text-dark fw-bold">@data.Name</span>
-                                <small class="text-muted">Training</small>
-                            </div>
-                        </td>
-                        @*{
-                                    int status1 = 0;
-                                    if (data.JobApplication?.Count > 0)
-                                    {
-                                        status1 = data.JobApplication.Count;
-                                    }
-
-                                }*@
-                        <td><span class="badge badge-light-info">0 Applicants</span></td>
-                        <td>@data.Expiration.Humanize()</td>
-                        @{
-                            string badge;
-                            string status;
-                            if (data.Expiration > DateTime.Now)
-                            {
-                                badge = "badge-success";
-                                status = "Active";
-                            }
-                            else
-                            {
-                                badge = "badge-danger";
-                                status = "Expired";
-                            }
-                        }
-                        <td><span class="badge @badge">@status</span></td>
-                        <td class="text-end pe-4">
-                                <a class="btn btn-light btn-sm" href="#" @*asp-action="JobDetails" asp-controller="Employer" asp-route-Id="@data.Id"*@>View</a>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex flex-column">
+                                    <span class="text-dark fw-bold">@data.Name</span>
+                                    <small class="text-muted">Training</small>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-light-info">1 Applicants</span></td>
+                            <td>@data.Expiration.Humanize()</td>
+                            <td>
+                                <span class="badge @(data.Expiration > DateTime.Now ? "badge-success" : "badge-danger")">
+                                    @(data.Expiration > DateTime.Now ? "Active" : "Expired")
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a class="btn btn-light btn-sm" asp-action="TrainingDetails" asp-controller="Employer" asp-route-Id="@data.Id">View</a>
+                            </td>
+                        </tr>
                     }
                 }
                 else
@@ -150,7 +127,6 @@
                                 No Job Posted Yet
                             </td>
                         }
-
                     </tr>
                 }
             </tbody>
@@ -158,30 +134,25 @@
     </div>
 </div>
 
+<!-- Modal -->
 <div class="modal fade" tabindex="-1" id="kt_modal_1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Modal title</h3>
-
-                <!--begin::Close-->
+                <h3 class="modal-title">Create New Listing</h3>
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
-                <!--end::Close-->
             </div>
-
             <div class="modal-body">
                 <div class="mb-3 d-flex justify-content-evenly">
                     @if (User.FindFirst("isTrainingCenter")?.Value == "True")
                     {
                         <a asp-controller="Employer" asp-action="TrainingCreate" class="btn btn-success btn-sm">+ Post New Training</a>
-                        
                     }
                     @if (User.FindFirst("isEmployer")?.Value == "True")
                     {
                         <a asp-controller="Employer" asp-action="JobCreate" class="btn btn-primary btn-sm">+ Post New Job</a>
-                        
                     }
                 </div>
             </div>
@@ -189,3 +160,77 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#selectListing").on("change", function() {
+                const type = $(this).val();
+                $("#jobBody").empty(); // Clear table body
+
+                let url = type === "Job" ? "/Employer/GetJobs" : "/Employer/GetTraining";
+
+                $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(data) {
+                        const response = data.response;
+                        if (response.length === 0) {
+                            $("#jobBody").append(`
+                                <tr>
+                                    <td colspan="5" class="fst-italic text-center">
+                                        No ${type} Posted Yet
+                                    </td>
+                                </tr>
+                            `);
+                            return;
+                        }
+
+                        response.forEach(function(item) {
+                            const isJob = type === "Job";
+                            const title = isJob ? item.jobTitle : item.name;
+                            const subtitle = isJob ? item.jobType : "Training";
+                            const applicants = isJob ? (item.jobApplication?.length || 0) : (item.jobApplication?.length || 0);
+                            const expiration = moment(item.expirationDate || item.expiration).fromNow();
+                            const isActive = new Date(item.expirationDate || item.expiration) > new Date();
+                            const badge = isActive ? "badge-success" : "badge-danger";
+                            const status = isActive ? "Active" : "Expired";
+                            const actionUrl = isJob ? `/Employer/JobDetails?Id=${item.id}` : `/Employer/TrainingDetails?Id=${item.id}`;
+
+                            $("#jobBody").append(`
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex flex-column">
+                                            <span class="text-dark fw-bold">${title}</span>
+                                            <small class="text-muted">${subtitle}</small>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge badge-light-info">${applicants} Applicants</span></td>
+                                    <td>${expiration}</td>
+                                    <td><span class="badge ${badge}">${status}</span></td>
+                                    <td class="text-end pe-4">
+                                        <a class="btn btn-light btn-sm" href="${actionUrl}">View</a>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(`Failed to load ${type}:`, error);
+                        $("#jobBody").append(`
+                            <tr>
+                                <td colspan="5" class="fst-italic text-center">
+                                    Error loading ${type}. Please try again.
+                                </td>
+                            </tr>
+                        `);
+                    }
+                });
+            });
+
+            // Trigger initial load based on default selection
+            if ($("#selectListing").length) {
+                $("#selectListing").trigger("change");
+            }
+        });
+    </script>
+}

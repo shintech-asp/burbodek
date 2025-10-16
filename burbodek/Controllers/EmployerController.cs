@@ -282,6 +282,30 @@ namespace burbodek.Controllers
             return Json(new { count = data.Count, data = data });
         }
 
+        public IActionResult GetTraining()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var training = _context.Training
+                        .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingRequirements)
+                        .Include(u => u.TrainingMedia)
+                        .Where(u => u.UsersId == userId && u.isArchived == null)
+                        .ToList();
+            return Json(new {response = training});
+        }
+        public IActionResult GetJobs()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Jobs
+                        .Include(u => u.JobBenefits)
+                        .Include(u => u.JobApplication)
+                        .Include(u => u.JobRequirements)
+                        .Include(u => u.JobRole)
+                        .Include(u => u.JobMedia)
+                        .Where(u => u.UsersId == userId && u.isArchived == null)
+                        .ToList();
+            return Json(new { response = data });
+        }
         public IActionResult JobListing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -624,7 +648,13 @@ namespace burbodek.Controllers
                 Expiration = model.Expiration,
                 TrainingDescription = model.TrainingDescription,
                 DurationFrom = model.DurationFrom,
-                DurationTo = model.DurationTo
+                DurationTo = model.DurationTo,
+                Diploma = model.Diploma,
+                Resume = model.Resume,
+                Tor = model.Tor,
+                Coe = model.Coe,
+                SeamansBook = model.SeamansBook,
+                PassportId = model.PassportId
             };
 
             _context.Training.Add(train);

@@ -16,5 +16,11 @@
         public ICollection<TrainingRequirements> TrainingRequirements { get; set; } = new List<TrainingRequirements>();
         public ICollection<TrainingBenefits> TrainingBenefits { get; set; } = new List<TrainingBenefits>();
         public ICollection<TrainingMedia> TrainingMedia { get; set; } = new List<TrainingMedia>();
+        public bool Diploma { get; set; }
+        public bool Resume { get; set; }
+        public bool PassportId { get; set; }
+        public bool SeamansBook { get; set; }
+        public bool Tor { get; set; }
+        public bool Coe { get; set; }
     }
 }

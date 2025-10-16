@@ -13,5 +13,11 @@
         public List<string> TrainingBenefits { get; set; } = new();
 
         public List<IFormFile> TrainingMedia { get; set; } = new();
+        public bool Diploma { get; set; }
+        public bool Resume { get; set; }
+        public bool PassportId { get; set; }
+        public bool SeamansBook { get; set; }
+        public bool Tor { get; set; }
+        public bool Coe { get; set; }
     }
 }
