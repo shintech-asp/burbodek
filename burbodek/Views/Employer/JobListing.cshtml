@@ -159,78 +159,114 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            $("#selectListing").on("change", function() {
-                const type = $(this).val();
-                $("#jobBody").empty(); // Clear table body
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectListing = document.getElementById("selectListing");
+            const jobBody = document.getElementById("jobBody");
 
-                let url = type === "Job" ? "/Employer/GetJobs" : "/Employer/GetTraining";
+            if (!selectListing || !jobBody) return;
 
-                $.ajax({
-                    method: "GET",
-                    url: url,
-                    success: function(data) {
-                        const response = data.response;
-                        if (response.length === 0) {
-                            $("#jobBody").append(`
-                                <tr>
-                                    <td colspan="5" class="fst-italic text-center">
-                                        No ${type} Posted Yet
-                                    </td>
-                                </tr>
-                            `);
-                            return;
-                        }
-
-                        response.forEach(function(item) {
-                            const isJob = type === "Job";
-                            const title = isJob ? item.jobTitle : item.name;
-                            const subtitle = isJob ? item.jobType : "Training";
-                            const applicants = isJob ? (item.jobApplication?.length || 0) : (item.jobApplication?.length || 0);
-                            const expiration = moment(item.expirationDate || item.expiration).fromNow();
-                            const isActive = new Date(item.expirationDate || item.expiration) > new Date();
-                            const badge = isActive ? "badge-success" : "badge-danger";
-                            const status = isActive ? "Active" : "Expired";
-                            const actionUrl = isJob ? `/Employer/JobDetails?Id=${item.id}` : `/Employer/TrainingDetails?Id=${item.id}`;
-
-                            $("#jobBody").append(`
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex flex-column">
-                                            <span class="text-dark fw-bold">${title}</span>
-                                            <small class="text-muted">${subtitle}</small>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-light-info">${applicants} Applicants</span></td>
-                                    <td>${expiration}</td>
-                                    <td><span class="badge ${badge}">${status}</span></td>
-                                    <td class="text-end pe-4">
-                                        <a class="btn btn-light btn-sm" href="${actionUrl}">View</a>
-                                    </td>
-                                </tr>
-                            `);
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(`Failed to load ${type}:`, error);
-                        $("#jobBody").append(`
-                            <tr>
-                                <td colspan="5" class="fst-italic text-center">
-                                    Error loading ${type}. Please try again.
-                                </td>
-                            </tr>
-                        `);
-                    }
-                });
+            selectListing.addEventListener("change", function () {
+                const selectedValue = this.value;
+                if (selectedValue === "Training") {
+                    fetchTraining();
+                } else if (selectedValue === "Job") {
+                    fetchJobs();
+                } else {
+                    jobBody.innerHTML = `<tr><td colspan="5" class="fst-italic text-center">Please select a listing type</td></tr>`;
+                }
             });
 
-            // Trigger initial load based on default selection
-            if ($("#selectListing").length) {
-                $("#selectListing").trigger("change");
+            async function fetchTraining() {
+                try {
+                    const res = await fetch('/Employer/GetTraining');
+                    const data = await res.json();
+
+                    // Handle $values array structure
+                    const trainings = data?.response?.$values ?? [];
+
+                    if (!Array.isArray(trainings) || trainings.length === 0) {
+                        jobBody.innerHTML = `<tr><td colspan="5" class="fst-italic text-center">No Training Posted Yet</td></tr>`;
+                        return;
+                    }
+
+                    jobBody.innerHTML = trainings.map(t => `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex flex-column">
+                                    <span class="text-dark fw-bold">${t.name ?? 'N/A'}</span>
+                                    <small class="text-muted">Training</small>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-light-info">1 Applicant</span></td>
+                            <td>${formatDate(t.expiration)}</td>
+                            <td>
+                                <span class="badge ${isActive(t.expiration) ? "badge-success" : "badge-danger"}">
+                                    ${isActive(t.expiration) ? "Active" : "Expired"}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a class="btn btn-light btn-sm" href="/Employer/TrainingDetails/${t.id}">View</a>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (err) {
+                    console.error("Error loading training:", err);
+                    jobBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading training data</td></tr>`;
+                }
+            }
+
+            async function fetchJobs() {
+                try {
+                    const res = await fetch('/Employer/GetJobs');
+                    const data = await res.json();
+
+                    const jobs = data?.response?.$values ?? [];
+
+                    if (!Array.isArray(jobs) || jobs.length === 0) {
+                        jobBody.innerHTML = `<tr><td colspan="5" class="fst-italic text-center">No Job Posted Yet</td></tr>`;
+                        return;
+                    }
+
+                    jobBody.innerHTML = jobs.map(j => `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex flex-column">
+                                    <span class="text-dark fw-bold">${j.jobTitle ?? 'N/A'}</span>
+                                    <small class="text-muted">${j.jobType ?? ''}</small>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-light-info">${(j.applicantsCount)} Applicants</span></td>
+                            <td>${formatDate(j.expirationDate)}</td>
+                            <td>
+                                <span class="badge ${isActive(j.expirationDate) ? "badge-success" : "badge-danger"}">
+                                    ${isActive(j.expirationDate) ? "Active" : "Expired"}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a class="btn btn-light btn-sm" href="/Employer/JobDetails/${j.id}">View</a>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (err) {
+                    console.error("Error loading jobs:", err);
+                    jobBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading job data</td></tr>`;
+                }
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                return isNaN(date) ? '' : date.toLocaleDateString();
+            }
+
+            function isActive(dateStr) {
+                const now = new Date();
+                const exp = new Date(dateStr);
+                return exp > now;
             }
         });
     </script>
 }
+

@@ -285,27 +285,39 @@ namespace burbodek.Controllers
         public IActionResult GetTraining()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var training = _context.Training
-                        .Include(u => u.TrainingBenefits)
-                        .Include(u => u.TrainingRequirements)
-                        .Include(u => u.TrainingMedia)
-                        .Where(u => u.UsersId == userId && u.isArchived == null)
-                        .ToList();
-            return Json(new {response = training});
+
+            var trainings = _context.Training
+                .Where(t => t.UsersId == userId && t.isArchived == null)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    t.Expiration
+                })
+                .ToList();
+
+            return Json(new { response = trainings });
         }
+
         public IActionResult GetJobs()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var data = _context.Jobs
-                        .Include(u => u.JobBenefits)
-                        .Include(u => u.JobApplication)
-                        .Include(u => u.JobRequirements)
-                        .Include(u => u.JobRole)
-                        .Include(u => u.JobMedia)
-                        .Where(u => u.UsersId == userId && u.isArchived == null)
-                        .ToList();
-            return Json(new { response = data });
+
+            var jobs = _context.Jobs
+                .Where(j => j.UsersId == userId && j.isArchived == null)
+                .Select(j => new
+                {
+                    j.Id,
+                    j.JobTitle,
+                    j.JobType,
+                    j.ExpirationDate,
+                    ApplicantsCount = j.JobApplication.Count()
+                })
+                .ToList();
+
+            return Json(new { response = jobs });
         }
+
         public IActionResult JobListing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
