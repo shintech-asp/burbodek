@@ -1,16 +1,16 @@
 ﻿@using Humanizer
 @{
-    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
-    ViewData["Title"] = "Job Details";
+	Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+	ViewData["Title"] = "Training Details";
 }
-@model Jobs
+@model Training
 <div class="card">
 	<!--begin::Body-->
 	<div class="card-body p-lg-17">
 		<!--begin::Hero-->
-@{
-	string[] videoExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
-}
+		@{
+			string[] videoExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
+		}
 
 		<style>
 			.job-media-item {
@@ -24,10 +24,10 @@
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">
-					@if (Model?.JobMedia != null && Model.JobMedia.Any())
+					@if (Model?.TrainingMedia != null && Model.TrainingMedia.Any())
 					{
 						var index = 0;
-						foreach (var media in Model.JobMedia)
+						foreach (var media in Model.TrainingMedia)
 						{
 							var isActive = index == 0 ? "active" : "";
 							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
@@ -76,7 +76,7 @@
 
 			<!-- Business Info -->
 			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
-				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.JobTitle</h3>
+				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Name</h3>
 				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
 			</div>
 		</div>
@@ -94,18 +94,19 @@
 						</div>
 						<!--end::Top-->
 						<div class="card-body">
-							<div >
+							<div>
 								<div class="table-responsive">
 									<table class="table table-row-dashed table-row-gray-300 gy-7">
 										<thead>
 											<tr class="fw-bold fs-6 text-gray-800">
 												<th>Name</th>
-												<th>Status</th>
+												<th>Payment</th>
+												<th>Payment Option</th>
 												<th>Actions</th>
 											</tr>
 										</thead>
 										<tbody>
-											@if (Model?.JobApplication?.Count > 0)
+											@* @if (Model?.JobApplication?.Count > 0)
 											{
 												@foreach (var data in Model.JobApplication)
 												{
@@ -127,11 +128,11 @@
 												}
 											}
 											else
-											{
+											{ *@
 												<tr>
-													<td colspan="4">No applicants yet</td>
+													<td colspan="4" class="text-center">No applicants yet</td>
 												</tr>
-											}
+											@* } *@
 										</tbody>
 									</table>
 								</div>
@@ -160,7 +161,7 @@
 						<!--begin::Item-->
 						<div class="mb-8">
 							<!--begin::Title-->
-							<h4 class="text-gray-700 w-bolder mb-0">Salary</h4>
+							<h4 class="text-gray-700 w-bolder mb-0">Price</h4>
 							<!--end::Title-->
 							<!--begin::Section-->
 							<div class="my-2">
@@ -170,7 +171,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">₱@Model.SalaryMin.ToString("N0") - ₱@Model.SalaryMax.ToString("N0") / month</div>
+									<div class="text-gray-600 fw-semibold fs-6">₱@Model.Price.ToString("N0") pesos only</div>
 
 									<!--end::Label-->
 								</div>
@@ -180,7 +181,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.JobType</div>
+									<div class="text-gray-600 fw-semibold fs-6">Training</div>
 								</div>
 							</div>
 							<!--end::Section-->
@@ -199,7 +200,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.ExpirationDate.Humanize()</div>
+									<div class="text-gray-600 fw-semibold fs-6">@Model.Expiration.Humanize()</div>
 									<!--end::Label-->
 								</div>
 								<!--end::Row-->
@@ -214,7 +215,7 @@
 			</div>
 			<!--end::Sidebar-->
 		</div>
-		<!--end::Layout-->
+		@* <!--end::Layout-->
 		<form asp-controller="Employer" asp-action="JobDelete" asp-route-Id="@Model.Id">
 			<div class="text-center mt-5">
 				<a class="btn btn-sm btn-warning w-25" asp-action="JobEdit" asp-controller="Employer" asp-route-Id="@Model.Id">
@@ -224,7 +225,7 @@
 					Delete this Job
 				</button>
 			</div>
-		</form>
+		</form> *@
 	</div>
 </div>
 

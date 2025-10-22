@@ -4,9 +4,8 @@
     {
         public string Name { get; set; }
         public decimal Price { get; set; }
-        public DateTime DurationFrom { get; set; }
-        public DateTime DurationTo { get; set; }
         public DateTime Expiration { get; set; }
+        public string Duration { get; set; }
         public string TrainingDescription { get; set; }
 
         public List<string> TrainingRequirements { get; set; } = new();
@@ -19,5 +18,8 @@
         public bool SeamansBook { get; set; }
         public bool Tor { get; set; }
         public bool Coe { get; set; }
+        public string PaymentOption { get; set; }
+        public string ModeOfPayment { get; set; }
+        public decimal? DownPayment { get; set; }
     }
 }

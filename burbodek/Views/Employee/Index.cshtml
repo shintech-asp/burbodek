@@ -15,6 +15,11 @@
                     <form asp-action="Index" method="get" class="d-flex w-75">
                         <input type="text" name="keyword" value="@Model.Keyword" class="form-control form-control-lg me-2" placeholder="Job title, keyword..." />
                         <input type="text" name="location" value="@Model.Location" class="form-control form-control-lg me-2" placeholder="Location" />
+                        <select class="form-select" name="filter">
+                            <option value="All">All</option>
+                            <option value="Jobs">Jobs</option>
+                            <option value="Trainings">Trainings</option>
+                        </select>
                         <button type="submit" class="btn btn-lg btn-primary">Search</button>
                     </form>
                 </div>
@@ -25,7 +30,7 @@
                 <div class="container">
                     <h4 class="mb-5">Search Results</h4>
 
-                    @if (Model.Jobs != null && Model.Jobs.Count > 0)
+                    @if ((Model.Jobs != null && Model.Jobs.Count > 0) || (Model.Trainings != null && Model.Trainings.Count > 0))
                     {
                         @foreach (var data in Model.Jobs)
                         {
@@ -53,11 +58,37 @@
                                 </div>
                             </div>
                         }
+                        @foreach (var data in Model.Trainings)
+                        {
+                            <div class="card mb-5 shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold text-primary">@data.Name</h5>
+                                    <p class="text-muted mb-2">@data.EmployerAddress</p>
+                                    <p>@data.TrainingDescription</p>
+                                    <div class="d-flex justify-content-between mt-3">
+                                        <span class="fw-bold">₱@data.Price.ToString("N0") / pesos only</span>
+                                        @if (data.AlreadyApplied)
+                                        {
+                                            <button class="btn btn-sm btn-light-success" disabled>
+                                                Applied <i class="ki-duotone ki-double-check">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="TrainingInfo" asp-route-Id="@data.Id">Apply Now</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     }
                     else
                     {
                         <div class="text-center fst-italic fw-bold">
-                            <p>No job posted yet</p>
+                            <p>No job/training posted yet</p>
                         </div>
                     }
 

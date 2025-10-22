@@ -184,8 +184,8 @@
                     const data = await res.json();
 
                     // Handle $values array structure
-                    const trainings = data?.response?.$values ?? [];
-
+                    const trainings = data?.response;
+                    console.log(data?.response)
                     if (!Array.isArray(trainings) || trainings.length === 0) {
                         jobBody.innerHTML = `<tr><td colspan="5" class="fst-italic text-center">No Training Posted Yet</td></tr>`;
                         return;
@@ -222,7 +222,7 @@
                     const res = await fetch('/Employer/GetJobs');
                     const data = await res.json();
 
-                    const jobs = data?.response?.$values ?? [];
+                    const jobs = data?.response;
 
                     if (!Array.isArray(jobs) || jobs.length === 0) {
                         jobBody.innerHTML = `<tr><td colspan="5" class="fst-italic text-center">No Job Posted Yet</td></tr>`;

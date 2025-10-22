@@ -1,0 +1,358 @@
+﻿@using burbodek.Models.ViewModels
+@{
+    ViewData["Title"] = "Subscription";
+    Layout = "_LayoutEmployee";
+}
+@model TrainingPaymentViewModel
+<!--begin::Layout-->
+<div class="d-flex flex-column flex-lg-row">
+    <!--begin::Content-->
+    <div class="flex-lg-row-fluid me-lg-15 order-2 order-lg-1 mb-10 mb-lg-0">
+        <!--begin::Customer-->
+        <div class="card card-flush pt-3 mb-5 mb-lg-10">
+            <!--begin::Card header-->
+            <div class="card-header">
+                <!--begin::Card title-->
+                <div class="card-title">
+                    <h2 class="fw-bold">Customer</h2>
+                </div>
+                <!--begin::Card title-->
+            </div>
+            <!--end::Card header-->
+            <!--begin::Card body-->
+            <div class="card-body pt-0">
+                <!--begin::Selected customer-->
+                <div class="d-flex align-items-center p-3 mb-2">
+                    <!--begin::Avatar-->
+                    <div class="symbol symbol-60px symbol-circle me-3">
+                        <img alt="Pic" src="~/assets/media/avatars/300-5.jpg">
+                    </div>
+                    <!--end::Avatar-->
+                    <!--begin::Info-->
+                    <div class="d-flex flex-column">
+                        <!--begin::Name-->
+                        <a href="#" class="fs-4 fw-bold text-gray-900 text-hover-primary me-2">@Model.Users.Username</a>
+                        <!--end::Name-->
+                        <!--begin::Email-->
+                        <a href="#" class="fw-semibold text-gray-600 text-hover-primary">@Model.Users.Email</a>
+                        <!--end::Email-->
+                    </div>
+                    <!--end::Info-->
+                </div>
+                <!--end::Selected customer-->
+                <!--begin::Customer add buttons-->
+                <div class="mb-7 d-none">
+                    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_customer_search">Select Customer</a>
+
+                    <span class="fw-bold text-gray-500 mx-2">or</span>
+
+                    <a href="~/apps/customers/list.html" class="btn btn-light-primary">Add New Customer</a>
+                </div>
+                <!--end::Customer add buttons-->
+            </div>
+            <!--end::Card body-->
+        </div>
+        <!--end::Customer-->
+        <!--begin::Pricing-->
+        <div class="card card-flush pt-3 mb-5 mb-lg-10">
+            <!--begin::Card header-->
+            <div class="card-header">
+                <!--begin::Card title-->
+                <div class="card-title">
+                    <span class="fw-bold required">Training Payment</span>
+
+                    <span class="ms-1" data-bs-toggle="tooltip" aria-label="Please select a subscription" data-bs-original-title="Please select a subscription" data-kt-initialized="1">
+                        <i class="ki-duotone ki-information fs-7"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    </span>
+                </div>
+                <!--begin::Card title-->
+            </div>
+            <!--end::Card header-->
+            <!--begin::Card body-->
+            <div class="card-body pt-0">
+                <!--begin::Table wrapper-->
+                <div class="table-responsive">
+                    <!--begin::Table-->
+                    <div id="kt_subscription_products_table_wrapper" class="dt-container dt-bootstrap5 dt-empty-footer">
+                        <!--begin::Scroll-->
+                        <div class="scroll-y mh-300px me-n7 pe-7">
+                            <!--begin::Product-->
+                            <div class="fv-row">
+                                <label class="d-flex align-items-center mb-5">
+                                    <span class="form-check form-check-custom form-check-solid me-5">
+                                        <input class="form-check-input subscription-option"
+                                               type="radio"
+                                               name="product"
+                                               value="@Model.TrainingPayments.Id"
+                                               data-plan-name="@Model.TrainingPayments.TrainingApplication.Training.Name"
+                                               data-plan-downpayment="@(Model.TrainingPayments.ModeOfPayment == "Down" ? Model.TrainingPayments.TrainingApplication.Training.DownPayment : Model.TrainingPayments.Price)"
+                                               data-plan-price="₱@(Model.TrainingPayments.Price.ToString("N2"))"
+                                               checked>
+                                    </span>
+                                    <span class="d-flex flex-column me-3">
+                                        <span class="fw-bold">Training</span>
+                                        <span class="text-gray-500 fw-semibold fs-6">@Model.TrainingPayments.TrainingApplication.Training.Name</span>
+                                    </span>
+                                    <span class="fw-bold ms-auto">
+                                        <span>₱@(((decimal)Model.TrainingPayments.Price).ToString("N2"))</span>
+                                        @if (Model.TrainingPayments.TrainingApplication.Training.DownPayment != null)
+                                        {
+                                            <span class="text-success fs-6 fw-semibold">or Pay partial for as low as ₱@(((decimal)Model.TrainingPayments.TrainingApplication.Training.DownPayment).ToString("N2"))</span>
+                                        }
+                                    </span>
+                                </label>
+                            </div>
+                            <!--end::Input group-->
+                        </div>
+                        <!--end::Scroll-->
+                    </div>
+                    <!--end::Table-->
+                </div>
+                <!--end::Table wrapper-->
+            </div>
+            <!--end::Card body-->
+        </div>
+        <!--end::Pricing-->
+    </div>
+    <!--end::Content-->
+    <!--begin::Sidebar-->
+    <div class="flex-column flex-lg-row-auto w-100 w-lg-250px w-xl-300px mb-10 order-1 order-lg-2">
+        <!--begin::Card-->
+        <div class="card card-flush pt-3 mb-0" data-kt-sticky="true" data-kt-sticky-name="subscription-summary" data-kt-sticky-offset="{default: false, lg: '200px'}" data-kt-sticky-width="{lg: '250px', xl: '300px'}" data-kt-sticky-left="auto" data-kt-sticky-top="150px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95" style="">
+            <!--begin::Card header-->
+            <div class="card-header">
+                <!--begin::Card title-->
+                <div class="card-title">
+                    <h2>Summary</h2>
+                </div>
+                <!--end::Card title-->
+            </div>
+            <!--end::Card header-->
+            <!--begin::Card body-->
+            @if(Model.TrainingPayments.Paid != null)
+            {
+                <div class="card-body pt-0 fs-6" id="printableCard">
+                    <!--begin::Section-->
+                    <div class="mb-7">
+                        <h5 class="mb-3">Customer details</h5>
+
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fw-bold text-gray-800 text-hover-primary me-2">
+                                @Model.Users.Username
+                            </span>
+                            <span class="badge badge-light-success">Active</span>
+                        </div>
+
+                        <span class="fw-semibold text-gray-600 text-hover-primary">@Model.Users.Email</span>
+                    </div>
+
+                    <div class="separator separator-dashed mb-7"></div>
+
+                    <div class="mb-7">
+                        <h5 class="mb-3">Product details</h5>
+                        <div class="mb-0" id="summary-plan">
+                            <span class="badge badge-light-info me-2">@Model.TrainingPayments.TrainingApplication.Training.Name</span>
+                            @if (Model.TrainingPayments.Paid != Model.TrainingPayments.Price)
+                            {
+                                <span class="fw-semibold text-gray-600">
+                                    Remaining balance: ₱@(Model.TrainingPayments.Price - Model.TrainingPayments.Paid)
+                                </span>
+                                <span class="fw-semibold text-success">Down Payment Paid</span>
+                            }
+                            else if (Model.TrainingPayments.Paid == Model.TrainingPayments.Price)
+                            {
+                                <span class="fw-semibold text-success">Paid</span>
+                            }
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-success btn-sm" id="printCard">Print</button>
+                </div>
+
+            }
+            else
+            {
+                <div class="card-body pt-0 fs-6">
+                    <!--begin::Section-->
+                    <div class="mb-7">
+
+                        <!--begin::Title-->
+                        <h5 class="mb-3">Customer details</h5>
+                        <!--end::Title-->
+                        <!--begin::Details-->
+                        <div class="d-flex align-items-center mb-1">
+                            <!--begin::Name-->
+                            <span class="fw-bold text-gray-800 text-hover-primary me-2">
+                                @Model.Users.Username
+                            </span>
+                            <!--end::Name-->
+                            <!--begin::Status-->
+                            <span class="badge badge-light-success">Active</span>
+                            <!--end::Status-->
+                        </div>
+                        <!--end::Details-->
+                        <!--begin::Email-->
+                        <span class="fw-semibold text-gray-600 text-hover-primary">@Model.Users.Email</span>
+                        <!--end::Email-->
+                    </div>
+                    <!--end::Section-->
+                    <!--begin::Seperator-->
+                    <div class="separator separator-dashed mb-7"></div>
+                    <!--end::Seperator-->
+                    <div class="mb-7">
+                        <h5 class="mb-3">Product details</h5>
+                        <div class="mb-0" id="summary-plan">
+                            <span class="badge badge-light-info me-2">@Model.TrainingPayments.TrainingApplication.Training.Name</span>
+                            <span class="fw-semibold text-gray-600">₱@Model.TrainingPayments.Price</span>
+                        </div>
+                    </div>
+                    @if (Model.TrainingPayments.ModeOfPayment == "E-wallet")
+                    {
+                        <div class="separator separator-dashed mb-7"></div>
+
+                        <div class="mb-10">
+                            <h5 class="mb-3">Payment Details</h5>
+                            <div class="mb-0" id="summary-payment">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentOption" id="fullPayment" value="Full payment" />
+                                    <label class="form-check-label" for="fullPayment">
+                                        Full payment
+                                    </label>
+                                </div>
+                                <br />
+                                @if (Model.TrainingPayments.PaymentOption == "Down")
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentOption" id="partialPayment" value="Partial payment" />
+                                        <label class="form-check-label" for="partialPayment">
+                                            Partial payment
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <!--begin::Actions-->
+                        <div class="mb-0">
+                            <form asp-controller="Employee" asp-action="Checkout" method="post" id="checkoutForm">
+                                <input type="hidden" name="amountPaidIn" id="amountPaidIn" /> @*Partial payment/Full payment*@
+                                <input type="hidden" name="amountPaid" id="amountPaid" /> @*Downpayment price/Fullpayment price*@
+                                <input type="hidden" name="email" value="@Model.Users.Email" />
+                                <input type="hidden" name="username" value="@Model.Users.Username" />
+                                <input type="hidden" name="Id" value="@TempData["Id"]" />
+                                <button type="submit" class="btn btn-primary" id="kt_subscriptions_create_button">
+                                    <span class="indicator-label">Pay Now</span>
+                                    <span class="indicator-progress">
+                                        Please wait... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    <!--end::Actions-->
+                </div>
+            }
+            
+            <!--end::Card body-->
+        </div>
+        <!--end::Card-->
+    </div>
+    <!--end::Sidebar-->
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Elements
+            const paymentOptions = document.querySelectorAll('input[name="paymentOption"]');
+            const summaryPlan = document.getElementById("summary-plan");
+            const amountPaidInput = document.getElementById("amountPaid");
+            const amountPaidInInput = document.getElementById("amountPaidIn");
+
+            const fullPaymentAmount = parseFloat("@(Model.TrainingPayments.Price)");
+            const partialPaymentAmount = parseFloat("@(Model.TrainingPayments.TrainingApplication.Training.DownPayment ?? 0)");
+            const trainingName = "@Model.TrainingPayments.TrainingApplication.Training.Name".trim();
+
+            // Listen for radio changes
+            paymentOptions.forEach(option => {
+                option.addEventListener("change", function () {
+                    const selectedValue = this.value;
+
+                    paymentOptions.forEach(o => o.closest(".form-check")?.classList.remove("border", "border-primary", "rounded", "p-2"));
+                    this.closest(".form-check")?.classList.add("border", "border-primary", "rounded", "p-2");
+
+                    if (selectedValue === "Full payment") {
+                        summaryPlan.innerHTML = `
+                            <span class="badge badge-light-info me-2">${trainingName}</span>
+                            <span class="fw-semibold text-gray-600">₱${fullPaymentAmount.toLocaleString()}</span>
+                            <div class="text-success fw-semibold mt-2">Selected: Full Payment</div>
+                        `;
+                        amountPaidInput.value = fullPaymentAmount;
+                        amountPaidInInput.value = "Full payment";
+                    } else if (selectedValue === "Partial payment") {
+                        summaryPlan.innerHTML = `
+                            <span class="badge badge-light-info me-2">${trainingName}</span>
+                            <span class="fw-semibold text-gray-600">₱${partialPaymentAmount.toLocaleString()}</span>
+                            <div class="text-success fw-semibold mt-2">Selected: Partial Payment</div>
+                        `;
+                        amountPaidInput.value = partialPaymentAmount;
+                        amountPaidInInput.value = "Partial payment";
+                    }
+                });
+            });
+
+            // Auto-select default option
+            const defaultOption = document.getElementById("fullPayment");
+            if (defaultOption) {
+                defaultOption.checked = true;
+                defaultOption.dispatchEvent(new Event("change"));
+            }
+
+            // ✅ Print card handler
+            const printButton = document.getElementById("printCard");
+            if (printButton) {
+                printButton.addEventListener("click", function () {
+                    console.log("HELLO")
+                    const card = document.getElementById('printableCard');
+                    const printWindow = window.open('', '', 'width=800,height=600');
+
+                    printWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>Print Receipt</title>
+                                <style>
+                                    body {
+                                        font-family: Arial, sans-serif;
+                                        margin: 30px;
+                                        color: #333;
+                                    }
+                                    h5 { margin-bottom: 10px; }
+                                    .fw-bold { font-weight: bold; }
+                                    .fw-semibold { font-weight: 500; }
+                                    .badge {
+                                        display: inline-block;
+                                        padding: 5px 10px;
+                                        border-radius: 8px;
+                                        background-color: #e8f0fe;
+                                        color: #0366d6;
+                                    }
+                                    .text-success { color: #28a745 !important; }
+                                    .separator {
+                                        border-top: 1px dashed #ccc;
+                                        margin: 20px 0;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                ${card.innerHTML}
+                                <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                            </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                });
+            }
+        });
+    </script>
+}
+
+
+

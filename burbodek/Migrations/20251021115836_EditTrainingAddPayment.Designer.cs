@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251021115836_EditTrainingAddPayment")]
+    partial class EditTrainingAddPayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -540,71 +543,6 @@ namespace burbodek.Migrations
                     b.ToTable("Training");
                 });
 
-            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AppliedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Coe")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Diploma")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MobileNo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PassportId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Resume")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeamansBook")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Tor")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TrainingId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TrainingId");
-
-                    b.ToTable("TrainingApplication");
-                });
-
             modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
                 {
                     b.Property<int>("Id")
@@ -651,46 +589,6 @@ namespace burbodek.Migrations
                     b.HasIndex("TrainingId");
 
                     b.ToTable("TrainingMedia");
-                });
-
-            modelBuilder.Entity("burbodek.Models.TrainingPayments", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModeOfPayment")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Paid")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PaymentOption")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("TrainingApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TrainingApplicationId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("TrainingPayments");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingRequirements", b =>
@@ -897,17 +795,6 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
-                {
-                    b.HasOne("burbodek.Models.Training", "Training")
-                        .WithMany("TrainingApplication")
-                        .HasForeignKey("TrainingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Training");
-                });
-
             modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
                 {
                     b.HasOne("burbodek.Models.Training", "Training")
@@ -928,25 +815,6 @@ namespace burbodek.Migrations
                         .IsRequired();
 
                     b.Navigation("Training");
-                });
-
-            modelBuilder.Entity("burbodek.Models.TrainingPayments", b =>
-                {
-                    b.HasOne("burbodek.Models.TrainingApplication", "TrainingApplication")
-                        .WithMany("TrainingPayments")
-                        .HasForeignKey("TrainingApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TrainingApplication");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingRequirements", b =>
@@ -975,18 +843,11 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.Training", b =>
                 {
-                    b.Navigation("TrainingApplication");
-
                     b.Navigation("TrainingBenefits");
 
                     b.Navigation("TrainingMedia");
 
                     b.Navigation("TrainingRequirements");
-                });
-
-            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
-                {
-                    b.Navigation("TrainingPayments");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

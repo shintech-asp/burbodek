@@ -79,7 +79,7 @@ namespace burbodek.Controllers
             return RedirectToAction("PaymentDetails");
         }
         [HttpPost]
-        public async Task<IActionResult> Checkout(decimal amount, string planName, string email, string contact, string username)
+        public async Task<IActionResult> Checkout(decimal amount, string planName, string email, string? contact, string username)
         {
             try
             {
@@ -143,7 +143,23 @@ namespace burbodek.Controllers
 
             return View(data);
         }
+        public IActionResult TrainingDetails(int Id)
+        {
+            var data = _context.Training
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingRequirements)
+                        .Include(u => u.TrainingMedia)
+                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
+        }
         public IActionResult CancelledPayment()
         {
             return View();
@@ -646,6 +662,10 @@ namespace burbodek.Controllers
         [HttpPost]
         public async Task<IActionResult> TrainingCreate(TrainingCreateViewModel model,  List<string> Requirement, List<string> Benefit)
         {
+            if(model.PaymentOption == "Full")
+            {
+                ModelState.Remove("DownPayment");
+            }
             if (!ModelState.IsValid)
             {
                 TempData["error"] = "Please fill up all the details.";
@@ -659,14 +679,16 @@ namespace burbodek.Controllers
                 Price = model.Price,
                 Expiration = model.Expiration,
                 TrainingDescription = model.TrainingDescription,
-                DurationFrom = model.DurationFrom,
-                DurationTo = model.DurationTo,
+                Duration = model.Duration,
                 Diploma = model.Diploma,
                 Resume = model.Resume,
                 Tor = model.Tor,
                 Coe = model.Coe,
                 SeamansBook = model.SeamansBook,
-                PassportId = model.PassportId
+                PassportId = model.PassportId,
+                PaymentOption = model.PaymentOption,
+                ModeOfPayment = model.ModeOfPayment,
+                DownPayment = model.DownPayment
             };
 
             _context.Training.Add(train);

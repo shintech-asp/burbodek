@@ -23,6 +23,8 @@ namespace burbodek.Data
         public DbSet<JobMedia> JobMedia { get; set; }
         public DbSet<JobApplication> JobApplication { get; set; }
         public DbSet<JobRequirements> JobRequirements { get; set; }
+        public DbSet<TrainingPayments> TrainingPayments { get; set; }
+        public DbSet<TrainingApplication> TrainingApplication { get; set; }
         public DbSet<Subscription> Subscription { get; set; }
 
         public DbSet<PaymentDetails> PaymentDetails { get; set; }

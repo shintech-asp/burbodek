@@ -37,20 +37,10 @@
             <!-- Job Description -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Training Duration</label>
-                <div class="d-flex align-items-center gap-5">
-                    <!-- From -->
-                    <div class="d-flex flex-column">
-                        <label for="dateFrom" class="form-label mb-1">From</label>
-                        <input type="date" class="form-control" id="DurationFrom" name="date_from" required>
-                    </div>
-
-                    <!-- To -->
-                    <div class="d-flex flex-column">
-                        <label for="dateTo" class="form-label mb-1">To</label>
-                        <input type="date" class="form-control" id="DurationTo" name="date_to" required>
-                    </div>
+                <div class="input-group input-group-solid mb-5">
+                    <input type="text" class="form-control" name="Duration" placeholder="30" aria-describedby="basic-addon2">
+                    <span class="input-group-text" id="basic-addon2">/days</span>
                 </div>
-
             </div>
 
             <!-- Requirements -->
@@ -58,14 +48,12 @@
                 <label class="form-label fw-bold">Requirements</label>
                 <select id="requirementSelectTraining" name="Requirement[]" multiple placeholder="Add or select requirements...">
                     <option value="Curriculum Vitae">Curriculum Vitae</option>
-                    <option value="Diploma">Payment</option>
-                    <option value="5 Years Experience">Proof of payment</option>
-                    <option value="Diploma">Payment</option>
-                    <option value="5 Years Experience">Proof of payment</option>
+                    <option value="Payment">Payment</option>
+                    <option value="Proof of payment">Proof of payment</option>
                 </select>
             </div>
 
-            <!-- Requirements -->
+            <!-- Benefits -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Benefits</label>
                 <select id="benefitSelectTraining" name="Benefit[]" multiple placeholder="Add or select benefits...">
@@ -77,12 +65,43 @@
 
             <!-- Upload Media -->
             <div class="mb-5">
-                <label class="form-label fw-bold">Upload Media (Max 10)</label>
-                <input type="file" class="form-control" name="TrainingMedia" id="mediaInput" accept="image/*,video/*" multiple />
-                <small class="text-muted">You can upload up to 10 pictures/videos.</small>
-                <div id="mediaPreview" class="d-flex flex-wrap gap-3 mt-3"></div>
+                <div>
+                    <label class="form-label fw-bold required">Upload Media</label>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <input type="file"
+                               class="filepond"
+                               name="TrainingMedia"
+                               accept="image/*,video/mp4,video/webm,video/ogg"
+                               multiple
+                               data-allow-reorder="true"
+                               data-max-file-size="50MB" />
+                    </div>
+                </div>
             </div>
-
+            <div class="my-5">
+                <hr />
+                <h5>Mode of Payment</h5>
+            </div>
+            <div class="row" id="PaymentForm">
+                <div class="col-12 mb-5">
+                    <label class="form-label">Payment Option</label>
+                    <select class="form-select" name="PaymentOption" id="PaymentOption">
+                        <option hidden selected>-- Select --</option>
+                        <option value="Full">Full Payment</option>
+                        <option value="Down">Down Payment</option>
+                    </select>
+                </div>
+                <div class="col-12 mb-5">
+                    <label class="form-label">Mode of Payment</label>
+                    <select class="form-select" name="ModeOfPayment" id="ModeOfPayment">
+                        <option hidden selected>-- Select --</option>
+                        <option value="Cash">Cash</option>
+                        <option value="E-wallet">E-Wallet</option>
+                    </select>
+                </div>
+            </div>
             <div class="my-5">
                 <hr />
                 <h5>Upload settings</h5>
@@ -133,57 +152,126 @@
             </div>
             <!-- Submit -->
             <div class="text-end">
-                <button type="submit" class="btn btn-primary">Create Job</button>
+                <button type="submit" class="btn btn-primary">Create Training</button>
             </div>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
-<script>
-    new TomSelect("#requirementSelectTraining", {
-          plugins: ['remove_button'],
-          persist: false,
-          create: true,
-          delimiter: ',',
-          placeholder: 'Select or add requirements...'
+@section Scripts {
+    <!-- FilePond CSS -->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+
+    <!-- FilePond JS -->
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $("#PaymentOption").on('change', function(){
+                if($(this).val() == "Down"){
+                    $("#PaymentForm").append(`
+                    <div class="row" id="DPForm">
+                        <div class="col">
+                            <label class="form-label">Down payment</label>
+                            <div class="input-group input-group-solid mb-5">
+                                <input type="text" class="form-control" name="DownPayment" placeholder="5000" aria-describedby="basic-addon2">
+                                <span class="input-group-text" id="basic-addon2">₱/Peso</span>
+                            </div>
+                        </div>
+                    </div>`)
+                }else{
+                    $("#DPForm").remove()
+                }
+            })
+            // ✅ Register FilePond plugins
+            FilePond.registerPlugin(
+                FilePondPluginImagePreview,
+                FilePondPluginFileValidateType
+            );
+
+            // ✅ Initialize FilePond
+            const inputElement = document.querySelector('.filepond');
+            const pond = FilePond.create(inputElement, {
+                allowMultiple: true,
+                maxFiles: 10,
+                acceptedFileTypes: ['image/*', 'video/mp4', 'video/webm', 'video/ogg', 'video/mov'],
+                fileValidateTypeLabelExpectedTypes: 'Expects images or videos',
+                labelIdle: 'Drag & Drop your images/videos or <span class="filepond--label-action">Browse</span>',
+                allowImagePreview: true,
+                imagePreviewMaxHeight: 200,
+                allowVideoPreview: true,
+                allowRevert: true,
+                allowRemove: true,
+                allowReorder: true,
+                storeAsFile: true,
+                credits: false
+            });
+
+            // ✅ Enhanced video preview handler
+            pond.on('addfile', (error, fileItem) => {
+                if (error) {
+                    console.error('Error adding file:', error);
+                    return;
+                }
+
+                const fileType = fileItem.file.type;
+
+                // Add custom video preview for better display
+                if (fileType.startsWith('video/')) {
+                    setTimeout(() => {
+                        const fileItemElement = fileItem.element;
+                        const existingVideo = fileItemElement.querySelector('video');
+
+                        if (!existingVideo) {
+                            const videoURL = URL.createObjectURL(fileItem.file);
+                            const videoEl = document.createElement('video');
+                            videoEl.src = videoURL;
+                            videoEl.controls = true;
+                            videoEl.style.width = '100%';
+                            videoEl.style.maxHeight = '200px';
+                            videoEl.style.marginTop = '8px';
+                            videoEl.style.borderRadius = '8px';
+                            videoEl.style.backgroundColor = '#000';
+
+                            const previewContainer = fileItemElement.querySelector('.filepond--file-info');
+                            if (previewContainer) {
+                                previewContainer.appendChild(videoEl);
+                            }
+                        }
+                    }, 100);
+                }
+            });
+
+            // ✅ Clean up video URLs when files are removed
+            pond.on('removefile', (error, fileItem) => {
+                if (!error && fileItem.file.type.startsWith('video/')) {
+                    const videoEl = fileItem.element.querySelector('video');
+                    if (videoEl && videoEl.src) {
+                        URL.revokeObjectURL(videoEl.src);
+                    }
+                }
+            });
         });
-    new TomSelect("#benefitSelectTraining", {
-        plugins: ['remove_button'],
-        persist: false,
-        create: true,
-        delimiter: ',',
-        placeholder: 'Select or add benefits...'
-    });
 
-    // Media Upload Preview (limit 10)
-    document.getElementById("mediaInput").addEventListener("change", function () {
-      const preview = document.getElementById("mediaPreview");
-      preview.innerHTML = "";
-      const files = Array.from(this.files).slice(0, 10); // limit 10 files
+        // ✅ Initialize TomSelect for Requirements
+        new TomSelect("#requirementSelectTraining", {
+            plugins: ['remove_button'],
+            persist: false,
+            create: true,
+            delimiter: ',',
+            placeholder: 'Select or add requirements...'
+        });
 
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          let element;
-          if (file.type.startsWith("image/")) {
-            element = document.createElement("img");
-            element.src = e.target.result;
-            element.className = "rounded border";
-            element.style.width = "120px";
-            element.style.height = "80px";
-            element.style.objectFit = "cover";
-          } else if (file.type.startsWith("video/")) {
-            element = document.createElement("video");
-            element.src = e.target.result;
-            element.controls = true;
-            element.className = "rounded border";
-            element.style.width = "120px";
-            element.style.height = "80px";
-          }
-          preview.appendChild(element);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-</script>
+        // ✅ Initialize TomSelect for Benefits
+        new TomSelect("#benefitSelectTraining", {
+            plugins: ['remove_button'],
+            persist: false,
+            create: true,
+            delimiter: ',',
+            placeholder: 'Select or add benefits...'
+        });
+    </script>
+}
