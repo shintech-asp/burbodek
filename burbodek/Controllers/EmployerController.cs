@@ -145,21 +145,59 @@ namespace burbodek.Controllers
         }
         public IActionResult TrainingDetails(int Id)
         {
+            // Load training with all necessary relationships
             var data = _context.Training
-                        .Include(u => u.Users)
-                            .ThenInclude(u => u.EmployerDetails)
-                        .Include(u => u.TrainingBenefits)
-                        .Include(u => u.TrainingRequirements)
-                        .Include(u => u.TrainingMedia)
-                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
+                .Include(u => u.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                .Include(u => u.TrainingBenefits)
+                .Include(u => u.TrainingRequirements)
+                .Include(u => u.TrainingMedia)
+                .Include(u => u.TrainingApplication)
+                    .ThenInclude(u => u.TrainingPayments)
+                .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
             if (data == null)
             {
-                return NotFound(); // or redirect to an error page
+                return NotFound(); // Training not found
+            }
+
+            // Safely get payment info if it exists
+            var payment = _context.TrainingPayments
+                .FirstOrDefault(u => u.TrainingApplication.TrainingId == Id);
+
+            // Determine payment status / mode
+            if (payment != null)
+            {
+                if (payment.Price == payment.Paid)
+                {
+                    ViewBag.PaymentStatus = "Fully Paid";
+                }
+                else if (payment.Paid > 0 && payment.Paid < payment.Price)
+                {
+                    ViewBag.PaymentStatus = "Partially Paid (Down Payment)";
+                }
+                else
+                {
+                    ViewBag.PaymentStatus = "Slot reserved";
+                }
+
+                // Mode of payment
+                ViewBag.ModeOfPayment = payment.ModeOfPayment switch
+                {
+                    "Full" => "Full Payment Required",
+                    "Down" => "Down Payment Allowed",
+                    _ => "No Payment Required"
+                };
+            }
+            else
+            {
+                ViewBag.PaymentStatus = "No Payment Required";
+                ViewBag.ModeOfPayment = "None";
             }
 
             return View(data);
         }
+
         public IActionResult CancelledPayment()
         {
             return View();
@@ -308,7 +346,8 @@ namespace burbodek.Controllers
                 {
                     t.Id,
                     t.Name,
-                    t.Expiration
+                    t.Expiration,
+                    ApplicantsCount = t.TrainingApplication.Count()
                 })
                 .ToList();
 
@@ -374,6 +413,21 @@ namespace burbodek.Controllers
         public IActionResult AccountOverview()
         {
             return View();
+        }
+        public IActionResult TrainingReceipt(int Id)
+        {
+            var user = _context.TrainingApplication
+                .Include(u => u.TrainingPayments.Where(u => u.UsersId == Id))
+                    .ThenInclude(u => u.Users)
+                .Include(u => u.Training)
+                    .ThenInclude(u => u.Users)
+                .Where(u => u.AppliedBy == Id)
+                .FirstOrDefault();
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
         }
         public IActionResult Billing()
         {

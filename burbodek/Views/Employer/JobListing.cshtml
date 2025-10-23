@@ -93,7 +93,7 @@
                                     <small class="text-muted">Training</small>
                                 </div>
                             </td>
-                            <td><span class="badge badge-light-info">1 Applicants</span></td>
+                            <td><span class="badge badge-light-info">@(data.TrainingApplication?.Count ?? 0) Applicants</span></td>
                             <td>@data.Expiration.Humanize()</td>
                             <td>
                                 <span class="badge @(data.Expiration > DateTime.Now ? "badge-success" : "badge-danger")">
@@ -199,7 +199,7 @@
                                     <small class="text-muted">Training</small>
                                 </div>
                             </td>
-                            <td><span class="badge badge-light-info">1 Applicant</span></td>
+                            <td><span class="badge badge-light-info">${(t.applicantsCount)} Applicants</span></td>
                             <td>${formatDate(t.expiration)}</td>
                             <td>
                                 <span class="badge ${isActive(t.expiration) ? "badge-success" : "badge-danger"}">

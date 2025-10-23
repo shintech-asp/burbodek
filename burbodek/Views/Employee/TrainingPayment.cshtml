@@ -3,6 +3,128 @@
     ViewData["Title"] = "Subscription";
     Layout = "_LayoutEmployee";
 }
+<style>
+    /* Screen view styling */
+    #printableCard .d-print-block {
+        display: none;
+    }
+
+    @@media print {
+        /* Hide everything except the receipt */
+        body *
+
+    {
+        visibility: hidden;
+    }
+
+    #printableCard, #printableCard * {
+        visibility: visible;
+    }
+
+    /* Center the receipt on the page */
+    #printableCard {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 80mm;
+        max-width: 80mm;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+        #printableCard .d-print-block {
+            display: block !important;
+        }
+
+        /* Receipt styling */
+        #printableCard h3 {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        #printableCard h5 {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            text-transform: uppercase;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 5px;
+        }
+
+        #printableCard .badge {
+            background: none !important;
+            color: #000 !important;
+            border: 1px solid #000;
+            padding: 2px 6px;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        #printableCard .separator {
+            border-top: 1px dashed #000;
+            margin: 15px 0;
+        }
+
+        /* Hide the print button */
+        #printableCard button {
+            display: none !important;
+        }
+
+    .fw-bold {
+        font-weight: bold !important;
+    }
+
+    .text-success {
+        color: #000 !important;
+        font-weight: bold;
+    }
+
+    .text-danger {
+        color: #000 !important;
+        font-weight: bold;
+    }
+
+    .text-break {
+        word-break: break-word;
+    }
+
+    /* Center text elements */
+    .text-center {
+        text-align: center !important;
+    }
+
+    .small {
+        font-size: 10px;
+    }
+
+    /* Row spacing */
+    .row {
+        display: flex;
+        margin-bottom: 5px;
+    }
+
+    .col-4 {
+        flex: 0 0 35%;
+    }
+
+    .col-8 {
+        flex: 0 0 65%;
+    }
+
+    .col-12 {
+        flex: 0 0 100%;
+    }
+
+    }
+</style>
+
 @model TrainingPaymentViewModel
 <!--begin::Layout-->
 <div class="d-flex flex-column flex-lg-row">
@@ -166,7 +288,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-success btn-sm" id="printCard">Print</button>
+                    <button type="button" class="btn btn-success btn-sm" onclick="print()">Print</button>
                 </div>
 
             }
@@ -306,50 +428,6 @@
                 defaultOption.dispatchEvent(new Event("change"));
             }
 
-            // ✅ Print card handler
-            const printButton = document.getElementById("printCard");
-            if (printButton) {
-                printButton.addEventListener("click", function () {
-                    console.log("HELLO")
-                    const card = document.getElementById('printableCard');
-                    const printWindow = window.open('', '', 'width=800,height=600');
-
-                    printWindow.document.write(`
-                        <html>
-                            <head>
-                                <title>Print Receipt</title>
-                                <style>
-                                    body {
-                                        font-family: Arial, sans-serif;
-                                        margin: 30px;
-                                        color: #333;
-                                    }
-                                    h5 { margin-bottom: 10px; }
-                                    .fw-bold { font-weight: bold; }
-                                    .fw-semibold { font-weight: 500; }
-                                    .badge {
-                                        display: inline-block;
-                                        padding: 5px 10px;
-                                        border-radius: 8px;
-                                        background-color: #e8f0fe;
-                                        color: #0366d6;
-                                    }
-                                    .text-success { color: #28a745 !important; }
-                                    .separator {
-                                        border-top: 1px dashed #ccc;
-                                        margin: 20px 0;
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                ${card.innerHTML}
-                                <script>window.onload = function() { window.print(); window.close(); }<\/script>
-                            </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                });
-            }
         });
     </script>
 }

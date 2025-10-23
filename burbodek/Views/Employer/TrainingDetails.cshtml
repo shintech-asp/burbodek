@@ -101,38 +101,35 @@
 											<tr class="fw-bold fs-6 text-gray-800">
 												<th>Name</th>
 												<th>Payment</th>
-												<th>Payment Option</th>
+												<th>Status</th>
 												<th>Actions</th>
 											</tr>
 										</thead>
 										<tbody>
-											@* @if (Model?.JobApplication?.Count > 0)
+											@if (Model?.TrainingApplication?.Count > 0)
 											{
-												@foreach (var data in Model.JobApplication)
+												@foreach (var data in Model.TrainingApplication)
 												{
-													@if (data.Status != "Hired")
-													{
-														<tr>
-															<td>@data.FirstName, @data.LastName</td>
-
-															<td>
-																<span class="badge badge-primary">@data.Status</span>
-															</td>
-															<td class="text-center">
-																<a class="btn btn-sm btn-primary" asp-action="ApplicantInfo" asp-controller="Employer" asp-route-ApplicantId="@data.AppliedBy" asp-route-Id="@Model.Id">
-																	View
-																</a>
-															</td>
-														</tr>
-													}
+													<tr>
+														<td>@data.FirstName, @data.LastName</td>
+														<td>@ViewBag.ModeOfPayment</td>
+														<td>
+															<span class="badge badge-primary">@ViewBag.PaymentStatus</span>
+														</td>
+														<td class="text-center">
+															<a class="btn btn-sm btn-primary" asp-action="TrainingReceipt" asp-controller="Employer" asp-route-Id="@data.AppliedBy">
+																View
+															</a>
+														</td>
+													</tr>
 												}
 											}
 											else
-											{ *@
+											{
 												<tr>
 													<td colspan="4" class="text-center">No applicants yet</td>
 												</tr>
-											@* } *@
+											}
 										</tbody>
 									</table>
 								</div>
