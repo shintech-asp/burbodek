@@ -25,5 +25,6 @@
         public string PaymentOption { get; set; }
         public string ModeOfPayment { get; set; }
         public decimal? DownPayment { get; set; }
+        public DateTime? StartDate { get; set; }
     }
 }

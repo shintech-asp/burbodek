@@ -192,7 +192,20 @@ namespace burbodek.Controllers
             TempData["Id"] = Id;
             return View(payment);
         }
+        public IActionResult Training()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
+            var training = _context.TrainingApplication
+                .Where(a => a.AppliedBy == userId && ((a.TrainingPayments.FirstOrDefault().ModeOfPayment == "E-wallet" && a.TrainingPayments.FirstOrDefault().Paid != null)||(a.TrainingPayments.FirstOrDefault().ModeOfPayment == "Cash")))
+                .Include(a => a.Training)
+                    .ThenInclude(u => u.Users)
+                .Include(a=> a.TrainingPayments)
+                    .ThenInclude(a => a.Users)
+                .ToList();
+
+            return View(training);
+        }
         public IActionResult Dashboard()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -200,7 +213,7 @@ namespace burbodek.Controllers
                                 .Include(u => u.TrainingApplication)
                                     .ThenInclude(u => u.Training)
                                         .ThenInclude(u => u.Users)
-                                .Where(u => u.UsersId == userId).ToList();
+                                .Where(u => u.UsersId == userId && u.TrainingApplication.Training.Expiration >= DateTime.Now && u.ModeOfPayment == "E-wallet" && u.Paid == null).ToList();
             return View(data);
         }
         public IActionResult JobInfo(int Id)

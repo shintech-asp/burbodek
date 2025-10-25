@@ -205,6 +205,28 @@
 							<!--end::Section-->
 						</div>
 						<!--end::Item-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Actions</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Label-->
+									@if(Model.StartDate == null)
+									{
+										<button class="btn btn-primary btn-sm" id="openStartDateModal">Add start date</button>
+									}
+									<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
+									<!--end::Label-->
+								</div>
+								<!--end::Row-->
+							</div>
+							<!--end::Section-->
+						</div>
+						<!--end::Item-->
 					</div>
 					<!--end::Body-->
 				</div>
@@ -212,22 +234,64 @@
 			</div>
 			<!--end::Sidebar-->
 		</div>
-		@* <!--end::Layout-->
-		<form asp-controller="Employer" asp-action="JobDelete" asp-route-Id="@Model.Id">
-			<div class="text-center mt-5">
-				<a class="btn btn-sm btn-warning w-25" asp-action="JobEdit" asp-controller="Employer" asp-route-Id="@Model.Id">
-					Edit Job
-				</a>
-				<button type="submit" id="deleteJobBtn" class="btn btn-sm btn-danger w-25">
-					Delete this Job
-				</button>
-			</div>
-		</form> *@
 	</div>
 </div>
-
+<div class="modal fade" id="startDateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Add start date</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<label class="form-label">Start date of training</label>
+				<input type="datetime-local" class="form-control" id="startDateInput" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="startDateSubmit">Save changes</button>
+			</div>
+		</div>
+	</div>
+</div>
 @section Scripts {
 	<script>
+		 $("#openStartDateModal").on("click", function() {
+			$("#startDateModal").modal("show");
+		});
+
+		// ✅ Handle submission
+		$("#startDateSubmit").on("click", function() {
+			Swal.fire({
+				title: 'Are you sure?',
+				text: "All applicants will be notified about this start date.",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Yes, publish it!'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+						url: "/Employer/AddStartDateTraining",
+						method: "POST",
+						data: {
+							startDate: $("#startDateInput").val(),
+							trainingId: @Model.Id
+						},
+						success: function(response) {
+							Swal.fire('Success!', 'Start date has been saved.', 'success');
+							$("#startDateModal").modal("hide");
+						},
+						error: function(xhr) {
+							console.error(xhr.responseText);
+							Swal.fire('Error', 'Something went wrong.', 'error');
+						}
+					});
+				}
+			});
+		});
+			
 		document.getElementById("deleteJobBtn").addEventListener("click", function (e) {
 			Swal.fire({
 				title: 'Are you sure?',

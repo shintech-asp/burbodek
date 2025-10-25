@@ -372,7 +372,20 @@ namespace burbodek.Controllers
 
             return Json(new { response = jobs });
         }
+        public IActionResult AddStartDateTraining(DateTime startDate, int TrainingId)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
+            var jobs = _context.Training
+                .Where(j => j.UsersId == userId && j.Id == TrainingId)
+                .FirstOrDefault();
+
+            jobs.StartDate = startDate;
+            _context.Training.Update(jobs);
+            _context.SaveChanges();
+
+            return Json(new { response = true });
+        }
         public IActionResult JobListing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);

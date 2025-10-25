@@ -609,7 +609,7 @@
 								<!--end::Table head-->
 								<!--begin::Table body-->
 								<tbody>
-									@if(Model != null)
+									@if(Model != null && Model.Count > 0)
 									{
 										@foreach(var data in Model)
 										{
@@ -656,6 +656,18 @@
 												</td>
 											</tr>
 										}
+									}
+									else
+									{
+										<tr>
+											<td colspan="5">
+												<div class="d-flex align-items-center">
+													<div class="d-flex justify-content-start flex-column">
+														<a href="../../demo1/dist/pages/user-profile/overview.html" class="text-gray-800 fw-bold text-hover-primary mb-1 fs-6">No training pending for payment.</a>
+													</div>
+												</div>
+											</td>
+										</tr>
 									}
 								</tbody>
 								<!--end::Table body-->
