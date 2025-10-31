@@ -1,0 +1,444 @@
+﻿@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+    var toRecipients = Model.Recipients?
+        .Where(r => r.RecipientType == RecipientType.TO)
+        .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+        .ToArray();
+    var toValue = toRecipients?.Any() == true ? string.Join(", ", toRecipients) : "";
+
+    var ccRecipients = Model.Recipients?
+        .Where(r => r.RecipientType == RecipientType.CC)
+        .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+        .ToArray();
+    var ccValue = ccRecipients?.Any() == true ? string.Join(", ", ccRecipients) : "";
+
+    var bccRecipients = Model.Recipients?
+        .Where(r => r.RecipientType == RecipientType.BCC)
+        .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+        .ToArray();
+    var bccValue = bccRecipients?.Any() == true ? string.Join(", ", bccRecipients) : "";
+}
+@model Email
+
+<div class="d-flex flex-column flex-lg-row">
+    <!--begin::Sidebar-->
+    <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true" data-kt-drawer-name="inbox-aside"
+         data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px"
+         data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_inbox_aside_toggle">
+        <!-- Sticky aside (unchanged) -->
+        <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky"
+             data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}"
+             data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false"
+             data-kt-sticky-zindex="95">
+            <div class="card-body">
+                <a asp-controller="Employee" asp-action="Compose" class="btn btn-primary fw-bold w-100 mb-8">New Message</a>
+                <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
+                    <div class="menu-item mb-3"><a asp-action="Message" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-sms fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Inbox</span><span class="badge badge-light-success">@ViewBag.InboxCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="MarkedEmail" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-abstract-23 fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Marked</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="DraftEmail" class="menu-link active"><span class="menu-icon"><i class="ki-duotone ki-file fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Draft</span><span class="badge badge-light-warning">@ViewBag.DraftCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="EmailSent" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-send fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Sent</span></a></div>
+                    <div class="menu-item"><a asp-action="TrashedEmail"span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-trash fs-2 me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i></span><span class="menu-title fw-bold">Trash</span></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Sidebar-->
+
+    <!--begin::Content-->
+    <div class="flex-lg-row-fluid ms-lg-7 ms-xl-10">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between py-3">
+                <h2 class="card-title m-0">Compose Message</h2>
+                <a href="#" class="btn btn-sm btn-icon btn-color-primary btn-light btn-active-light-primary d-lg-none"
+                   id="kt_inbox_aside_toggle" data-bs-toggle="tooltip" data-bs-placement="top"
+                   title="Toggle inbox menu">
+                    <i class="ki-duotone ki-burger-menu-2 fs-3 m-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"></span><span class="path9"></span><span class="path10"></span></i>
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+                <form id="kt_inbox_compose_form" asp-action="SubmitDraft" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="EmailId" value="@Model.Id" />
+
+                    <!--begin::Body-->
+                    <div class="d-block">
+                        <!-- To -->
+                        <div class="d-flex align-items-center border-bottom px-8 min-h-50px">
+                            <div class="text-gray-900 fw-bold w-75px">To:</div>
+
+                            @{ 
+                                var toRecipients = Model.Recipients?
+                                    .Where(r => r.RecipientType == RecipientType.TO)
+                                    .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+                                    .ToArray();
+                                var toValue = toRecipients?.Any() == true ? string.Join(", ", toRecipients) : "";
+                            }
+                            <input type="text" class="form-control border-0" value="@toValue"
+                                   name="ToRecipients" id="compose_to" data-kt-inbox-form="tagify">
+
+                            <div class="ms-auto w-75px text-end">
+                                <span class="text-muted fs-bold cursor-pointer text-hover-primary me-2" data-kt-inbox-form="cc_button">Cc</span>
+                                <span class="text-muted fs-bold cursor-pointer text-hover-primary" data-kt-inbox-form="bcc_button">Bcc</span>
+                            </div>
+                        </div>
+
+                        <!-- CC -->
+                        @{ 
+                            var ccRecipients = Model.Recipients?
+                                .Where(r => r.RecipientType == RecipientType.CC)
+                                .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+                                .ToArray();
+                            var ccValue = ccRecipients?.Any() == true ? string.Join(", ", ccRecipients) : "";
+                        }
+                        <div class="@(ccRecipients?.Any() == true ? "d-flex" : "d-none") align-items-center border-bottom ps-8 pe-5 min-h-50px"
+                             data-kt-inbox-form="cc">
+                            <div class="text-gray-900 fw-bold w-75px">Cc:</div>
+                            <input type="text" class="form-control border-0" value="@ccValue"
+                                   name="CcRecipients" id="compose_cc" data-kt-inbox-form="tagify">
+                            <span class="btn btn-clean btn-xs btn-icon" data-kt-inbox-form="cc_close">
+                                <i class="ki-duotone ki-cross fs-5"></i>
+                            </span>
+                        </div>
+
+                        <!-- BCC -->
+                        @{ 
+                            var bccRecipients = Model.Recipients?
+                                .Where(r => r.RecipientType == RecipientType.BCC)
+                                .Select(r => $"{r.Recipient.Username} <{r.Recipient.Email}>")
+                                .ToArray();
+                            var bccValue = bccRecipients?.Any() == true ? string.Join(", ", bccRecipients) : "";
+                        }
+                        <div class="@(bccRecipients?.Any() == true ? "d-flex" : "d-none") align-items-center border-bottom ps-8 pe-5 min-h-50px"
+                             data-kt-inbox-form="bcc">
+                            <div class="text-gray-900 fw-bold w-75px">Bcc:</div>
+                            <input type="text" class="form-control border-0" value="@bccValue"
+                                   name="BccRecipients" id="compose_bcc" data-kt-inbox-form="tagify">
+                            <span class="btn btn-clean btn-xs btn-icon" data-kt-inbox-form="bcc_close">
+                                <i class="ki-duotone ki-cross fs-5"></i>
+                            </span>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="border-bottom">
+                            <input class="form-control form-control-transparent border-0 px-8 min-h-45px"
+                                   name="Subject" value="@Model.Thread.Subject" placeholder="Subject">
+                        </div>
+
+                        <!-- Message (Quill) -->
+                        <div id="kt_inbox_form_editor" class="bg-transparent border-0 h-350px px-3 ql-container ql-snow">
+                            <div class="ql-editor" contenteditable="true" data-placeholder="Type your message here...">
+                                @Html.Raw(Model.Body ?? "")
+                            </div>
+                        </div>
+                        <textarea hidden name="Body" id="Body">@Html.Raw(Model.Body ?? "")</textarea>
+
+                        <!-- Attachments -->
+                        <div class="dropzone dropzone-queue px-8 py-4" id="kt_inbox_reply_attachments"
+                             data-kt-inbox-form="dropzone">
+                            <div class="dropzone-items">
+                                @* Existing attachments are rendered by JS (see script) *@
+                            </div>
+                        </div>
+
+                        <!-- Hidden file input (used by paper-clip) -->
+                        <input type="file" name="files" id="hiddenFileInput" multiple style="display:none;" />
+                    </div>
+                    <!--end::Body-->
+
+                    <!--begin::Footer-->
+                    <div class="d-flex flex-stack flex-wrap gap-2 py-5 ps-8 pe-5 border-top">
+                        <div class="d-flex align-items-center me-3">
+                            <div class="btn-group me-4">
+                                <button type="submit" class="btn btn-primary fs-bold px-6" id="btnSend">
+                                    <span class="indicator-label">Send</span>
+                                    <span class="indicator-progress">
+                                        Please wait...
+                                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                    </span>
+                                </button>
+                                <button type="button" class="btn btn-light fs-bold px-6" id="btnSaveDraft">Save Draft</button>
+                            </div>
+
+                            <span class="btn btn-icon btn-sm btn-clean btn-active-light-primary me-2" id="btnAttachment">
+                                <i class="ki-duotone ki-paper-clip fs-2 m-0"></i>
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <a asp-action="Index" class="btn btn-icon btn-sm btn-clean btn-active-light-primary" title="Discard">
+                                <i class="ki-duotone ki-trash fs-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!--end::Footer-->
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    <!-- Tagify -->
+    <script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.css">
+
+    <!-- Quill -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <script>
+        $(function () {
+            // ==================================================
+            // 1. Quill Editor
+            // ==================================================
+            const quill = new Quill('#kt_inbox_form_editor', { theme: 'snow' });
+
+            // ==================================================
+            // 2. Tagify Initialization with Pre-fill Support
+            // ==================================================
+            function initTagify(selector, prefilledCsv) {
+                const input = document.querySelector(selector);
+                if (!input) return null;
+
+                const tagify = new Tagify(input, {
+                    whitelist: [],
+                    enforceWhitelist: false,
+                    maxTags: 10,
+                    dropdown: {
+                        maxItems: 20,
+                        classname: "tags-look",
+                        enabled: 0,
+                        closeOnSelect: false
+                    }
+                });
+
+                // Pre-fill existing values (e.g., "John Doe <john@example.com>")
+                if (prefilledCsv) {
+                    const values = prefilledCsv
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                    tagify.addTags(values);
+                }
+
+                let controller;
+                tagify.on('input', e => {
+                    const value = e.detail.value;
+                    tagify.whitelist = null;
+                    if (value.length < 2) return;
+
+                    if (controller) controller.abort();
+                    controller = new AbortController();
+                    tagify.loading(true).dropdown.hide();
+
+                    fetch('/Employee/SearchUsers?query=' + encodeURIComponent(value), {
+                        signal: controller.signal
+                    })
+                    .then(r => r.json())
+                    .then(list => {
+                        const transformed = list.map(i => ({
+                            value: `${i.fullName} <${i.email}>`,
+                            searchBy: `${i.fullName} ${i.email}`,
+                            name: i.fullName,
+                            email: i.email
+                        }));
+                        tagify.whitelist = transformed;
+                        tagify.loading(false).dropdown.show(value);
+                    })
+                    .catch(err => {
+                        if (err.name !== 'AbortError') console.error('Tagify search error:', err);
+                        tagify.loading(false);
+                    });
+                });
+
+                return tagify;
+            }
+
+            // Pre-filled values from Razor
+            const toValue  = @Html.Raw(JsonSerializer.Serialize(toValue  ?? ""));
+            const ccValue  = @Html.Raw(JsonSerializer.Serialize(ccValue  ?? ""));
+            const bccValue = @Html.Raw(JsonSerializer.Serialize(bccValue ?? ""));
+
+            const toTagify  = initTagify('#compose_to',  toValue);
+            const ccTagify  = initTagify('#compose_cc',  ccValue);
+            const bccTagify = initTagify('#compose_bcc', bccValue);
+
+            // Expose to global scope for submit handler
+            window.toTagify  = toTagify;
+            window.ccTagify  = ccTagify;
+            window.bccTagify = bccTagify;
+
+            // ==================================================
+            // 3. CC / BCC Toggle Buttons
+            // ==================================================
+            $('[data-kt-inbox-form="cc_button"]').on('click', e => {
+                e.preventDefault();
+                $('[data-kt-inbox-form="cc"]').removeClass('d-none').addClass('d-flex');
+            });
+
+            $('[data-kt-inbox-form="bcc_button"]').on('click', e => {
+                e.preventDefault();
+                $('[data-kt-inbox-form="bcc"]').removeClass('d-none').addClass('d-flex');
+            });
+
+            $('[data-kt-inbox-form="cc_close"]').on('click', e => {
+                e.preventDefault();
+                $('[data-kt-inbox-form="cc"]').removeClass('d-flex').addClass('d-none');
+            });
+
+            $('[data-kt-inbox-form="bcc_close"]').on('click', e => {
+                e.preventDefault();
+                $('[data-kt-inbox-form="bcc"]').removeClass('d-flex').addClass('d-none');
+            });
+
+            // ==================================================
+            // 4. Save as Draft
+            // ==================================================
+            $('#btnSaveDraft').on('click', e => {
+                e.preventDefault();
+                $('#Body').val(quill.root.innerHTML);
+                $('#kt_inbox_compose_form').attr('action', '/Employee/DraftSaveDraft').submit();
+            });
+
+            // ==================================================
+            // 5. Attachments (Paperclip + Existing)
+            // ==================================================
+            const $form          = $('#kt_inbox_compose_form');
+            const $fileInput     = $('#hiddenFileInput');
+            const $attachmentBtn = $('#btnAttachment');
+            const $container     = $('#kt_inbox_reply_attachments .dropzone-items');
+
+            // Existing attachments from DB
+            const existingAttachments = @Html.Raw(JsonSerializer.Serialize(
+                Model.Attachments?.Select(a => new {
+                    id   = a.Id,
+                    name = a.FileName,
+                    size = a.FileSize,
+                    url  = Url.Content(a.FilePath) // <-- Ensures correct URL
+                })
+            ));
+
+            let selectedFiles = [];
+
+            $attachmentBtn.on('click', e => {
+                e.preventDefault();
+                $fileInput.click();
+            });
+
+            $fileInput.on('change', () => {
+                selectedFiles = selectedFiles.concat(Array.from($fileInput[0].files));
+                $fileInput.val('');
+                renderAttachments();
+            });
+
+            function renderAttachments() {
+                $container.empty();
+
+                // Existing
+                existingAttachments.forEach(att => {
+                    const kb = (att.size / 1024).toFixed(1);
+                    const $item = $(`
+                        <div class="dropzone-item border rounded mb-2 d-flex align-items-center bg-light p-2">
+                            <i class="ki-duotone ki-file fs-2 me-3 text-primary">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            <div class="flex-grow-1">
+                                <a href="${att.url}" target="_blank" class="fw-bold text-dark text-hover-primary">${att.name}</a>
+                                <div class="text-muted fs-7">${kb} KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-icon btn-light-danger remove-existing" data-id="${att.id}">
+                                <i class="ki-duotone ki-cross fs-2">
+                                    <span class="path1"></span><span class="path2"></span>
+                                </i>
+                            </button>
+                        </div>
+                    `);
+                    $container.append($item);
+                });
+
+                // New
+                selectedFiles.forEach((file, idx) => {
+                    const kb = (file.size / 1024).toFixed(1);
+                    const $item = $(`
+                        <div class="dropzone-item border rounded mb-2 d-flex align-items-center bg-white p-2">
+                            <i class="ki-duotone ki-file fs-2 me-3 text-muted">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">${file.name}</div>
+                                <div class="text-muted fs-7">${kb} KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-icon btn-light-danger remove-new" data-idx="${idx}">
+                                <i class="ki-duotone ki-cross fs-2">
+                                    <span class="path1"></span><span class="path2"></span>
+                                </i>
+                            </button>
+                        </div>
+                    `);
+                    $container.append($item);
+                });
+
+                // Remove handlers
+                $container.find('.remove-new').off('click').on('click', function () {
+                    const idx = parseInt($(this).data('idx'));
+                    selectedFiles.splice(idx, 1);
+                    renderAttachments();
+                });
+
+                $container.find('.remove-existing').off('click').on('click', function () {
+                    const id = $(this).data('id');
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'RemovedAttachmentIds',
+                        value: id
+                    }).appendTo($form);
+
+                    const index = existingAttachments.findIndex(a => a.id == id);
+                    if (index > -1) existingAttachments.splice(index, 1);
+                    renderAttachments();
+                });
+            }
+
+            // Initial render
+            renderAttachments();
+
+            // ==================================================
+            // 6. FINAL FORM SUBMIT (Fixed!)
+            // ==================================================
+            $form.on('submit', function (e) {
+                e.preventDefault(); // Stop default
+
+                // 1. Sync Quill
+                $('#Body').val(quill.root.innerHTML);
+
+                // 2. Extract emails from Tagify
+                ['to', 'cc', 'bcc'].forEach(type => {
+                    const tagify = window[type + 'Tagify'];
+                    const $input = $('#compose_' + type);
+
+                    if (tagify && tagify.value && tagify.value.length > 0) {
+                        const emails = tagify.value.map(t => {
+                            const match = t.value.match(/<(.+?)>/);
+                            return match ? match[1] : (t.email || t.value);
+                        });
+                        $input.val(emails.join(','));
+                    } else {
+                        $input.val('');
+                    }
+                });
+
+                // 3. Attach files
+                const dt = new DataTransfer();
+                selectedFiles.forEach(f => dt.items.add(f));
+                $fileInput[0].files = dt.files;
+
+                // 4. Submit natively
+                this.submit();
+            });
+        });
+    </script>
+}

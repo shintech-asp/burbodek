@@ -1,5 +1,6 @@
 ﻿using burbodek.Data;
 using burbodek.Models;
+using burbodek.Models.DTO;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -118,9 +119,10 @@ namespace burbodek.Controllers
         }
         public IActionResult MarkAsStarred(int Id)
         {
-            if(Id != null)
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            if (Id != null)
             {
-                var email = _context.Emails.FirstOrDefault(u => u.Id == Id);
+                var email = _context.EmailRecipients.FirstOrDefault(u => u.EmailID == Id && u.RecipientID == userId);
                 if (email.IsStarred)
                 {
                     email.IsStarred = false;
@@ -266,6 +268,32 @@ namespace burbodek.Controllers
                         .FirstOrDefault();
             return View(data);
         }
+        public IActionResult TrashedEmail()
+        {
+            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            var trashedEmails = _context.Emails
+                .Include(e => e.Thread)
+                .Include(e => e.Sender)
+                .Include(e => e.Recipients)
+                .Where(e =>
+                    (e.SenderID == currentUserId && e.IsTrashed) ||
+                    e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)
+                )
+                .OrderByDescending(r => r.SentAt)
+                .Distinct()
+                .ToList();
+            var draftCount = _context.EmailThreads
+                .Include(t => t.Emails)
+                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Count();
+            var inboxCount = _context.EmailRecipients
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Count();
+            ViewBag.DraftCount = draftCount;
+            ViewBag.InboxCount = inboxCount;
+            return View(trashedEmails);
+        }
         public IActionResult EmailSent()
         {
             int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -277,12 +305,20 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Thread)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
-                .Where(r => r.Email.SenderID == currentUserId && !r.IsTrashed)
+                .Where(e => e.Email.SenderID == currentUserId && !e.Email.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
                 .Select(r => r.Email)
                 .Distinct()
                 .ToList();
-
+            var draftCount = _context.EmailThreads
+                .Include(t => t.Emails)
+                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Count();
+            var inboxCount = _context.EmailRecipients
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Count();
+            ViewBag.DraftCount = draftCount;
+            ViewBag.InboxCount = inboxCount;
             return View(inboxEmails);
         }
         public IActionResult MarkedEmail()
@@ -296,17 +332,25 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Thread)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
-                .Where(r => !r.IsTrashed && r.Email.IsStarred &&)
+                .Where(r => !r.IsTrashed && r.IsStarred && r.RecipientID == currentUserId)
                 .OrderByDescending(r => r.Email.SentAt)
                 .Select(r => r.Email)
                 .Distinct()
                 .ToList();
-
+            var draftCount = _context.EmailThreads
+                .Include(t => t.Emails)
+                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Count();
+            var inboxCount = _context.EmailRecipients
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Count();
+            ViewBag.DraftCount = draftCount;
+            ViewBag.InboxCount = inboxCount;
             return View(inboxEmails);
         }
-        public IActionResult Message()
+        public IActionResult DraftEmail()
         {
-            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value); // however you identify logged-in user
+            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
 
             var inboxEmails = _context.EmailRecipients
                 .Include(r => r.Email)
@@ -315,12 +359,47 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Thread)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed)
+                .Where(r => !r.IsTrashed && r.Email.IsDraft && r.Email.SenderID == currentUserId)
+                .OrderByDescending(r => r.Email.SentAt)
+                .Select(r => r.Email)
+                .Distinct()
+                .ToList();
+            var draftCount = _context.EmailThreads
+                .Include(t => t.Emails)
+                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Count();
+            var inboxCount = _context.EmailRecipients
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Count();
+            ViewBag.DraftCount = draftCount;
+            ViewBag.InboxCount = inboxCount;
+            return View(inboxEmails);
+        }
+        public IActionResult Message()
+        {
+            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value); // however you identify logged-in user
+            var inboxEmails = _context.EmailRecipients
+                .Include(r => r.Email)
+                    .ThenInclude(e => e.Recipients)
+                .Include(r => r.Email)
+                    .ThenInclude(e => e.Thread)
+                .Include(r => r.Email)
+                    .ThenInclude(e => e.Sender)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
                 .Select(r => r.Email)
                 .Distinct()
                 .ToList();
 
+            var draftCount = _context.EmailThreads
+                .Include(t => t.Emails)
+                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId && !e.IsTrashed))
+                .Count();
+            var inboxCount = _context.EmailRecipients
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.IsTrashed)
+                .Count();
+            ViewBag.DraftCount = draftCount;
+            ViewBag.InboxCount = inboxCount;
             return View(inboxEmails);
         }
         public IActionResult Compose()
@@ -334,7 +413,27 @@ namespace burbodek.Controllers
             {
                 var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
 
+                var changeisRead = _context.EmailRecipients.Where(u => u.Email.ThreadID == id && u.RecipientID == currentUserId).ToList();
+                if(changeisRead.Count > 0)
+                {
+                    foreach (var data in changeisRead)
+                    {
+                        data.IsRead = true;
+                    }
+                    _context.SaveChanges();
+                }
+
+                var draftCount = _context.EmailThreads
+                    .Include(t => t.Emails)
+                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Count();
+                var inboxCount = _context.EmailRecipients
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Count();
+                ViewBag.DraftCount = draftCount;
+                ViewBag.InboxCount = inboxCount;
                 // Get the thread with all emails
+
                 var thread = await _context.EmailThreads
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Sender)
@@ -343,8 +442,14 @@ namespace burbodek.Controllers
                             .ThenInclude(r => r.Recipient)
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Attachments)
-                    .FirstOrDefaultAsync(t => t.Id == id);
-
+                    .FirstOrDefaultAsync(t =>
+                        t.Id == id &&
+                        t.Emails.Any(e =>
+                            (e.SenderID == currentUserId &&
+                             e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed)) ||
+                            e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed)
+                        )
+                    );
                 if (thread == null)
                 {
                     TempData["Error"] = "Thread not found";
@@ -422,6 +527,38 @@ namespace burbodek.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DraftEdit(int id)
+        {
+            try
+            {
+                int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value); // however you identify logged-in user
+                var inboxEmails = _context.Emails
+                        .Include(e => e.Recipients)
+                            .ThenInclude(e => e.Recipient)
+                        .Include(e => e.Thread)
+                        .Include(e => e.Sender)
+                        .Include(e => e.Attachments)
+                    .Where(r => r.Id == id && r.IsDraft)
+                    .FirstOrDefault();
+
+                var draftCount = _context.EmailThreads
+                    .Include(t => t.Emails)
+                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Count();
+                var inboxCount = _context.EmailRecipients
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Count();
+                ViewBag.DraftCount = draftCount;
+                ViewBag.InboxCount = inboxCount;
+                return View(inboxEmails);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error loading reply: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> ReplyEmail(ReplyEmailViewModel model, List<IFormFile> files)
         {
@@ -559,7 +696,220 @@ namespace burbodek.Controllers
                 return RedirectToAction("Reply", new { id = model.Id });
             }
         }
+        // Helper: Add recipients from comma-separated emails
+        private async Task AddRecipients(Email email, string emailsCsv, RecipientType type)
+        {
+            if (string.IsNullOrWhiteSpace(emailsCsv)) return;
 
+            var emails = emailsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                  .Select(e => e.Trim().ToLower())
+                                  .Distinct();
+
+            foreach (var emailStr in emails)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == emailStr);
+                if (user == null) continue; // or create pending recipient?
+
+                email.Recipients.Add(new EmailRecipient
+                {
+                    RecipientID = user.Id,
+                    EmailID = email.Id,
+                    RecipientType = type
+                });
+            }
+        }
+
+        // Helper: Build model for view (used on validation fail)
+        private async Task<Email> BuildEmailModel(int emailId)
+        {
+            return await _context.Emails
+                .Include(e => e.Thread)
+                .Include(e => e.Recipients).ThenInclude(r => r.Recipient)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == emailId);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitDraft(ComposeEmailDto dto)
+        {
+            if (!ModelState.IsValid)
+                return View("DraftEdit", await BuildEmailModel(dto.EmailId ?? 0));
+
+            var email = await _context.Emails
+                .Include(e => e.Thread)
+                .Include(e => e.Recipients)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == dto.EmailId);
+
+            if (email == null)
+                return NotFound();
+
+            email.Thread.Subject = dto.Subject;
+            email.Body = dto.Body;
+            email.IsDraft = false;
+
+            _context.EmailRecipients.RemoveRange(email.Recipients);
+            email.Recipients.Clear();
+
+            await AddRecipientsSafe(email, dto.ToRecipients, RecipientType.TO);
+            await AddRecipientsSafe(email, dto.CcRecipients, RecipientType.CC);
+            await AddRecipientsSafe(email, dto.BccRecipients, RecipientType.BCC);
+
+            if (dto.RemovedAttachmentIds?.Length > 0)
+            {
+                var toRemove = email.Attachments
+                    .Where(a => dto.RemovedAttachmentIds.Contains(a.Id))
+                    .ToList();
+
+                foreach (var att in toRemove)
+                {
+                    var fullPath = Path.Combine(_environment.WebRootPath, att.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(fullPath))
+                        System.IO.File.Delete(fullPath);
+
+                    email.Attachments.Remove(att);
+                    _context.EmailAttachments.Remove(att);
+                }
+            }
+
+            // Add new files
+            if (dto.Files?.Length > 0)
+            {
+                var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "email-attachments", email.Id.ToString());
+                Directory.CreateDirectory(uploadPath);
+
+                foreach (var file in dto.Files)
+                {
+                    if (file.Length == 0) continue;
+
+                    var fileName = Guid.NewGuid() + "_" + Path.GetFileName(file.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    var relativePath = $"/uploads/email-attachments/{email.Id}/{fileName}";
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                        await file.CopyToAsync(stream);
+
+                    email.Attachments.Add(new EmailAttachment
+                    {
+                        FileName = file.FileName,
+                        FileSize = file.Length,
+                        FilePath = relativePath
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Email sent!";
+            return RedirectToAction("EmailSent"); // or "Sent"
+        }
+        private async Task AddRecipientsSafe(Email email, string emailsCsv, RecipientType type)
+        {
+            if (string.IsNullOrWhiteSpace(emailsCsv)) return;
+
+            var emails = emailsCsv
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(e => e.Trim().ToLower())
+                .Distinct()
+                .ToList();
+
+            foreach (var addr in emails)
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == addr);
+
+                if (user == null) continue;
+
+                if (user == null)
+                {
+                    user = new Users
+                    {
+                        Email = addr,
+                        Username = addr.Split('@')[0],   // simple name
+                                                         // set any other required fields (e.g. IsActive = false, etc.)
+                    };
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();   // get generated Id
+                }
+
+                email.Recipients.Add(new EmailRecipient
+                {
+                    RecipientID = user.Id,
+                    EmailID = email.Id,
+                    RecipientType = type
+                });
+            }
+        }
+
+        // POST: Save as draft (update only)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DraftSaveDraft(ComposeEmailDto dto)
+        {
+            if (!dto.EmailId.HasValue)
+                return BadRequest("Draft ID required.");
+
+            var email = await _context.Emails
+                .Include(e => e.Thread)
+                .Include(e => e.Recipients)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == dto.EmailId && e.IsDraft);
+
+            if (email == null) return NotFound();
+
+            email.Thread.Subject = dto.Subject;
+            email.Body = dto.Body;
+
+            _context.EmailRecipients.RemoveRange(email.Recipients);
+            email.Recipients.Clear();
+
+            await AddRecipients(email, dto.ToRecipients, RecipientType.TO);
+            await AddRecipients(email, dto.CcRecipients, RecipientType.CC);
+            await AddRecipients(email, dto.BccRecipients, RecipientType.BCC);
+
+            // Handle removed + new attachments (same as SendEmail)
+            if (dto.RemovedAttachmentIds?.Length > 0)
+            {
+                var toRemove = email.Attachments.Where(a => dto.RemovedAttachmentIds.Contains(a.Id)).ToList();
+                foreach (var att in toRemove)
+                {
+                    var fullPath = Path.Combine(_environment.WebRootPath, att.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(fullPath))
+                        System.IO.File.Delete(fullPath);
+
+                    email.Attachments.Remove(att);
+                    _context.EmailAttachments.Remove(att);
+                }
+            }
+
+            if (dto.Files?.Length > 0)
+            {
+                var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "emails", email.Id.ToString());
+                Directory.CreateDirectory(uploadPath);
+
+                foreach (var file in dto.Files)
+                {
+                    if (file.Length == 0) continue;
+
+                    var fileName = Guid.NewGuid() + "_" + Path.GetFileName(file.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    var relativePath = "/uploads/emails/" + email.Id + "/" + fileName;
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                        await file.CopyToAsync(stream);
+
+                    email.Attachments.Add(new EmailAttachment
+                    {
+                        FileName = file.FileName,
+                        FileSize = file.Length,
+                        FilePath = relativePath
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Email saved to draft";
+            return RedirectToAction("EmailSent");
+        }
         [HttpPost]
         public async Task<IActionResult> SendEmail(SendEmailViewModel model, List<IFormFile> files)
         {
@@ -715,13 +1065,106 @@ namespace burbodek.Controllers
             public string Subject { get; set; } = string.Empty;
             public string Body { get; set; } = string.Empty;
         }
+        [HttpPost]
+        public async Task<IActionResult> SaveEditDraft(
+    int id, // Email ID
+    SendEmailViewModel model,
+    List<IFormFile>? files)
+        {
+            var email = await _context.Emails
+                .Include(e => e.Thread)
+                .Include(e => e.Recipients)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (email == null)
+                return NotFound();
+
+            // Update core email fields
+            if (email.Thread != null)
+                email.Thread.Subject = model.Subject;
+
+            email.Body = model.Body;
+            email.SentAt = DateTime.Now;
+
+            // 🧹 Clear old recipients before updating
+            email.Recipients.Clear();
+
+            // ✅ Add new recipients
+            var toRecipients = await ParseRecipients(model.ToRecipients, RecipientType.TO);
+            var ccRecipients = await ParseRecipients(model.CcRecipients, RecipientType.CC);
+            var bccRecipients = await ParseRecipients(model.BccRecipients, RecipientType.BCC);
+
+            foreach (var r in toRecipients.Concat(ccRecipients).Concat(bccRecipients))
+                email.Recipients.Add(r);
+
+            // ✅ Handle file uploads
+            if (files != null && files.Any())
+            {
+                var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "email-attachments");
+                if (!Directory.Exists(uploadPath))
+                    Directory.CreateDirectory(uploadPath);
+
+                foreach (var file in files)
+                {
+                    var fileName = Path.GetFileName(file.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    email.Attachments.Add(new EmailAttachment
+                    {
+                        FileName = fileName,
+                        FilePath = "/uploads/email-attachments/" + fileName,
+                        FileSize = file.Length
+                    });
+                }
+            }
+
+            _context.Update(email);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("DraftEmail");
+        }
+        private async Task<List<EmailRecipient>> ParseRecipients(string? input, RecipientType type)
+        {
+            var recipients = new List<EmailRecipient>();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                var split = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var item in split)
+                {
+                    // Extract email from "Name <email@domain.com>"
+                    var match = System.Text.RegularExpressions.Regex.Match(item, @"<(.+?)>");
+                    var emailAddr = match.Success ? match.Groups[1].Value : item.Trim();
+
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailAddr);
+                    if (user != null)
+                    {
+                        recipients.Add(new EmailRecipient
+                        {
+                            RecipientID = user.Id,
+                            RecipientType = type
+                        });
+                    }
+                }
+            }
+
+            return recipients;
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> SaveDraft(SendEmailViewModel model, List<IFormFile> files)
         {
             try
             {
-                var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
 
                 // Create or update thread
                 var thread = new EmailThread
@@ -825,10 +1268,47 @@ namespace burbodek.Controllers
                 return RedirectToAction("Compose");
             }
         }
+        [HttpPost]
+        public async Task<JsonResult> TrashEmails([FromBody] List<int> recipientIds)
+        {
+            if (recipientIds == null || !recipientIds.Any())
+                return Json(new { success = false, message = "No emails selected." });
 
+            var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            try
+            {
+                var recipients = await _context.EmailRecipients
+                    .Include(er => er.Email)
+                        .ThenInclude(e => e.Thread)
+                    .Where(er => recipientIds.Contains(er.Id))
+                    .ToListAsync();
+
+                foreach (var recipient in recipients)
+                {
+                    if (recipient.Email.Thread.CreatedBy == currentUserId)
+                    {
+                        recipient.Email.IsTrashed = true;
+                    }
+                    else
+                    {
+                        recipient.IsTrashed = true;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Server error." });
+            }
+        }
         [HttpGet]
         public async Task<JsonResult> SearchUsers(string query)
         {
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
             {
                 return Json(new List<object>());
@@ -837,8 +1317,8 @@ namespace burbodek.Controllers
             var searchTerm = query.Trim().ToLower();
 
             var users = await _context.Users
-                .Where(u => u.Username.ToLower().Contains(searchTerm) ||
-                            u.Email.ToLower().Contains(searchTerm))
+                .Where(u => (u.Username.ToLower().Contains(searchTerm) ||
+                            u.Email.ToLower().Contains(searchTerm)) && u.Email != userEmail)
                 .Select(u => new
                 {
                     value = u.Email,

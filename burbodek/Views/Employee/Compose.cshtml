@@ -13,115 +13,13 @@
                 <!--begin::Button-->
                 <a asp-controller="Employee" asp-action="Compose" class="btn btn-primary fw-bold w-100 mb-8">New Message</a>
                 <!--end::Button-->
-                <!--begin::Menu-->
                 <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Inbox-->
-                        <span class="menu-link active">
-                            <span class="menu-icon"><i class="ki-duotone ki-sms fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span>
-                            <span class="menu-title fw-bold">Inbox</span>
-                            <span class="badge badge-light-success">3</span>
-                        </span>
-                        <!--end::Inbox-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Marked-->
-                        <span class="menu-link">
-                            <span class="menu-icon"><i class="ki-duotone ki-abstract-23 fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span>
-                            <span class="menu-title fw-bold">Marked</span>
-                        </span>
-                        <!--end::Marked-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Draft-->
-                        <span class="menu-link">
-                            <span class="menu-icon"><i class="ki-duotone ki-file fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span>
-                            <span class="menu-title fw-bold">Draft</span>
-                            <span class="badge badge-light-warning">5</span>
-                        </span>
-                        <!--end::Draft-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Sent-->
-                        <a asp-action="EmailSent" class="menu-link">
-                            <span class="menu-icon"><i class="ki-duotone ki-send fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span>
-                            <span class="menu-title fw-bold">Sent</span>
-                        </a>
-                        <!--end::Sent-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item">
-                        <!--begin::Trash-->
-                        <span class="menu-link">
-                            <span class="menu-icon"><i class="ki-duotone ki-trash fs-2 me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i></span>
-                            <span class="menu-title fw-bold">Trash</span>
-                        </span>
-                        <!--end::Trash-->
-                    </div>
-                    <!--end::Menu item-->
+                    <div class="menu-item mb-3"><a asp-action="Message" class="menu-link active"><span class="menu-icon"><i class="ki-duotone ki-sms fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Inbox</span><span class="badge badge-light-success">@ViewBag.InboxCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="MarkedEmail" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-abstract-23 fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Marked</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="DraftEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-file fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Draft</span><span class="badge badge-light-warning">@ViewBag.DraftCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="EmailSent" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-send fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Sent</span></a></div>
+                    <div class="menu-item"><a asp-action="TrashedEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-trash fs-2 me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i></span><span class="menu-title fw-bold">Trash</span></a></div>
                 </div>
-                <!--end::Menu-->
-                <!--begin::Menu-->
-                <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary">
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Custom work-->
-                        <span class="menu-link">
-                            <span class="menu-icon">
-                                <i class="ki-duotone ki-abstract-8 fs-5 text-danger me-3 lh-0"><span class="path1"></span><span class="path2"></span></i>
-                            </span>
-                            <span class="menu-title fw-semibold">Custom Work</span>
-                            <span class="badge badge-light-danger">6</span>
-                        </span>
-                        <!--end::Custom work-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::Partnership-->
-                        <span class="menu-link">
-                            <span class="menu-icon">
-                                <i class="ki-duotone ki-abstract-8 fs-5 text-success me-3 lh-0"><span class="path1"></span><span class="path2"></span></i>
-                            </span>
-                            <span class="menu-title fw-semibold">Partnership</span>
-                        </span>
-                        <!--end::Partnership-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item mb-3">
-                        <!--begin::In progress-->
-                        <span class="menu-link">
-                            <span class="menu-icon">
-                                <i class="ki-duotone ki-abstract-8 fs-5 text-info me-3 lh-0"><span class="path1"></span><span class="path2"></span></i>
-                            </span>
-                            <span class="menu-title fw-semibold">In Progress</span>
-                        </span>
-                        <!--end::In progress-->
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item">
-                        <!--begin::Add label-->
-                        <span class="menu-link">
-                            <span class="menu-icon">
-                                <i class="ki-duotone ki-plus fs-2 me-3 lh-0"></i>
-                            </span>
-                            <span class="menu-title fw-semibold">Add Label</span>
-                        </span>
-                        <!--end::Add label-->
-                    </div>
-                    <!--end::Menu item-->
-                </div>
-                <!--end::Menu-->
             </div>
             <!--end::Aside content-->
         </div>
@@ -189,9 +87,8 @@
                         <textarea hidden name="Body" id="Body"></textarea>
                         <!--end::Message-->
                         <!--begin::Attachments-->
-                        <div class="dropzone dropzone-queue px-8 py-4" id="kt_inbox_reply_attachments" data-kt-inbox-form="dropzone">
-                            <div class="dropzone-items"></div>
-                            <div class="dz-default dz-message"><button class="dz-button" type="button">Drop files here to upload</button></div>
+                        <div class="dropzone dropzone-queue px-8 pt-4 pb-0" id="kt_inbox_reply_attachments" data-kt-inbox-form="dropzone">
+                            <div class="dropzone-items pb-0"></div>
                         </div>
                         <!--end::Attachments-->
                     </div>
@@ -379,16 +276,84 @@
         $('#btnSaveDraft').click(function (e) {
             e.preventDefault();
             $('#Body').val(quill.root.innerHTML);
-            $('#kt_inbox_compose_form').attr('action', '/Email/SaveDraft').submit();
+            $('#kt_inbox_compose_form').attr('action', '/Employee/SaveDraft').submit();
         });
 
-        // Dropzone setup
+                // Attachments Handling
         Dropzone.autoDiscover = false;
-        new Dropzone('#kt_inbox_reply_attachments', {
-            url: "/Email/UploadAttachment",
-            paramName: "files",
-            maxFilesize: 10,
-            addRemoveLinks: true
+
+        const composeForm = document.querySelector('#kt_inbox_compose_form');
+        const attachmentBtn = document.querySelector('#btnAttachment'); // your paperclip button
+        const dropzoneContainer = document.querySelector('#kt_inbox_reply_attachments');
+
+        // Create a hidden input for files
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        fileInput.name = 'files';
+        composeForm.appendChild(fileInput);
+
+        // Keep selected files
+        let selectedFiles = [];
+
+        // Click paperclip → open file selector
+        attachmentBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        // When files selected
+        fileInput.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files);
+            selectedFiles = selectedFiles.concat(files);
+            displayAttachments();
+        });
+
+        // Display attachments below dropzone
+        function displayAttachments() {
+            let container = dropzoneContainer.querySelector('.dropzone-items');
+
+            if (!container) return;
+
+            container.innerHTML = ''; // Clear previous items
+
+            selectedFiles.forEach((file, index) => {
+                const fileSize = (file.size / 1024).toFixed(1); // KB
+                const item = document.createElement('div');
+                item.classList.add('dropzone-item', 'border', 'rounded', 'mb-2', 'd-flex', 'align-items-center');
+                item.innerHTML = `
+                    <i class="ki-duotone ki-file fs-2 me-3">
+                        <span class="path1"></span><span class="path2"></span>
+                    </i>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${file.name}</div>
+                        <div class="text-muted fs-7">${fileSize} KB</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-icon btn-light-danger remove-file" data-file-index="${index}">
+                        <i class="ki-duotone ki-cross fs-2"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Add remove handlers
+            container.querySelectorAll('.remove-file').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const index = parseInt(this.dataset.fileIndex);
+                    selectedFiles.splice(index, 1);
+                    displayAttachments();
+                });
+            });
+        }
+
+        // When submitting form, attach selected files
+        composeForm.addEventListener('submit', function (e) {
+            const dataTransfer = new DataTransfer();
+
+            selectedFiles.forEach(f => dataTransfer.items.add(f));
+
+            fileInput.files = dataTransfer.files;
         });
     });
     </script>
