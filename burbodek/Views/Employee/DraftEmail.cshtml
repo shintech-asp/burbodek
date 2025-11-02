@@ -140,8 +140,8 @@
                             </tbody>
                             <tfoot></tfoot>
                         </table>
-                    </div><div id="" class="row px-9 pt-3 pb-5"><div id="" class="col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar"><div><select name="kt_inbox_listing_length" aria-controls="kt_inbox_listing" class="form-select form-select-solid form-select-sm" id="dt-length-0"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select><label for="dt-length-0"></label></div></div><div id="" class="col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end"><div class="dt-paging paging_simple_numbers"><nav aria-label="pagination"><ul class="pagination"><li class="dt-paging-button page-item disabled"><button class="page-link previous" role="link" type="button" aria-controls="kt_inbox_listing" aria-disabled="true" aria-label="Previous" data-dt-idx="previous" tabindex="-1"><i class="previous"></i></button></li><li class="dt-paging-button page-item active"><button class="page-link" role="link" type="button" aria-controls="kt_inbox_listing" aria-current="page" data-dt-idx="0">1</button></li><li class="dt-paging-button page-item"><button class="page-link" role="link" type="button" aria-controls="kt_inbox_listing" data-dt-idx="1">2</button></li><li class="dt-paging-button page-item"><button class="page-link next" role="link" type="button" aria-controls="kt_inbox_listing" aria-label="Next" data-dt-idx="next"><i class="next"></i></button></li></ul></nav></div></div></div>
-                </div>
+                    </div>
+                    </div>
                 <!--end::Table-->
             </div>
         </div>
@@ -154,6 +154,28 @@
 <!--end::Inbox App - Messages -->
 @section Scripts {
     <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            var table = $('#kt_inbox_listing').DataTable({
+                paging: true,
+                searching: true,
+                info: true,
+                ordering: true,
+                language: {
+                zeroRecords: "&nbsp;",  // Non-breaking space = invisible
+                emptyTable: "&nbsp;"
+            },
+            drawCallback: function () {
+                var api = this.api();
+                $(api.table().node()).find('td.dataTables_empty').html('&nbsp;').css('border', 'none');
+            }
+            });
+
+            // Custom search bar integration
+            $('[data-kt-inbox-listing-filter="search"]').on('keyup', function () {
+                table.search(this.value).draw();
+            });
+        });
         $(document).on('click', '.toggle-star', function (e) {
             e.preventDefault();
 

@@ -235,7 +235,14 @@
                     </div>
                     <!--end::Item-->
                     <!--begin::Action-->
-                    <a asp-action="Subscription" asp-controller="Employer" class="btn btn-sm btn-success">Renew</a>
+                    @if(Model.Training.PaymentOption == "Down")
+                    {
+                        <button id="setAsPaid" class="btn btn-sm btn-success">Set as paid</button>
+                    }
+                    @if (Model.TrainingPayments.FirstOrDefault().Paid == Model.TrainingPayments.FirstOrDefault().Price)
+                    {
+                        <button id="addCertification" data-bs-toggle="modal" data-bs-target="#fileUploadModal" class="btn btn-sm btn-info">Add certification</button>
+                    }
                     <!--end::Action-->
                 </div>
                 <!--end::Invoice 2 sidebar-->
@@ -246,3 +253,103 @@
     </div>
     <!--end::Body-->
 </div>
+<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileUploadModalLabel">Upload Image or PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" class="filepond" name="filepond" multiple />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="processFiles">Process Files</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        FilePond.registerPlugin(
+          FilePondPluginFileValidateType,
+          FilePondPluginImagePreview
+        );
+
+        // Configure FilePond
+        const pond = FilePond.create(document.querySelector('.filepond'), {
+          allowMultiple: true,
+          allowReorder: true,
+          acceptedFileTypes: ['image/*', 'application/pdf'],
+          fileValidateTypeLabelExpectedTypes: 'Expects images or PDF',
+          labelIdle: `Drag & drop your <strong>images or PDF</strong><br>or <span class="filepond--label-action">Browse</span>`,
+          labelFileProcessing: 'Uploading',
+          labelFileProcessingComplete: 'Uploaded',
+          labelFileProcessingError: 'Upload failed',
+          labelTapToCancel: 'tap to cancel',
+          labelTapToRetry: 'tap to retry',
+          labelTapToUndo: 'tap to undo',
+        });
+
+        // Optional: Handle processed files
+        document.getElementById('processFiles').addEventListener('click', () => {
+          const files = pond.getFiles();
+          if (files.length === 0) {
+            alert('No files uploaded!');
+            return;
+          }
+
+          // Example: Log file info
+          files.forEach((file, index) => {
+            console.log(`File ${index + 1}:`, {
+              name: file.file.name,
+              size: file.file.size,
+              type: file.file.type,
+              file: file.file
+            });
+          });
+
+          // You can now send files via FormData to backend
+          const formData = new FormData();
+          files.forEach((fileItem, i) => {
+            formData.append('files', fileItem.file);
+          });
+
+          // Example AJAX upload
+          // fetch('/upload', { method: 'POST', body: formData })
+
+          alert(`${files.length} file(s) ready! Check console.`);
+        $("#setAsPaid").on("click", function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This method cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, set it!'
+            }).then((result) => {
+                Swal.fire('Success!', 'Done!.', 'success');
+                // if (result.isConfirmed) {
+                //     $.ajax({
+                //         url: "/Employer/AddStartDateTraining",
+                //         method: "POST",
+                //         data: {
+                //             startDate: $("#startDateInput").val(),
+                //             trainingId: @Model.Id
+                //         },
+                //         success: function(response) {
+                //             Swal.fire('Success!', 'Start date has been saved.', 'success');
+                //             $("#startDateModal").modal("hide");
+                //         },
+                //         error: function(xhr) {
+                //             console.error(xhr.responseText);
+                //             Swal.fire('Error', 'Something went wrong.', 'error');
+                //         }
+                //     });
+                // }
+            });
+        });
+    </script>
+}

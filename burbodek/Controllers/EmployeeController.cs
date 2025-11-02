@@ -117,6 +117,152 @@ namespace burbodek.Controllers
 
             return View(viewModel);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> TrashedView(int id, int RecipientId)
+        {
+            try
+            {
+                var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+                var draftCount = _context.EmailThreads
+                    .Include(t => t.Emails)
+                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Count();
+                var inboxCount = _context.EmailRecipients
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Count();
+                ViewBag.DraftCount = draftCount;
+                ViewBag.InboxCount = inboxCount;
+                // Get the thread with all emails
+
+                var thread = await _context.EmailThreads
+                    .Include(t => t.Emails)
+                        .ThenInclude(e => e.Sender)
+                    .Include(t => t.Emails)
+                        .ThenInclude(e => e.Recipients)
+                            .ThenInclude(r => r.Recipient)
+                    .Include(t => t.Emails)
+                        .ThenInclude(e => e.Attachments)
+                    .FirstOrDefaultAsync(t =>
+                        t.Id == id &&
+                        t.Emails.Any(e =>
+                            (e.SenderID == currentUserId &&
+                             e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)) ||
+                            e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)
+                        )
+                    );
+                if (thread == null)
+                {
+                    TempData["Error"] = "Thread not found";
+                    return RedirectToAction("Index");
+                }
+
+                // Get the latest email in the thread
+                var latestEmail = thread.Emails.OrderByDescending(e => e.SentAt).FirstOrDefault();
+
+                if (latestEmail == null)
+                {
+                    TempData["Error"] = "No emails found in thread";
+                    return RedirectToAction("Index");
+                }
+
+                // Prepare reply data
+                var toRecipients = new List<dynamic>();
+                var ccRecipients = new List<dynamic>();
+
+                // Reply-to logic: Add original sender and all TO recipients (excluding current user)
+                if (latestEmail.SenderID != currentUserId)
+                {
+                    toRecipients.Add(new
+                    {
+                        email = latestEmail.Sender.Email,
+                        fullName = latestEmail.Sender.Username
+                    });
+                }
+
+                foreach (var recipient in latestEmail.Recipients.Where(r => r.RecipientType == RecipientType.TO && r.RecipientID != currentUserId))
+                {
+                    toRecipients.Add(new
+                    {
+                        email = recipient.Recipient.Email,
+                        fullName = recipient.Recipient.Username
+                    });
+                }
+
+                // Include CC recipients (excluding current user)
+                foreach (var recipient in latestEmail.Recipients.Where(r => r.RecipientType == RecipientType.CC && r.RecipientID != currentUserId))
+                {
+                    ccRecipients.Add(new
+                    {
+                        email = recipient.Recipient.Email,
+                        fullName = recipient.Recipient.Username
+                    });
+                }
+
+                // Prepare view model
+                var viewModel = new ThreadViewModel
+                {
+                    ThreadID = thread.Id,
+                    Subject = thread.Subject,
+                    Emails = thread.Emails.OrderBy(e => e.SentAt).ToList()
+                };
+
+                // Prepare reply data for ViewBag
+                ViewBag.ReplyData = new
+                {
+                    ToRecipients = toRecipients,
+                    CcRecipients = ccRecipients,
+                    BccRecipients = new List<dynamic>(),
+                    ReplySubject = thread.Subject.StartsWith("Re: ") ? thread.Subject : $"Re: {thread.Subject}",
+                    OriginalBody = latestEmail.Body,
+                    OriginalSenderName = latestEmail.Sender.Username,
+                    OriginalSentAt = latestEmail.SentAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                };
+                ViewBag.Id = RecipientId;
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("TrashedEmail");
+            }
+        }
+        public IActionResult TrashedRestore(int Id)
+        {
+            if (Id == null || Id == 0)
+                return Json(new { success = false, message = "No emails to restore." });
+
+            var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            try
+            {
+                var recipients = _context.EmailRecipients
+                    .Include(er => er.Email)
+                        .ThenInclude(e => e.Thread)
+                    .Where(er => er.Id == Id)
+                    .ToList();
+
+                foreach (var recipient in recipients)
+                {
+                    if (recipient.Email.Thread.CreatedBy == currentUserId)
+                    {
+                        recipient.Email.IsTrashed = false;
+                    }
+                    else
+                    {
+                        recipient.IsTrashed = false;
+                    }
+                }
+
+                _context.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Server error." });
+            }
+        }
         public IActionResult MarkAsStarred(int Id)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -383,11 +529,16 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Recipients)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Thread)
+                        .ThenInclude(e => e.Emails)
+                            .ThenInclude(e => e.Recipients)
+                .Include(r => r.Email)
+                    .ThenInclude(e => e.Thread)
+                        .ThenInclude(e => e.Creator)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
                 .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
-                .Select(r => r.Email)
+                .Select(r => r.Email.Thread)
                 .Distinct()
                 .ToList();
 
@@ -428,7 +579,7 @@ namespace burbodek.Controllers
                     .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
                     .Count();
                 var inboxCount = _context.EmailRecipients
-                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.IsTrashed)
                     .Count();
                 ViewBag.DraftCount = draftCount;
                 ViewBag.InboxCount = inboxCount;
@@ -959,7 +1110,8 @@ namespace burbodek.Controllers
                 {
                     Subject = model.Subject,
                     CreatedBy = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    Creator = _context.Users.Find(userId)
                 };
                 _context.EmailThreads.Add(thread);
                 await _context.SaveChangesAsync();
@@ -1039,7 +1191,7 @@ namespace burbodek.Controllers
                 }
 
                 TempData["Success"] = "Email sent successfully!";
-                return RedirectToAction("Index");
+                return RedirectToAction("Message");
             }
             catch (Exception ex)
             {
