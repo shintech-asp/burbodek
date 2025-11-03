@@ -1,0 +1,331 @@
+﻿@using Humanizer
+@{
+	Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+	ViewData["Title"] = "Training Details";
+}
+@model Training
+<div class="card">
+	<!--begin::Body-->
+	<div class="card-body p-lg-17">
+		<!--begin::Hero-->
+		@{
+			string[] videoExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
+		}
+
+		<style>
+			.job-media-item {
+				width: 100%;
+				height: 450px; /* fixed landscape height */
+				object-fit: cover; /* crop & center */
+				border-radius: 12px;
+			}
+		</style>
+
+		<div class="position-relative mb-17">
+			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
+				<div class="carousel-inner">
+					@if (Model?.TrainingMedia != null && Model.TrainingMedia.Any())
+					{
+						var index = 0;
+						foreach (var media in Model.TrainingMedia)
+						{
+							var isActive = index == 0 ? "active" : "";
+							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
+
+							<div class="carousel-item @isActive">
+								@if (!string.IsNullOrEmpty(ext) && videoExtensions.Contains(ext))
+								{
+									<!-- Video -->
+									<video class="d-block job-media-item"
+										   loop playsinline muted>
+										<source src="@Url.Content(media.FilePath)" type="video/mp4">
+										Your browser does not support the video tag.
+									</video>
+								}
+								else
+								{
+									<!-- Image -->
+									<img src="@Url.Content(media.FilePath)" class="d-block job-media-item" alt="Job Media" />
+								}
+							</div>
+							index++;
+						}
+					}
+					else
+					{
+						<!-- Fallback if no media -->
+						<div class="carousel-item active">
+							<div class="job-media-item d-flex align-items-center justify-content-center bg-light text-muted">
+								No media available
+							</div>
+						</div>
+					}
+				</div>
+
+				<!-- Controls -->
+				<button class="carousel-control-prev" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="prev">
+					<span class="carousel-control-prev-icon"></span>
+				</button>
+				<button class="carousel-control-next" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="next">
+					<span class="carousel-control-next-icon"></span>
+				</button>
+			</div>
+
+			<!-- Overlay -->
+			<div class="overlay-layer rounded bg-black position-absolute top-0 start-0 w-100 h-100" style="opacity: 0.4"></div>
+
+			<!-- Business Info -->
+			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
+				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Name</h3>
+				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
+			</div>
+		</div>
+		<!--begin::Layout-->
+		<div class="d-flex flex-column flex-lg-row mb-17">
+			<!--begin::Content-->
+			<div class="flex-lg-row-fluid me-0 me-lg-20">
+				<div class="mb-17">
+					<div class="card bg-light">
+						<!--begin::Top-->
+						<div class="p-5">
+							<!--begin::Title-->
+							<h2 class="fs-1 text-gray-800 w-bolder">Applicants</h2>
+							<!--end::Title-->
+						</div>
+						<!--end::Top-->
+						<div class="card-body">
+							<div>
+								<div class="table-responsive">
+									<table class="table table-row-dashed table-row-gray-300 gy-7">
+										<thead>
+											<tr class="fw-bold fs-6 text-gray-800">
+												<th>Name</th>
+												<th>Payment</th>
+												<th>Status</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody>
+											@if (Model?.TrainingApplication?.Count > 0)
+											{
+												@foreach (var data in Model.TrainingApplication)
+												{
+													<tr>
+														<td>@data.FirstName, @data.LastName</td>
+														<td>@ViewBag.ModeOfPayment</td>
+														<td>
+															<span class="badge badge-primary">@ViewBag.PaymentStatus</span>
+														</td>
+														<td class="text-center">
+															<a class="btn btn-sm btn-primary" asp-action="TrainingReceipt" asp-controller="Employer" asp-route-AppliedId="@data.AppliedBy" asp-route-Id="@data.Id">
+																View
+															</a>
+														</td>
+													</tr>
+												}
+											}
+											else
+											{
+												<tr>
+													<td colspan="4" class="text-center">No applicants yet</td>
+												</tr>
+											}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--end::Content-->
+			<!--begin::Sidebar-->
+			<div class="flex-lg-row-auto w-100 w-lg-275px w-xxl-350px">
+				<!--begin::Careers about-->
+				<div class="card bg-light">
+					<!--begin::Body-->
+					<div class="card-body">
+						<!--begin::Top-->
+						<div class="mb-7">
+							<!--begin::Title-->
+							<h2 class="fs-1 text-gray-800 w-bolder mb-6">About Us</h2>
+							<!--end::Title-->
+							<!--begin::Text-->
+							<p class="fw-semibold fs-6 text-gray-600">@Model.Users.EmployerDetails.BusinessDescription</p>
+							<!--end::Text-->
+						</div>
+						<!--end::Top-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Price</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									<div class="text-gray-600 fw-semibold fs-6">₱@Model.Price.ToString("N0") pesos only</div>
+
+									<!--end::Label-->
+								</div>
+								<!--end::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									<div class="text-gray-600 fw-semibold fs-6">Training</div>
+								</div>
+							</div>
+							<!--end::Section-->
+						</div>
+						<!--end::Item-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Will Expire In</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									<div class="text-gray-600 fw-semibold fs-6">@Model.Expiration.Humanize()</div>
+									<!--end::Label-->
+								</div>
+								<!--end::Row-->
+							</div>
+							<!--end::Section-->
+						</div>
+						<!--end::Item-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Actions</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Label-->
+									@if(Model.StartDate == null)
+									{
+										<button class="btn btn-primary btn-sm" id="openStartDateModal">Add start date</button>
+									}
+									<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
+									<!--end::Label-->
+								</div>
+								<!--end::Row-->
+							</div>
+						</div>
+						<!--end::Item-->
+					</div>
+					<!--end::Body-->
+				</div>
+				<!--end::Careers about-->
+			</div>
+			<!--end::Sidebar-->
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="startDateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Add start date</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<label class="form-label">Start date of training</label>
+				<input type="datetime-local" class="form-control" id="startDateInput" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="startDateSubmit">Save changes</button>
+			</div>
+		</div>
+	</div>
+</div>
+@section Scripts {
+	<script>
+		 $("#openStartDateModal").on("click", function() {
+			$("#startDateModal").modal("show");
+		});
+
+		// ✅ Handle submission
+		$("#startDateSubmit").on("click", function() {
+			Swal.fire({
+				title: 'Are you sure?',
+				text: "All applicants will be notified about this start date.",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Yes, publish it!'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+						url: "/Employer/AddStartDateTraining",
+						method: "POST",
+						data: {
+							startDate: $("#startDateInput").val(),
+							trainingId: @Model.Id
+						},
+						success: function(response) {
+							Swal.fire('Success!', 'Start date has been saved.', 'success');
+							$("#startDateModal").modal("hide");
+						},
+						error: function(xhr) {
+							console.error(xhr.responseText);
+							Swal.fire('Error', 'Something went wrong.', 'error');
+						}
+					});
+				}
+			});
+		});
+			
+		document.getElementById("deleteJobBtn").addEventListener("click", function (e) {
+			Swal.fire({
+				title: 'Are you sure?',
+				text: "This action cannot be undone. The job will be permanently deleted.",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Yes, delete it!'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					document.getElementById("deleteJobForm").submit();
+				}
+			});
+		});
+		const carousel = document.getElementById('jobMediaCarousel');
+
+		function handleVideoPlayback() {
+			const videos = carousel.querySelectorAll('video');
+			videos.forEach(v => {
+				v.pause();
+				v.muted = true;
+			});
+
+			const activeVideo = carousel.querySelector('.carousel-item.active video');
+			if (activeVideo) {
+				activeVideo.muted = false;
+				activeVideo.play();
+			}
+		}
+
+		// Run on slide change
+		carousel.addEventListener('slid.bs.carousel', handleVideoPlayback);
+
+		// Run on page load
+		window.addEventListener('load', handleVideoPlayback);
+	</script>
+}

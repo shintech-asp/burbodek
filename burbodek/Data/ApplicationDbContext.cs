@@ -23,9 +23,29 @@ namespace burbodek.Data
         public DbSet<JobMedia> JobMedia { get; set; }
         public DbSet<JobApplication> JobApplication { get; set; }
         public DbSet<JobRequirements> JobRequirements { get; set; }
+        public DbSet<TrainingPayments> TrainingPayments { get; set; }
+        public DbSet<TrainingApplication> TrainingApplication { get; set; }
+        public DbSet<TrainingCertificate> TrainingCertificate { get; set; }
         public DbSet<Subscription> Subscription { get; set; }
-
+        public DbSet<EmailThread> EmailThreads { get; set; }
+        public DbSet<Email> Emails { get; set; }
+        public DbSet<EmailRecipient> EmailRecipients { get; set; }
+        public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<PaymentDetails> PaymentDetails { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<EmailRecipient>()
+                .HasOne(er => er.Email)
+                .WithMany(e => e.Recipients)
+                .HasForeignKey(er => er.EmailID);
+
+            modelBuilder.Entity<Email>()
+                .HasOne(e => e.Thread)
+                .WithMany(t => t.Emails)
+                .HasForeignKey(e => e.ThreadID);
+        }
         public void UpdateExpiredSubscriptionsOnStartup()
         {
             var basicPlan = Plans.FirstOrDefault(p => p.PlanName == "Basic");

@@ -1,0 +1,215 @@
+﻿@using System.Web
+@using System.IO
+@using burbodek.Models.ViewModels
+@{
+    ViewData["Title"] = "Reply";
+    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+}
+@model ThreadViewModel
+
+<div class="d-flex flex-column flex-lg-row">
+    <!-- Sidebar (unchanged) -->
+    <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true" data-kt-drawer-name="inbox-aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_inbox_aside_toggle">
+        <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky" data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}" data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
+            <div class="card-body">
+                <a asp-controller="Employee" asp-action="Compose" class="btn btn-primary fw-bold w-100 mb-8">New Message</a>
+
+                <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
+                    <div class="menu-item mb-3"><a asp-action="Message" class="menu-link active"><span class="menu-icon"><i class="ki-duotone ki-sms fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Inbox</span><span class="badge badge-light-success">@ViewBag.InboxCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="MarkedEmail" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-abstract-23 fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Marked</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="DraftEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-file fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Draft</span><span class="badge badge-light-warning">@ViewBag.DraftCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="EmailSent" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-send fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Sent</span></a></div>
+                    <div class="menu-item"><a asp-action="TrashedEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-trash fs-2 me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i></span><span class="menu-title fw-bold">Trash</span></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-lg-row-fluid ms-lg-7 ms-xl-10">
+        <div class="card">
+            <div class="card-header align-items-center py-5 gap-5">
+                <!-- Header actions -->
+            </div>
+
+            <div class="card-body">
+                <h2 class="fw-semibold mb-8">@Model.Subject</h2>
+
+                @foreach (var email in Model.Emails)
+                {
+                    @if (!email.IsTrashed)
+                    {
+                        <div data-kt-inbox-message="message_wrapper">
+                            <div class="d-flex flex-wrap gap-2 flex-stack cursor-pointer" data-kt-inbox-message="header">
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-50 me-4">
+                                        <div class="symbol symbol-35px me-3">
+                                            <div class="symbol-label bg-light-primary">
+                                                <span class="text-primary">@email.Sender.Username.Substring(0, 1)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pe-5">
+                                        <div class="d-flex align-items-center flex-wrap gap-1">
+                                            <a href="#" class="fw-bold text-gray-900 text-hover-primary">@email.Sender?.Email</a>
+                                            <span class="text-muted fw-bold">@email.SentAt.ToString("dd MMM yyyy, hh:mm tt")</span>
+                                        </div>
+                                        <div class="text-muted fw-semibold">
+                                            To: @string.Join(", ", email.Recipients.Where(r => r.RecipientType == RecipientType.TO).Select(r => r.Recipient.Email))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapse fade show" data-kt-inbox-message="message">
+                                <div class="py-5">@Html.Raw(email.Body)</div>
+
+                                @* Display Attachments *@
+                                @if (email.Attachments != null && email.Attachments.Any())
+                                {
+                                    <div class="mt-5">
+                                        <div class="fw-bold text-gray-700 mb-3">
+                                            <i class="ki-duotone ki-paper-clip fs-3 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Attachments (@email.Attachments.Count)
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-3">
+                                            @foreach (var attachment in email.Attachments)
+                                            {
+                                                var extension = System.IO.Path.GetExtension(attachment.FileName)?.ToLower() ?? "";
+                                                var imageExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                                                var isImage = imageExtensions.Contains(extension);
+                                                var fileSize = (attachment.FileSize / 1024.0).ToString("F2");
+
+                                                <div class="border rounded p-3 d-flex align-items-center" style="min-width: 250px;">
+                                                    @if (isImage)
+                                                    {
+                                                        <a href="@attachment.FilePath" target="_blank" class="d-flex align-items-center text-decoration-none flex-grow-1 gap-3">
+                                                            <div style="width: 60px; height: 60px; flex-shrink: 0;">
+                                                                <img src="@attachment.FilePath" alt="@attachment.FileName" class="w-100 h-100 object-fit-cover rounded" />
+                                                            </div>
+                                                            <div class="flex-grow-1">
+                                                                <div class="fw-bold text-gray-800">@attachment.FileName</div>
+                                                                <div class="text-muted fs-7">@fileSize KB</div>
+                                                            </div>
+                                                            <div style="width: 30px; flex-shrink: 0;">
+                                                                <i class="ki-duotone ki-eye fs-2 text-primary">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                    <span class="path3"></span>
+                                                                </i>
+                                                            </div>
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@attachment.FilePath" download="@attachment.FileName" class="d-flex align-items-center text-decoration-none flex-grow-1">
+                                                            <i class="ki-duotone ki-file fs-3x me-3 text-primary">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            <div class="flex-grow-1">
+                                                                <div class="fw-bold text-gray-800">@attachment.FileName</div>
+                                                                <div class="text-muted fs-7">@fileSize KB</div>
+                                                            </div>
+                                                            <i class="ki-duotone ki-download fs-2 text-success">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="separator my-6"></div>
+                    }
+
+                }
+                <!-- Footer -->
+                <div class="d-flex flex-stack flex-wrap gap-2 py-5 ps-8 pe-5 border-top">
+                    <div class="d-flex align-items-center me-3">
+                        <button id="btnTrashSelected"
+                                class="btn btn-primary fs-bold px-6"
+                                data-id="@ViewBag.Id">
+                            <span class="indicator-label">Restore</span>
+                            <span class="indicator-progress">
+                                Please wait... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="btn btn-icon btn-sm btn-clean btn-active-light-primary" data-inbox="dismiss">
+                            <i class="ki-duotone ki-trash fs-2"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <!-- Tagify -->
+    <script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.css">
+
+    <!-- Quill -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <!-- Dropzone -->
+    <script src="https://cdn.jsdelivr.net/npm/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet">
+
+    <script>
+        $('#btnTrashSelected').on('click', function (e) {
+            e.preventDefault();
+
+            const messageId = $(this).data('id'); // ✅ dynamically get ID
+            console.log(messageId)
+            if (!messageId) {
+                toastr.warning('No message ID found.');
+                return;
+            }
+
+            Swal.fire({
+                text: 'Restore this message from trash?',
+                icon: 'warning',
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: 'Yes, restore it!',
+                cancelButtonText: 'No, cancel',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-active-light ms-3'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Employee/TrashedRestore',
+                        type: 'POST',
+                        data: { Id: messageId },
+                        success: function (response) {
+                            if (response.success) {
+                                toastr.success('Message restored from trash.');
+                                setTimeout(function () {
+                                    window.location.href = "/Employee/Message";
+                                }, 1000);
+                            } else {
+                                toastr.error(response.message || 'Failed to restore message.');
+                            }
+                        },
+                        error: function () {
+                            toastr.error('Server error. Please try again.');
+                        }
+                    });
+                }
+            });
+        });
+
+    </script>
+}

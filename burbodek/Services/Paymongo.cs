@@ -73,7 +73,56 @@ namespace burbodek.Services
             return responseString;
         }
 
+        public async Task<string> TrainingCheckout(
+         decimal amount,
+         string currency,
+         string name,
+         string email,
+         string productNames)
+        {
+            var payload = new
+            {
+                data = new
+                {
+                    attributes = new
+                    {
+                        line_items = new[]
+                        {
+                    new {
+                        name = productNames,
+                        amount = (int)(amount * 100), // in cents
+                        currency = currency,
+                        quantity = 1
+                    }
+                },
+                        payment_method_types = new[] { "gcash" },
+                        success_url = "https://localhost:7136/Employee/SuccessPayment",
+                        cancel_url = "https://localhost:7136/Employee/CancelledPayment",
+                        billing = new
+                        {
+                            name = name,
+                            email = email
+                        },
+                        metadata = new
+                        {
+                            customer_name = name,
+                            customer_email = email
+                        }
+                    }
+                }
+            };
 
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("https://api.paymongo.com/v1/checkout_sessions", content);
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Error creating checkout session: {response.StatusCode} - {responseString}");
+            }
+
+            return responseString;
+        }
         // Fetch checkout session details
         public async Task<string> GetCheckoutSession(string sessionId)
         {

@@ -1,0 +1,420 @@
+﻿@using Humanizer
+@{
+    ViewData["Title"] = "Training Receipt";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model TrainingApplication;
+<div class="card">
+    <!--begin::Body-->
+    <div class="card-body p-lg-20">
+        <!--begin::Layout-->
+        <div class="d-flex flex-column flex-xl-row">
+            <!--begin::Content-->
+            <div class="flex-lg-row-fluid me-xl-18 mb-10 mb-xl-0">
+                <!--begin::Invoice 2 content-->
+                <div class="mt-n1">
+                    <!--begin::Top-->
+                    <div class="d-flex flex-stack pb-10">
+                        <!--begin::Logo-->
+                        <a href="#">
+                            <img alt="Logo" src="~/assets/media/logos/nav-icon.png">
+                        </a>
+                        <!--end::Logo-->
+                    </div>
+                    <!--end::Top-->
+                    <!--begin::Wrapper-->
+                    <div class="m-0">
+                        <!--begin::Label-->
+                        @{
+                            var sub = Model?.Id;
+
+                            var invoiceNumber = $"INV-{DateTime.Now:yyyyMMdd}-{sub:D6}";
+                        }
+                        <div class="fw-bold fs-3 text-gray-800 mb-8">Invoice #@invoiceNumber</div>
+                        <!--end::Label-->
+                        <!--begin::Row-->
+                        <div class="row g-5 mb-11">
+                            <!--end::Col-->
+                            <div class="col-sm-6">
+                                <!--end::Label-->
+                                <div class="fw-semibold fs-7 text-gray-600 mb-1">Issue Date:</div>
+                                <!--end::Label-->
+                                <!--end::Col-->
+                                <div class="fw-bold fs-6 text-gray-800">@Model.Training.CreatedAt.ToString("MMMM d, yyyy")</div>
+                                <!--end::Col-->
+                            </div>
+                            <!--end::Col-->
+                            <!--end::Col-->
+                            <div class="col-sm-6">
+                                <!--end::Label-->
+                                <div class="fw-semibold fs-7 text-gray-600 mb-1">Due Date:</div>
+                                <!--end::Label-->
+                                <!--end::Info-->
+                                <div class="fw-bold fs-6 text-gray-800 d-flex align-items-center flex-wrap">
+                                    <span class="pe-2">
+                                        @(Model.Training.Expiration.ToString("MMMM d, yyyy") ?? "No Expiration yet")
+                                    </span>
+                                </div>
+                                <!--end::Info-->
+                            </div>
+                            <!--end::Col-->
+                        </div>
+                        <!--end::Row-->
+                        <!--begin::Row-->
+                        <div class="row g-5 mb-12">
+                            <!--end::Col-->
+                            <div class="col-sm-6">
+                                <!--end::Label-->
+                                <div class="fw-semibold fs-7 text-gray-600 mb-1">Issue For:</div>
+                                <!--end::Label-->
+                                <!--end::Text-->
+                                <div class="fw-bold fs-6 text-gray-800">@Model.TrainingPayments.FirstOrDefault().Users.Username</div>
+                                <!--end::Text-->
+                                <!--end::Description-->
+                                <div class="fw-semibold fs-7 text-gray-600">
+                                    @Model.TrainingPayments.FirstOrDefault().Users.Email
+                                </div>
+                                <!--end::Description-->
+                            </div>
+                            <!--end::Col-->
+                            <!--end::Col-->
+                            <div class="col-sm-6">
+                                <!--end::Label-->
+                                <div class="fw-semibold fs-7 text-gray-600 mb-1">Issued By:</div>
+                                <!--end::Label-->
+                                <!--end::Text-->
+                                <div class="fw-bold fs-6 text-gray-800">@Model.Training.Users.Username</div>
+                                <!--end::Text-->
+                                <!--end::Description-->
+                                <div class="fw-semibold fs-7 text-gray-600">
+                                    Dasmariñas Cavite
+                                </div>
+                                <!--end::Description-->
+                            </div>
+                            <!--end::Col-->
+                        </div>
+                        <!--end::Row-->
+                        <!--begin::Content-->
+                        <div class="flex-grow-1">
+                            <!--begin::Table-->
+                            <div class="table-responsive border-bottom mb-9">
+                                <table class="table mb-3">
+                                    <thead>
+                                        <tr class="border-bottom fs-6 fw-bold text-muted">
+                                            <th class="min-w-175px pb-2">Description</th>
+                                            <th class="min-w-80px text-end pb-2">Rate</th>
+                                            <th class="min-w-100px text-end pb-2">Amount Paid</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr class="fw-bold text-gray-700 fs-5 text-end">
+                                            <td class="d-flex align-items-center pt-6">
+                                                <i class="fa fa-genderless text-success fs-2 me-2"></i>
+                                                @Model.Training.Name
+                                                <span>Training</span>
+                                            </td>
+                                            @{
+                                            }
+                                            <td class="pt-6">₱@Model.Training.Price.ToString("N0")</td>
+                                            @if(Model.Training.DownPayment != null)
+                                            {
+
+                                                <td class="pt-6 text-gray-900 fw-bolder">₱@Model.TrainingPayments.FirstOrDefault().Paid</td>
+                                            }
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--end::Table-->
+                            <!--begin::Container-->
+                            <div class="d-flex justify-content-end">
+                                <!--begin::Section-->
+                                <div class="mw-300px">
+                                    <!--begin::Item-->
+                                    <div class="d-flex flex-stack mb-3">
+                                        <!--begin::Accountname-->
+                                        <div class="fw-semibold pe-10 text-gray-600 fs-7">Subtotal:</div>
+                                        <!--end::Accountname-->
+                                        <!--begin::Label-->
+                                        <div class="text-end fw-bold fs-6 text-gray-800">₱ @Model.Training.Price</div>
+                                        <!--end::Label-->
+                                    </div>
+                                    <!--end::Item-->
+                                    <!--begin::Item-->
+                                    <div class="d-flex flex-stack">
+                                        <!--begin::Code-->
+                                        <div class="fw-semibold pe-10 text-gray-600 fs-7">Total</div>
+                                        <!--end::Code-->
+                                        <!--begin::Label-->
+                                        @if (Model.TrainingPayments.FirstOrDefault().Paid != null && Model.TrainingPayments.FirstOrDefault().Paid != Model.TrainingPayments.FirstOrDefault().Price)
+                                        {
+                                            <div class="text-end fw-bold fs-6 text-gray-800">₱ @(Model.TrainingPayments.FirstOrDefault().Price - Model.TrainingPayments.FirstOrDefault().Paid)</div>
+                                        }else if (Model.TrainingPayments.FirstOrDefault().Paid != null && Model.TrainingPayments.FirstOrDefault().Paid == Model.TrainingPayments.FirstOrDefault().Price)
+                                        {
+                                            <div class="text-end fw-bold fs-6 text-gray-800">₱ @(Model.TrainingPayments.FirstOrDefault().Price - Model.TrainingPayments.FirstOrDefault().Paid)</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-end fw-bold fs-6 text-gray-800">₱ @(Model.TrainingPayments.FirstOrDefault().Price)</div>
+                                        }
+                                        <!--end::Label-->
+                                    </div>
+                                    <!--end::Item-->
+                                </div>
+                                <!--end::Section-->
+                            </div>
+                            <!--end::Container-->
+                        </div>
+                        <!--end::Content-->
+                    </div>
+                    <!--end::Wrapper-->
+                </div>
+                <!--end::Invoice 2 content-->
+            </div>
+            <!--end::Content-->
+            <!--begin::Sidebar-->
+            <div class="m-0">
+                <!--begin::Invoice 2 sidebar-->
+                <div class="d-print-none border border-dashed border-gray-300 card-rounded h-lg-100 min-w-md-350px p-9 bg-lighten">
+                    <!--begin::Labels-->
+                    <div class="mb-8">
+                        <span class="badge badge-light-success me-2">Approved</span>
+
+                        <span class="badge badge-light-success">Paid</span>
+                    </div>
+                    <!--end::Labels-->
+                    <!--begin::Title-->
+                    <h6 class="mb-8 fw-bolder text-gray-600 text-hover-primary">PAYMENT DETAILS</h6>
+                    <!--end::Title-->
+                    <!--begin::Item-->
+                    @if (Model.TrainingPayments.Count != 0)
+                    {
+                        <div class="mb-6">
+                            <div class="fw-semibold text-gray-600 fs-7">Cash:</div>
+                            <div class="fw-bold text-gray-800 fs-6">Amount of @Model.TrainingPayments.FirstOrDefault().Price</div>
+
+
+                        </div>
+                        <!--end::Item-->
+                        <!--begin::Item-->
+                        <div class="mb-6">
+                            <div class="fw-semibold text-gray-600 fs-7">Account Name:</div>
+
+                            <div class="fw-bold text-gray-800 fs-6">
+                                @Model.TrainingPayments.FirstOrDefault().Users.Username
+                            </div>
+                        </div>
+
+                    }
+                    <!--end::Item-->
+                    <!--begin::Item-->
+                    <div class="mb-15">
+                        <div class="fw-semibold text-gray-600 fs-7">Payment Term:</div>
+
+                        <div class="fw-bold fs-6 text-gray-800 d-flex align-items-center">
+                            @if (Model.Training.PaymentOption == "Down")
+                            {
+                                <span>
+                                    Partial Payment
+                                </span>
+                            }
+                            else if (Model.Training.PaymentOption == "Full")
+                            {
+                                <span>
+                                    Full Payment
+                                </span>
+                            }
+
+                            <span class="fs-7 text-danger d-flex align-items-center">
+                                <span class="bullet bullet-dot bg-info mx-2"></span>
+
+                                @Model.Training.Expiration.Humanize()
+                            </span>
+                        </div>
+                    </div>
+                    <!--end::Item-->
+                    <!--begin::Action-->
+                    @{
+                        var payment = Model.TrainingPayments.FirstOrDefault();
+                        var certificate = Model.TrainingCertificate.FirstOrDefault();
+                    }
+
+                    @if (Model.Training.PaymentOption == "Down" && Model.PaymentStatus == "Unpaid")
+                    {
+                        <button id="setAsPaid" class="btn btn-sm btn-success">Set as paid</button>
+                    }
+
+                    @if (payment != null && payment.Paid == payment.Price && certificate == null)
+                    {
+                        <button id="addCertification" data-bs-toggle="modal" data-bs-target="#fileUploadModal" class="btn btn-sm btn-info">
+                            Add certification
+                        </button>
+                    }
+                    else if (certificate != null)
+                    {
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <input type="file"
+                                       class="filepond"
+                                       name="filepond"
+                                       data-default-file="@certificate.FilePath"
+                                       disabled />
+                            </div>
+                        </div>
+                    }
+
+                    <!--end::Action-->
+                </div>
+                <!--end::Invoice 2 sidebar-->
+            </div>
+            <!--end::Sidebar-->
+        </div>
+        <!--end::Layout-->
+    </div>
+    <!--end::Body-->
+</div>
+<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileUploadModalLabel">Upload Image or PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" class="filepond" name="filepond" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="processFiles">Process Files</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        // ✅ Confirmation for Set as Paid
+        $("#setAsPaid").on("click", function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, set as paid!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "/Employer/SetAsPaid",
+                        method: "POST",
+                        data: { Id: @ViewBag.ApplicationId },
+                        beforeSend: function () {
+                            Swal.fire({
+                                title: 'Processing...',
+                                text: 'Please wait.',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
+                        success: function () {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Payment status updated.',
+                                icon: 'success'
+                            }).then(() => location.reload());
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            Swal.fire('Error', 'Something went wrong.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
+        // ✅ Initialize FilePond globally
+        FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginPdfPreview);
+
+        // For all filepond inputs (upload modal + existing certificate display)
+        const fileInputs = document.querySelectorAll('.filepond');
+        const ponds = [];
+
+        fileInputs.forEach(input => {
+            const pond = FilePond.create(input, {
+                allowMultiple: false,
+                acceptedFileTypes: ['image/*', 'application/pdf'],
+                instantUpload: false,
+                storeAsFile: true
+            });
+
+            // ✅ If there’s an existing file path, show it
+            const defaultFile = input.dataset.defaultFile;
+            if (defaultFile && defaultFile.trim() !== "") {
+                pond.addFile(defaultFile).catch(err => console.warn('File preview error:', err));
+            }
+
+            ponds.push(pond);
+        });
+
+
+        // ✅ Upload handler
+        $('#processFiles').on('click', function () {
+            // Only target the modal pond (the upload one)
+            const uploadPond = ponds.find(p => !p.element.disabled);
+
+            if (!uploadPond || uploadPond.getFiles().length === 0) {
+                Swal.fire('No File', 'Please select a file first.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Confirm Upload',
+                text: 'Do you want to upload this file?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, upload it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('file', uploadPond.getFiles()[0].file);
+                    formData.append('trainingApplicationId', '@ViewBag.ApplicationId');
+
+                    $.ajax({
+                        url: '/Employer/UploadCertificate',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        beforeSend: function () {
+                            Swal.fire({
+                                title: 'Uploading...',
+                                text: 'Please wait while we upload your file.',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                title: 'Uploaded!',
+                                text: response.message || 'Your certificate has been uploaded.',
+                                icon: 'success'
+                            }).then(() => {
+                                $('#fileUploadModal').modal('hide');
+                                uploadPond.removeFiles();
+                                location.reload();
+                            });
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            Swal.fire('Error', 'File upload failed.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

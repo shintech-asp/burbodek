@@ -1,11 +1,15 @@
 using burbodek.Data;
 using burbodek.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
-
+builder.Services.AddControllersWithViews()
+  .AddJsonOptions(opt =>
+   {
+       opt.JsonSerializerOptions.WriteIndented = true;
+   });
 // Session
 builder.Services.AddSession(options =>
 {

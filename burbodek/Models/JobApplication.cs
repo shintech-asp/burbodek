@@ -15,7 +15,12 @@
         public DateTime StartDate { get; set; }
         public string Experience { get; set; }
         public string ApplicationLetter { get; set; }
-        public string CV { get; set; }
+        public string? Diploma { get; set; }
+        public string? Resume { get; set; }
+        public string? PassportId { get; set; }
+        public string? SeamansBook { get; set; }
+        public string? Tor { get; set; }
+        public string? Coe { get; set; }
         public string Status { get; set; } = "Applied";
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

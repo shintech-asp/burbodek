@@ -76,7 +76,7 @@
 
 			<!-- Business Info -->
 			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
-				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Users.EmployerDetails?.BusinessName</h3>
+				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.JobTitle</h3>
 				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
 			</div>
 		</div>
@@ -100,7 +100,6 @@
 										<thead>
 											<tr class="fw-bold fs-6 text-gray-800">
 												<th>Name</th>
-												<th>CV</th>
 												<th>Status</th>
 												<th>Actions</th>
 											</tr>
@@ -114,11 +113,6 @@
 													{
 														<tr>
 															<td>@data.FirstName, @data.LastName</td>
-															<td>
-																<a href="@data.CV" target="_blank">
-																	applicants_cv
-																</a>
-															</td>
 
 															<td>
 																<span class="badge badge-primary">@data.Status</span>

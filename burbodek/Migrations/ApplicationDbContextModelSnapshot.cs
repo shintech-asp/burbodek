@@ -22,6 +22,140 @@ namespace burbodek.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("burbodek.Models.Email", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStarred")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SenderID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ThreadID")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderID");
+
+                    b.HasIndex("ThreadID");
+
+                    b.ToTable("Emails");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmailID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailID");
+
+                    b.ToTable("EmailAttachments");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailRecipient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmailID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStarred")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RecipientID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecipientType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailID");
+
+                    b.HasIndex("RecipientID");
+
+                    b.ToTable("EmailRecipients");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailThread", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("EmailThreads");
+                });
+
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
                     b.Property<int>("Id")
@@ -126,16 +260,18 @@ namespace burbodek.Migrations
                     b.Property<int>("AppliedBy")
                         .HasColumnType("int");
 
-                    b.Property<string>("CV")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Coe")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Diploma")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExpectedSalary")
                         .HasColumnType("int");
@@ -159,11 +295,23 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PassportId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Resume")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeamansBook")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tor")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("UsersId")
@@ -278,8 +426,14 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Coe")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("Diploma")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("datetime2");
@@ -298,11 +452,23 @@ namespace burbodek.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("PassportId")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Resume")
+                        .HasColumnType("bit");
+
                     b.Property<int>("SalaryMax")
                         .HasColumnType("int");
 
                     b.Property<int>("SalaryMin")
                         .HasColumnType("int");
+
+                    b.Property<bool>("SeamansBook")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Tor")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
@@ -445,24 +611,57 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Coe")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DurationFrom")
-                        .HasColumnType("datetime2");
+                    b.Property<bool>("Diploma")
+                        .HasColumnType("bit");
 
-                    b.Property<DateTime>("DurationTo")
+                    b.Property<decimal?>("DownPayment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("Expiration")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ModeOfPayment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PassportId")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PaymentOption")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Resume")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SeamansBook")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Tor")
+                        .HasColumnType("bit");
 
                     b.Property<string>("TrainingDescription")
                         .IsRequired()
@@ -479,6 +678,71 @@ namespace burbodek.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("Training");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AppliedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Coe")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Diploma")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MobileNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PassportId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Resume")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeamansBook")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrainingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingId");
+
+                    b.ToTable("TrainingApplication");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
@@ -501,6 +765,32 @@ namespace burbodek.Migrations
                     b.HasIndex("TrainingId");
 
                     b.ToTable("TrainingBenefits");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingCertificate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrainingApplicationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingApplicationId");
+
+                    b.ToTable("TrainingCertificate");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingMedia", b =>
@@ -527,6 +817,46 @@ namespace burbodek.Migrations
                     b.HasIndex("TrainingId");
 
                     b.ToTable("TrainingMedia");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingPayments", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModeOfPayment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Paid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentOption")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TrainingApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingApplicationId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("TrainingPayments");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingRequirements", b =>
@@ -587,6 +917,64 @@ namespace burbodek.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("burbodek.Models.Email", b =>
+                {
+                    b.HasOne("burbodek.Models.Users", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("burbodek.Models.EmailThread", "Thread")
+                        .WithMany("Emails")
+                        .HasForeignKey("ThreadID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("Thread");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailAttachment", b =>
+                {
+                    b.HasOne("burbodek.Models.Email", "Email")
+                        .WithMany("Attachments")
+                        .HasForeignKey("EmailID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Email");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailRecipient", b =>
+                {
+                    b.HasOne("burbodek.Models.Email", "Email")
+                        .WithMany("Recipients")
+                        .HasForeignKey("EmailID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("burbodek.Models.Users", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Email");
+
+                    b.Navigation("Recipient");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailThread", b =>
+                {
+                    b.HasOne("burbodek.Models.Users", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId");
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
@@ -733,21 +1121,43 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
+            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
                 {
                     b.HasOne("burbodek.Models.Training", "Training")
-                        .WithMany()
+                        .WithMany("TrainingApplication")
                         .HasForeignKey("TrainingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Training");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
+                {
+                    b.HasOne("burbodek.Models.Training", "Training")
+                        .WithMany("TrainingBenefits")
+                        .HasForeignKey("TrainingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Training");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingCertificate", b =>
+                {
+                    b.HasOne("burbodek.Models.TrainingApplication", "TrainingApplication")
+                        .WithMany("TrainingCertificate")
+                        .HasForeignKey("TrainingApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TrainingApplication");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingMedia", b =>
                 {
                     b.HasOne("burbodek.Models.Training", "Training")
-                        .WithMany()
+                        .WithMany("TrainingMedia")
                         .HasForeignKey("TrainingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -755,15 +1165,46 @@ namespace burbodek.Migrations
                     b.Navigation("Training");
                 });
 
+            modelBuilder.Entity("burbodek.Models.TrainingPayments", b =>
+                {
+                    b.HasOne("burbodek.Models.TrainingApplication", "TrainingApplication")
+                        .WithMany("TrainingPayments")
+                        .HasForeignKey("TrainingApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("burbodek.Models.Users", "Users")
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TrainingApplication");
+
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("burbodek.Models.TrainingRequirements", b =>
                 {
                     b.HasOne("burbodek.Models.Training", "Training")
-                        .WithMany()
+                        .WithMany("TrainingRequirements")
                         .HasForeignKey("TrainingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Training");
+                });
+
+            modelBuilder.Entity("burbodek.Models.Email", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Recipients");
+                });
+
+            modelBuilder.Entity("burbodek.Models.EmailThread", b =>
+                {
+                    b.Navigation("Emails");
                 });
 
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
@@ -777,6 +1218,24 @@ namespace burbodek.Migrations
                     b.Navigation("JobRequirements");
 
                     b.Navigation("JobRole");
+                });
+
+            modelBuilder.Entity("burbodek.Models.Training", b =>
+                {
+                    b.Navigation("TrainingApplication");
+
+                    b.Navigation("TrainingBenefits");
+
+                    b.Navigation("TrainingMedia");
+
+                    b.Navigation("TrainingRequirements");
+                });
+
+            modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
+                {
+                    b.Navigation("TrainingCertificate");
+
+                    b.Navigation("TrainingPayments");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

@@ -1,0 +1,290 @@
+﻿@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model List<Email>
+<!--begin::Inbox App - Messages -->
+<div class="d-flex flex-column flex-lg-row">
+    <!--begin::Sidebar-->
+    <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true" data-kt-drawer-name="inbox-aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_inbox_aside_toggle" style="">
+
+        <!--begin::Sticky aside-->
+        <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky" data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}" data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
+            <!--begin::Aside content-->
+            <div class="card-body">
+                <!--begin::Button-->
+                <a asp-action="Compose" asp-controller="Employer" class="btn btn-primary fw-bold w-100 mb-8">New Message</a>
+                <!--end::Button-->
+                <!-- Menu items (unchanged) -->
+                <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
+                    <div class="menu-item mb-3"><a asp-action="Message" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-sms fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Inbox</span><span class="badge badge-light-success">@ViewBag.InboxCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="MarkedEmail" class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-abstract-23 fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Marked</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="DraftEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-file fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Draft</span><span class="badge badge-light-warning">@ViewBag.DraftCount</span></a></div>
+                    <div class="menu-item mb-3"><a asp-action="EmailSent" class="menu-link active"><span class="menu-icon"><i class="ki-duotone ki-send fs-2 me-3"><span class="path1"></span><span class="path2"></span></i></span><span class="menu-title fw-bold">Sent</span></a></div>
+                    <div class="menu-item"><a asp-action="TrashedEmail" span class="menu-link"><span class="menu-icon"><i class="ki-duotone ki-trash fs-2 me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i></span><span class="menu-title fw-bold">Trash</span></a></div>
+                </div>
+                <!-- Labels (unchanged) -->
+            </div>
+            <!--end::Aside content-->
+        </div>
+        <!--end::Sticky aside-->
+    </div>
+    <!--end::Sidebar-->
+    <!--begin::Content-->
+    <div class="flex-lg-row-fluid ms-lg-7 ms-xl-10">
+
+        <!--begin::Card-->
+        <div class="card">
+            <div class="card-header align-items-center py-5 gap-2 gap-md-5">
+                <!--begin::Actions-->
+                <div class="d-flex flex-wrap gap-2">
+                    <!--begin::Checkbox-->
+                    <div class="form-check form-check-sm form-check-custom form-check-solid me-4 me-lg-7">
+                        <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_inbox_listing .form-check-input" value="1">
+                    </div>
+                    <!--end::Checkbox-->
+                    <!--begin::Reload-->
+                    <button onclick="location.reload()" class="btn btn-sm btn-icon btn-light btn-active-light-primary" data-bs-toggle="tooltip" data-bs-dismiss="click" data-bs-placement="top" aria-label="Reload" data-bs-original-title="Reload" data-kt-initialized="1">
+                        <i class="ki-duotone ki-arrows-circle fs-2"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                    <!--end::Reload-->
+                    <!--begin::Delete-->
+                    <button id="btnTrashSelected" class="btn btn-sm btn-icon btn-light btn-active-light-primary" data-bs-toggle="tooltip" data-bs-dismiss="click" data-bs-placement="top" aria-label="Delete" data-bs-original-title="Delete" data-kt-initialized="1">
+                        <i class="ki-duotone ki-trash fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
+                    </button>
+                    <!--end::Delete-->
+                </div>
+                <!--end::Actions-->
+                <!--begin::Actions-->
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <!--begin::Search-->
+                    <div class="d-flex align-items-center position-relative">
+                        <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-4"><span class="path1"></span><span class="path2"></span></i>        <input type="text" data-kt-inbox-listing-filter="search" class="form-control form-control-sm form-control-solid mw-100 min-w-125px min-w-lg-150px min-w-xxl-200px ps-11" placeholder="Search inbox">
+                    </div>
+                    <!--end::Search-->
+                    <!--begin::Toggle-->
+                    <a href="#" class="btn btn-sm btn-icon btn-color-primary btn-light btn-active-light-primary d-lg-none" data-bs-toggle="tooltip" data-bs-dismiss="click" data-bs-placement="top" id="kt_inbox_aside_toggle" aria-label="Toggle inbox menu" data-bs-original-title="Toggle inbox menu" data-kt-initialized="1">
+                        <i class="ki-duotone ki-burger-menu-2 fs-3 m-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"></span><span class="path9"></span><span class="path10"></span></i>
+                    </a>
+                    <!--end::Toggle-->
+                </div>
+                <!--end::Actions-->
+            </div>
+
+            <div class="card-body p-0">
+
+                <!--begin::Table-->
+                <div id="kt_inbox_listing_wrapper" class="dt-container dt-bootstrap5 dt-empty-footer">
+                    <div id="" class="table-responsive">
+                        <table class="table table-hover table-row-dashed fs-6 gy-5 my-0 dataTable" id="kt_inbox_listing" style="width: 100%;">
+                            <colgroup><col data-dt-column="0" style="width: 29.9px;"><col data-dt-column="1" style="width: 73.875px;"><col data-dt-column="2" style="width: 140.262px;"><col data-dt-column="3" style="width: 181.475px;"><col data-dt-column="4" style="width: 62.1375px;"></colgroup>
+                            <thead class="d-none">
+                                <tr>
+                                    <th data-dt-column="0" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Checkbox: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Checkbox</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="2" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Author: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Author</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="3" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Title: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Title</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="4" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Date: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Date</span><span class="dt-column-order"></span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Count > 0)
+                                {
+                                    @foreach (var email in Model)
+                                    {
+                                        var from = email.Id; // You can join with Users table if needed
+                                            <tr data-recipient-id="@email.Recipients.FirstOrDefault()?.Id">
+                                                <td class="ps-9">
+                                                    <div class="form-check form-check-sm form-check-custom form-check-solid mt-3">
+                                                        <input class="form-check-input" type="checkbox" value="@email.Id">
+                                                    </div>
+                                                </td>
+
+                                                <td class="w-150px w-md-175px">
+                                                    <a href="#" class="d-flex align-items-center text-gray-900">
+                                                        <div class="symbol symbol-35px me-3">
+                                                            <div class="symbol-label bg-light-primary">
+                                                                <span class="text-primary">@email.Sender.Username.Substring(0, 1)</span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="fw-semibold">@email.Sender.Email</span>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <div class="text-gray-900 gap-1 pt-2">
+                                                        <a asp-action="Reply" asp-route-Id="@email.Thread.Id" class="text-gray-900">
+                                                            <span class="fw-bold">@email.Thread.Subject</span>
+                                                            <span class="fw-bold d-none d-md-inline"> - </span>
+                                                            <span class="d-none d-md-inline text-muted">
+                                                                @Html.Raw(email.Body.Length > 10 ? email.Body.Substring(0, 10) + "..." : email.Body)
+                                                            </span>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                                <td class="w-100px text-end fs-7 pe-9">
+                                                    <span class="fw-semibold text-muted">@email.SentAt.ToString("MMM dd, hh:mm tt")</span>
+                                                </td>
+                                            </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="fst-italic text-center my-4 fw-semibold text-muted">No messages receive yet</p>
+                                }
+                            </tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </div>
+                    </div>
+                <!--end::Table-->
+            </div>
+        </div>
+        <!--end::Card-->
+
+    </div>
+    <!--end::Content-->
+</div>
+<!--end::Inbox App - Messages -->
+<!--end::Inbox App - Messages -->
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+            // Initialize DataTable
+            var table = $('#kt_inbox_listing').DataTable({
+                paging: true,
+                searching: true,
+                info: true,
+                ordering: true,
+                language: {
+                zeroRecords: "&nbsp;",  // Non-breaking space = invisible
+                emptyTable: "&nbsp;"
+            },
+            drawCallback: function () {
+                var api = this.api();
+                $(api.table().node()).find('td.dataTables_empty').html('&nbsp;').css('border', 'none');
+            }
+            });
+
+            // Custom search bar integration
+            $('[data-kt-inbox-listing-filter="search"]').on('keyup', function () {
+                table.search(this.value).draw();
+            });
+        });
+        $(document).on('click', '.toggle-star', function (e) {
+            e.preventDefault();
+
+            const $btn = $(this);
+            const emailId = $btn.data('email-id');
+            const isStarred = $btn.data('is-starred');
+
+            // Toggle UI color instantly
+            $btn.toggleClass('text-warning btn-color-gray-500');
+
+            // Update data flag
+            $btn.data('is-starred', !isStarred);
+
+            // Send AJAX to backend
+            $.ajax({
+                url: '/Employer/MarkAsStarred', // adjust controller name if needed
+                type: 'POST',
+                data: { id: emailId, starred: !isStarred },
+                success: function (response) {
+                    console.log('Star toggled successfully:', response);
+                },
+                error: function (xhr) {
+                    console.error('Failed to toggle star:', xhr);
+                    // revert change on failure
+                    $btn.toggleClass('text-warning');
+                    $btn.find('i').toggleClass('ki-star ki-star-filled');
+                    $btn.data('is-starred', isStarred);
+                }
+            });
+        });
+        $('#btnTrashSelected').on('click', function (e) {
+            e.preventDefault();
+
+            // Get all checked checkboxes
+            const $checked = $('#kt_inbox_listing .form-check-input:checked');
+            if ($checked.length === 0) {
+                toastr.warning('Please select at least one message.');
+                return;
+            }
+
+            // Collect recipient IDs
+            const recipientIds = [];
+            $checked.each(function () {
+                const $row = $(this).closest('tr');
+                const recipientId = $row.data('recipient-id');
+                if (recipientId) {
+                    recipientIds.push(recipientId);
+                }
+            });
+
+            if (recipientIds.length === 0) {
+                toastr.error('No valid messages selected.');
+                return;
+            }
+
+            // Confirm
+            Swal.fire({
+                text: `Move ${recipientIds.length} message(s) to trash?`,
+                icon: 'warning',
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: 'Yes, move to trash!',
+                cancelButtonText: 'No, cancel',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-active-light ms-3'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX
+                    $.ajax({
+                        url: '/Employer/TrashEmails',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(recipientIds),
+                        success: function (response) {
+                            if (response.success) {
+                                toastr.success(`${recipientIds.length} message(s) moved to trash.`);
+                                // Remove rows from UI
+                                $checked.each(function () {
+                                    $(this).closest('tr').fadeOut(300, function () { $(this).remove(); });
+                                });
+                                // Uncheck master checkbox
+                                $('[data-kt-check="true"]').prop('checked', false);
+                            } else {
+                                toastr.error('Failed to trash messages.');
+                            }
+                        },
+                        error: function () {
+                            toastr.error('Server error. Please try again.');
+                        }
+                    });
+                }
+            });
+        });
+
+        // === MASTER CHECKBOX (Select All) ===
+        $('[data-kt-check="true"]').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('#kt_inbox_listing .form-check-input').prop('checked', isChecked);
+        });
+
+        // === UNCHECK MASTER WHEN ANY CHILD IS UNCHECKED ===
+        $('#kt_inbox_listing').on('change', '.form-check-input', function () {
+            const total = $('#kt_inbox_listing .form-check-input').length;
+            const checked = $('#kt_inbox_listing .form-check-input:checked').length;
+            $('[data-kt-check="true"]').prop('checked', checked === total && total > 0);
+        });
+    </script>
+}

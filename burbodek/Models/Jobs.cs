@@ -20,5 +20,11 @@ namespace burbodek.Models
         public List<JobApplication>? JobApplication { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? isArchived { get; set; }
+        public bool Diploma { get; set; }
+        public bool Resume { get; set; }
+        public bool PassportId { get; set; }
+        public bool SeamansBook { get; set; }
+        public bool Tor { get; set; }
+        public bool Coe { get; set; }
     }
 }
