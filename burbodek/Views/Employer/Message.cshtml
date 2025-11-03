@@ -79,7 +79,23 @@
                         <table class="table table-hover table-row-dashed fs-6 gy-5 my-0 dataTable" id="kt_inbox_listing" style="width: 100%;">
                             <colgroup><col data-dt-column="0" style="width: 29.9px;"><col data-dt-column="1" style="width: 73.875px;"><col data-dt-column="2" style="width: 140.262px;"><col data-dt-column="3" style="width: 181.475px;"><col data-dt-column="4" style="width: 62.1375px;"></colgroup>
                             <thead class="d-none">
-                                <tr><th data-dt-column="0" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Checkbox: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Checkbox</span><span class="dt-column-order"></span></th><th data-dt-column="1" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Actions: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Actions</span><span class="dt-column-order"></span></th><th data-dt-column="2" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Author: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Author</span><span class="dt-column-order"></span></th><th data-dt-column="3" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Title: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Title</span><span class="dt-column-order"></span></th><th data-dt-column="4" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Date: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Date</span><span class="dt-column-order"></span></th></tr>
+                                <tr>
+                                    <th data-dt-column="0" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Checkbox: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Checkbox</span><span class="dt-column-order"></span>
+                                        </th>
+                                    <th data-dt-column="1" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Actions: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Actions</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="2" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Author: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Author</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="3" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Title: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Title</span><span class="dt-column-order"></span>
+                                    </th>
+                                    <th data-dt-column="4" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Date: Activate to sort" tabindex="0">
+                                        <span class="dt-column-title" role="button">Date</span><span class="dt-column-order"></span>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
                                 @if (Model.Count > 0)
@@ -135,11 +151,7 @@
                                 }
                                 else
                                 {
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4">
-                                            <p class="fst-italic fw-semibold text-muted mb-0">No messages received yet</p>
-                                        </td>
-                                    </tr>
+                                    <p class="fst-italic text-center my-4 fw-semibold text-muted">No messages receive yet</p>
                                 }
                             </tbody>
                             <tfoot></tfoot>

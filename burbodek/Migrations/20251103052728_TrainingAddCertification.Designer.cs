@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251103052728_TrainingAddCertification")]
+    partial class TrainingAddCertification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,9 +630,6 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("Expiration")
                         .HasColumnType("datetime2");
 
@@ -1146,7 +1146,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.TrainingCertificate", b =>
                 {
                     b.HasOne("burbodek.Models.TrainingApplication", "TrainingApplication")
-                        .WithMany("TrainingCertificate")
+                        .WithMany()
                         .HasForeignKey("TrainingApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1233,8 +1233,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
                 {
-                    b.Navigation("TrainingCertificate");
-
                     b.Navigation("TrainingPayments");
                 });
 

@@ -396,6 +396,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobRole)
+                        .Include(u => u.JobApplication.Where(ap => ap.AppliedBy == userId))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
             return View(data);
@@ -410,6 +411,7 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingApplication.Where(ap => ap.AppliedBy == userId))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
             return View(data);
@@ -1787,6 +1789,27 @@ namespace burbodek.Controllers
                 .ToList();
 
             return View(applications);
+        }
+        public IActionResult TrainingApplicationDetails(int Id)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var data = _context.Training
+                       .Include(u => u.Users)
+                           .ThenInclude(u => u.EmployerDetails)
+                       .Include(u => u.TrainingBenefits)
+                       .Include(u => u.TrainingApplication.Where(a => a.AppliedBy == userId))
+                            .ThenInclude(u => u.TrainingCertificate)
+                       .Include(u => u.TrainingRequirements)
+                       .Include(u => u.TrainingMedia)
+                       .Where(u => u.Id == Id && u.isArchived == null)
+                       .FirstOrDefault();
+
+            if (data == null)
+            {
+                return NotFound(); // or redirect to an error page
+            }
+
+            return View(data);
         }
         public IActionResult ApplicationDetails(int Id)
         {

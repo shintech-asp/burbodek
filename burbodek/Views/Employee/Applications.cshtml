@@ -94,7 +94,7 @@
                             {
 
                                 <tr>
-                                    <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">@data.Jobs.JobTitle</a></td>
+                                    <td><a asp-action="JobInfo" asp-route-Id="@data.JobsId" class="text-dark fw-bold text-hover-primary fs-6">@data.Jobs.JobTitle</a></td>
                                     <td>@data.Jobs.Users.Username</td>
                                     <td>
                                         @data.CreatedAt.ToString("MMMM dd yyyy")
@@ -121,7 +121,6 @@
                                     <td><span class="badge @badge">@data.Status</span></td>
                                     <td class="text-center">
                                         <a asp-action="ApplicationDetails" asp-controller="Employee" asp-route-Id="@data.Jobs.Id" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
-                                        <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
                                     </td>
                                 </tr>
                             }

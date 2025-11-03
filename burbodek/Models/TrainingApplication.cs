@@ -18,6 +18,7 @@
         public string? Tor { get; set; }
         public string? Coe { get; set; }
         public ICollection<TrainingPayments> TrainingPayments { get; set; } = new List<TrainingPayments>();
+        public ICollection<TrainingCertificate> TrainingCertificate { get; set; } = new List<TrainingCertificate>();
         public string PaymentStatus { get; set; } = "Unpaid";
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

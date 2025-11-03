@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace burbodek.Controllers
 {
@@ -127,6 +128,39 @@ namespace burbodek.Controllers
                 return RedirectToAction("Subscription", "Employer");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> UploadCertificate(IFormFile file, int trainingApplicationId)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certificates");
+
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileExtension = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid()}{fileExtension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var trainingCertificate = new TrainingCertificate
+            {
+                FilePath = $"/uploads/certificates/{fileName}",
+                FileType = file.ContentType,
+                TrainingApplicationId = trainingApplicationId
+            };
+
+            _context.TrainingCertificate.Add(trainingCertificate);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "File uploaded successfully!" });
+        }
+
         public IActionResult JobDetails(int Id)
         {
             var data = _context.Jobs
@@ -145,6 +179,19 @@ namespace burbodek.Controllers
             }
 
             return View(data);
+        }
+        public IActionResult SetAsPaid(int Id)
+        {
+            var Application = _context.TrainingApplication.Where(u => u.Id == Id).FirstOrDefault();
+            Application.PaymentStatus = "Paid";
+            var Payment = _context.TrainingPayments.Where(u => u.TrainingApplicationId == Id).FirstOrDefault();
+            Payment.Paid = Payment.Price;
+            Payment.PaymentOption = "Full";
+            _context.TrainingApplication.Update(Application);
+            _context.TrainingPayments.Update(Payment);
+            _context.SaveChanges();
+
+            return Json(new { response = true });
         }
         public IActionResult TrainingDetails(int Id)
         {
@@ -185,7 +232,7 @@ namespace burbodek.Controllers
                 }
 
                 // Mode of payment
-                ViewBag.ModeOfPayment = payment.ModeOfPayment switch
+                ViewBag.ModeOfPayment = payment.PaymentOption switch
                 {
                     "Full" => "Full Payment Required",
                     "Down" => "Down Payment Allowed",
@@ -371,6 +418,7 @@ namespace burbodek.Controllers
                 .FirstOrDefault();
 
             jobs.StartDate = startDate;
+            jobs.EndDate = startDate.AddDays(int.Parse(jobs.Duration));
             _context.Training.Update(jobs);
             _context.SaveChanges();
 
@@ -417,19 +465,20 @@ namespace burbodek.Controllers
         {
             return View();
         }
-        public IActionResult TrainingReceipt(int Id)
+        public IActionResult TrainingReceipt(int Id, int AppliedId)
         {
             var user = _context.TrainingApplication
-                .Include(u => u.TrainingPayments.Where(u => u.UsersId == Id))
+                .Include(u => u.TrainingCertificate)
+                .Include(u => u.TrainingPayments.Where(u => u.UsersId == AppliedId))
                     .ThenInclude(u => u.Users)
                 .Include(u => u.Training)
                     .ThenInclude(u => u.Users)
-                .Where(u => u.AppliedBy == Id)
+                .Where(u => u.Id == Id)
                 .FirstOrDefault();
 
             if (user == null)
                 return NotFound();
-
+            ViewBag.ApplicationId = user.Id;
             return View(user);
         }
         public IActionResult Billing()
@@ -802,7 +851,8 @@ namespace burbodek.Controllers
                 }
             }
             await _context.SaveChangesAsync();
-            return RedirectToAction("Index");
+            TempData["Success"] = "Training added successfully!";
+            return RedirectToAction("JobListing");
         }
         [HttpGet]
         public async Task<IActionResult> TrashedView(int id, int RecipientId)

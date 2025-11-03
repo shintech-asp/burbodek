@@ -195,7 +195,19 @@
 					<!--end::Section-->
 					<!--end::Accordion-->
 					<!--begin::Apply-->
-					<a asp-controller="Employee" asp-action="TrainingApply" asp-route-Id="@Model.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
+					@if (Model.TrainingApplication.Any())
+					{
+						<button class="btn btn-sm btn-light-success mt-5" disabled>
+							Applied <i class="ki-duotone ki-double-check">
+								<span class="path1"></span>
+								<span class="path2"></span>
+							</i>
+						</button>
+					}
+					else
+					{
+						<a asp-controller="Employee" asp-action="TrainingApply" asp-route-Id="@Model.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
+					}
 					<!--end::Apply-->
 				</div>
 				<!--end::Job-->

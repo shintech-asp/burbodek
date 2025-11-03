@@ -73,7 +73,7 @@
                             <th class="min-w-200px">Training</th>
                             <th class="min-w-150px">Company</th>
                             <th class="min-w-120px">Applied Date</th>
-                            <th class="min-w-100px">Date started</th>
+                            <th class="min-w-100px">Status</th>
                             <th class="min-w-200px text-center">Actions</th>
                         </tr>
                     </thead>
@@ -85,34 +85,43 @@
                             {
 
                                 <tr>
-                                    <td><a href="#" class="text-dark fw-bold text-hover-primary fs-6">@data.Training.Name</a></td>
+                                    <td><a asp-action="TrainingInfo" asp-route-Id="@data.TrainingId" class="text-dark fw-bold text-hover-primary fs-6">@data.Training.Name</a></td>
                                     <td>@data.Training.Users.Username</td>
                                     <td>
                                         @data.CreatedAt.ToString("MMMM dd yyyy")
                                     </td>
                                     @{
                                         string badge;
-                                        if(data.Training.StartDate == null)
+                                        string date;
+                                        if (data.Training.StartDate == null)
                                         {
                                             badge = "badge-light-primary";
-                                        }
-                                        else if (data.Training.StartDate <= DateTime.Now)
-                                        {
-                                            badge = "badge-light-info";
+                                            date = "Will start in " + data.Training.StartDate.Humanize();
                                         }
                                         else if (data.Training.StartDate > DateTime.Now)
                                         {
+                                            badge = "badge-light-info";
+                                            date = "Will start in " + data.Training.StartDate.Humanize();
+                                        }
+                                        else if (data.Training.StartDate <= DateTime.Now && data.Training.EndDate >= DateTime.Now)
+                                        {
                                             badge = "badge-light-success";
+                                            date = "Will end in " + data.Training.EndDate.Humanize();
+                                        }
+                                        else if (data.Training.EndDate < DateTime.Now)
+                                        {
+                                            badge = "badge-light-success";
+                                            date = "Training ended! Check your certification under view details";
                                         }
                                         else
                                         {
                                             badge = "badge-light-danger";
+                                            date = "No stated yet";
                                         }
                                     }
-                                    <td><span class="badge @badge">@data.Training.StartDate.Humanize()</span></td>
+                                    <td><span class="badge @badge">@date</span></td>
                                     <td class="text-center">
-                                        <a asp-action="ApplicationDetails" asp-controller="Employee" asp-route-Id="@data.Training.Id" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
-                                        <a asp-controller="Employee" asp-action="Reply" class="btn btn-sm btn-light btn-active-light-success">Mail</a>
+                                        <a asp-action="TrainingApplicationDetails" asp-controller="Employee" asp-route-Id="@data.Training.Id" class="btn btn-sm btn-light btn-active-light-primary me-2">View Details</a>
                                     </td>
                                 </tr>
                             }

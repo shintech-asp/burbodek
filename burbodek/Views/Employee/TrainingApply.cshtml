@@ -926,8 +926,6 @@
 						timer: 1500,
 						showConfirmButton: false
 					});
-
-					// Example: redirect to payment page or trigger payment logic
 					window.location.href = "/Training/Payment";
 				}
 				else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -938,10 +936,9 @@
 						icon: "success",
 						timer: 2000,
 						showConfirmButton: false
-					});
-
-					// Example: submit form automatically for 'Pay Later'
-					document.querySelector("form").submit();
+					}).then((result) => {
+						document.querySelector("form").submit();
+					}
 				}
 			});
 		});

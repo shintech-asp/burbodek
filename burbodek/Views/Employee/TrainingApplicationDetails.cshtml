@@ -1,9 +1,9 @@
 ﻿@{
-    ViewData["Title"] = "Application Details";
-    Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
+	ViewData["Title"] = "Application Details";
+	Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
 }
 @using Humanizer
-@model Jobs;
+@model Training;
 <div class="card">
 	<!--begin::Body-->
 	<div class="card-body p-lg-17">
@@ -24,10 +24,10 @@
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">
-					@if (Model.JobMedia != null && Model.JobMedia.Any())
+					@if (Model.TrainingMedia != null && Model.TrainingMedia.Any())
 					{
 						var index = 0;
-						foreach (var media in Model.JobMedia)
+						foreach (var media in Model.TrainingMedia)
 						{
 							var isActive = index == 0 ? "active" : "";
 							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
@@ -94,7 +94,7 @@
 						<label class="required fs-5 fw-semibold mb-2">First Name</label>
 						<!--end::Label-->
 						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.JobApplication?.FirstOrDefault()?.FirstName" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.TrainingApplication?.FirstOrDefault()?.FirstName" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -105,7 +105,7 @@
 						<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.JobApplication?.FirstOrDefault()?.LastName" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.TrainingApplication?.FirstOrDefault()?.LastName" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -120,7 +120,7 @@
 						<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.JobApplication?.FirstOrDefault()?.MobileNo" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.TrainingApplication?.FirstOrDefault()?.MobileNo" readonly>
 						<!--end::Input-->
 					</div>
 					<!--end::Col-->
@@ -130,7 +130,7 @@
 						<label class="required fs-5 fw-semibold mb-2">Age</label>
 						<!--end::Label-->
 						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.JobApplication?.FirstOrDefault()?.Age" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.TrainingApplication?.FirstOrDefault()?.Age" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -145,7 +145,7 @@
 						<label class="required fs-5 fw-semibold mb-2">City</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.JobApplication?.FirstOrDefault()?.City" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.TrainingApplication?.FirstOrDefault()?.City" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -157,47 +157,9 @@
 						<!--end::Label-->
 						<!--end::Input-->
 						<span class="badge badge-info">
-							<p>@(Model.JobApplication.FirstOrDefault()?.Status)</p>
+							<p>@(Model.StartDate != null ? Model.StartDate.Humanize() : "No start date yet")</p>
 						</span>
 					</div>
-				</div>
-				<!--end::Input group-->
-				<!--begin::Input group-->
-				<div class="row mb-5">
-					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
-						<!--begin::Label-->
-						<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
-						<!--end::Label-->
-						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.JobApplication?.FirstOrDefault()?.ExpectedSalary" readonly>
-						<!--end::Input-->
-						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-					</div>
-					<!--end::Col-->
-					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
-						<!--end::Label-->
-						<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-						<!--end::Label-->
-						<!--end::Input-->
-						<input type="date" class="form-control" value="@Model.JobApplication?.FirstOrDefault()?.StartDate.ToString("yyyy-MM-dd")" name="StartDate" readonly />
-						<!--end::Input-->
-						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-					</div>
-					<!--end::Col-->
-				</div>
-				<!--end::Input group-->
-				<!--begin::Input group-->
-				<div class="d-flex flex-column mb-5">
-					<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
-					<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="" readonly>@Model.JobApplication?.FirstOrDefault()?.Experience</textarea>
-				</div>
-				<!--end::Input group-->
-				<!--begin::Input group-->
-				<div class="d-flex flex-column mb-8">
-					<label class="fs-6 fw-semibold mb-2">Application</label>
-					<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="" readonly>@Model.JobApplication?.FirstOrDefault()?.ApplicationLetter</textarea>
 				</div>
 				<!--end::Input group-->
 				<!-- Upload Media -->
@@ -209,7 +171,7 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Coe" />
+								<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.Coe" />
 							</div>
 						</div>
 					</div>
@@ -222,7 +184,7 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Tor" />
+								<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.Tor" />
 							</div>
 						</div>
 					</div>
@@ -235,7 +197,7 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Diploma" />
+								<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.Diploma" />
 							</div>
 						</div>
 					</div>
@@ -248,7 +210,7 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.PassportId" />
+								<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.PassportId" />
 							</div>
 						</div>
 					</div>
@@ -261,7 +223,7 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.Resume" />
+								<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.Resume" />
 							</div>
 						</div>
 					</div>
@@ -274,17 +236,24 @@
 						</div>
 						<div class="card">
 							<div class="card-body">
-								<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" data-default-file="@Model.JobApplication?.FirstOrDefault()?.SeamansBook" />
+								<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" data-default-file="@Model.TrainingApplication?.FirstOrDefault()?.SeamansBook" />
 							</div>
 						</div>
 					</div>
 				}
 
-				<!--begin::Separator-->
-				<div class="separator mb-8"></div>
-				<!--end::Separator-->
-				<!--begin::Submit-->
-				<a class="btn btn-danger" asp-controller="Employer" asp-action="JobDetails" asp-route-Id="@Model.Id">Back</a>
+					<!--begin::Separator-->
+					<div class="separator mb-8"></div>
+					<!--end::Separator-->
+					<a class="btn btn-secondary" asp-controller="Employer" asp-action="JobDetails" asp-route-Id="@Model.Id">Back</a>
+					@if (Model.TrainingApplication.Any())
+					{
+						@if(Model.TrainingApplication.FirstOrDefault().TrainingCertificate.Count > 0)
+						{
+							<button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#fileUploadModal">View certificate</button>
+						
+						}
+					}
 			</div>
 			<!--end::Content-->
 		</div>
@@ -292,6 +261,51 @@
 	</div>
 	<!--end::Body-->
 </div>
+<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="fileUploadModalLabel">View or Download Certificate</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="mb-5">
+					<div>
+						<label class="form-label fw-bold required">Certificate of Completion</label>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							@if (Model.TrainingApplication.Any())
+							{
+								var cert = Model.TrainingApplication.FirstOrDefault().TrainingCertificate.FirstOrDefault();
+								if (cert != null)
+								{
+									<input type="file"
+										   class="form-control filepond"
+										   name="SeamansBookFile"
+										   accept="image/*,application/pdf"
+										   data-default-file="@cert.FilePath"
+										   id="certificateFile"
+										   data-filepath="@cert.FilePath"
+										   disabled />
+								}
+								else
+								{
+									<p class="text-muted">No certificate uploaded yet.</p>
+								}
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-success" id="downloadCertificate">Download</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 @section Scripts {
 	<style>
 		.filepond--image-preview-wrapper {
@@ -331,6 +345,48 @@
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
+			const fileInput = document.getElementById('certificateFile');
+			const storedFilePath = fileInput?.dataset.filepath || fileInput?.getAttribute('data-filepath');
+
+			$('#downloadCertificate').on('click', function () {
+				// Use the stored filepath
+				const filePath = storedFilePath;
+
+				if (!filePath) {
+					Swal.fire('No File', 'No certificate file available to download.', 'warning');
+					return;
+				}
+
+				Swal.fire({
+					title: 'Download Certificate?',
+					text: 'Would you like to download this certificate?',
+					icon: 'question',
+					showCancelButton: true,
+					confirmButtonText: 'Yes, download',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// Create a temporary link element
+						const link = document.createElement('a');
+						link.href = filePath;
+
+						// Extract filename from path
+						const fileName = filePath.split('/').pop() || 'certificate.pdf';
+						link.download = fileName;
+
+						// Force download by setting target
+						link.target = '_blank';
+
+						// Append to body, click, and remove
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+
+						Swal.fire('Started!', 'Your download has started.', 'success');
+					}
+				});
+			});
+
 			FilePond.registerPlugin(
 				FilePondPluginImagePreview,
 				FilePondPluginPdfPreview

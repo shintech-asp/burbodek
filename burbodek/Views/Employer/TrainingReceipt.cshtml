@@ -120,7 +120,7 @@
                                             @if(Model.Training.DownPayment != null)
                                             {
 
-                                                <td class="pt-6 text-gray-900 fw-bolder">₱@Model.Training.DownPayment</td>
+                                                <td class="pt-6 text-gray-900 fw-bolder">₱@Model.TrainingPayments.FirstOrDefault().Paid</td>
                                             }
                                         </tr>
                                     </tbody>
@@ -235,14 +235,35 @@
                     </div>
                     <!--end::Item-->
                     <!--begin::Action-->
-                    @if(Model.Training.PaymentOption == "Down")
+                    @{
+                        var payment = Model.TrainingPayments.FirstOrDefault();
+                        var certificate = Model.TrainingCertificate.FirstOrDefault();
+                    }
+
+                    @if (Model.Training.PaymentOption == "Down" && Model.PaymentStatus == "Unpaid")
                     {
                         <button id="setAsPaid" class="btn btn-sm btn-success">Set as paid</button>
                     }
-                    @if (Model.TrainingPayments.FirstOrDefault().Paid == Model.TrainingPayments.FirstOrDefault().Price)
+
+                    @if (payment != null && payment.Paid == payment.Price && certificate == null)
                     {
-                        <button id="addCertification" data-bs-toggle="modal" data-bs-target="#fileUploadModal" class="btn btn-sm btn-info">Add certification</button>
+                        <button id="addCertification" data-bs-toggle="modal" data-bs-target="#fileUploadModal" class="btn btn-sm btn-info">
+                            Add certification
+                        </button>
                     }
+                    else if (certificate != null)
+                    {
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <input type="file"
+                                       class="filepond"
+                                       name="filepond"
+                                       data-default-file="@certificate.FilePath"
+                                       disabled />
+                            </div>
+                        </div>
+                    }
+
                     <!--end::Action-->
                 </div>
                 <!--end::Invoice 2 sidebar-->
@@ -261,7 +282,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="file" class="filepond" name="filepond" multiple />
+                <input type="file" class="filepond" name="filepond" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -272,83 +293,127 @@
 </div>
 @section Scripts {
     <script>
-        FilePond.registerPlugin(
-          FilePondPluginFileValidateType,
-          FilePondPluginImagePreview
-        );
-
-        // Configure FilePond
-        const pond = FilePond.create(document.querySelector('.filepond'), {
-          allowMultiple: true,
-          allowReorder: true,
-          acceptedFileTypes: ['image/*', 'application/pdf'],
-          fileValidateTypeLabelExpectedTypes: 'Expects images or PDF',
-          labelIdle: `Drag & drop your <strong>images or PDF</strong><br>or <span class="filepond--label-action">Browse</span>`,
-          labelFileProcessing: 'Uploading',
-          labelFileProcessingComplete: 'Uploaded',
-          labelFileProcessingError: 'Upload failed',
-          labelTapToCancel: 'tap to cancel',
-          labelTapToRetry: 'tap to retry',
-          labelTapToUndo: 'tap to undo',
-        });
-
-        // Optional: Handle processed files
-        document.getElementById('processFiles').addEventListener('click', () => {
-          const files = pond.getFiles();
-          if (files.length === 0) {
-            alert('No files uploaded!');
-            return;
-          }
-
-          // Example: Log file info
-          files.forEach((file, index) => {
-            console.log(`File ${index + 1}:`, {
-              name: file.file.name,
-              size: file.file.size,
-              type: file.file.type,
-              file: file.file
-            });
-          });
-
-          // You can now send files via FormData to backend
-          const formData = new FormData();
-          files.forEach((fileItem, i) => {
-            formData.append('files', fileItem.file);
-          });
-
-          // Example AJAX upload
-          // fetch('/upload', { method: 'POST', body: formData })
-
-          alert(`${files.length} file(s) ready! Check console.`);
-        $("#setAsPaid").on("click", function() {
+        // ✅ Confirmation for Set as Paid
+        $("#setAsPaid").on("click", function () {
             Swal.fire({
                 title: 'Are you sure?',
-                text: "This method cannot be undone.",
+                text: "This action cannot be undone.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, set it!'
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, set as paid!'
             }).then((result) => {
-                Swal.fire('Success!', 'Done!.', 'success');
-                // if (result.isConfirmed) {
-                //     $.ajax({
-                //         url: "/Employer/AddStartDateTraining",
-                //         method: "POST",
-                //         data: {
-                //             startDate: $("#startDateInput").val(),
-                //             trainingId: @Model.Id
-                //         },
-                //         success: function(response) {
-                //             Swal.fire('Success!', 'Start date has been saved.', 'success');
-                //             $("#startDateModal").modal("hide");
-                //         },
-                //         error: function(xhr) {
-                //             console.error(xhr.responseText);
-                //             Swal.fire('Error', 'Something went wrong.', 'error');
-                //         }
-                //     });
-                // }
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "/Employer/SetAsPaid",
+                        method: "POST",
+                        data: { Id: @ViewBag.ApplicationId },
+                        beforeSend: function () {
+                            Swal.fire({
+                                title: 'Processing...',
+                                text: 'Please wait.',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
+                        success: function () {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Payment status updated.',
+                                icon: 'success'
+                            }).then(() => location.reload());
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            Swal.fire('Error', 'Something went wrong.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
+        // ✅ Initialize FilePond globally
+        FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginPdfPreview);
+
+        // For all filepond inputs (upload modal + existing certificate display)
+        const fileInputs = document.querySelectorAll('.filepond');
+        const ponds = [];
+
+        fileInputs.forEach(input => {
+            const pond = FilePond.create(input, {
+                allowMultiple: false,
+                acceptedFileTypes: ['image/*', 'application/pdf'],
+                instantUpload: false,
+                storeAsFile: true
+            });
+
+            // ✅ If there’s an existing file path, show it
+            const defaultFile = input.dataset.defaultFile;
+            if (defaultFile && defaultFile.trim() !== "") {
+                pond.addFile(defaultFile).catch(err => console.warn('File preview error:', err));
+            }
+
+            ponds.push(pond);
+        });
+
+
+        // ✅ Upload handler
+        $('#processFiles').on('click', function () {
+            // Only target the modal pond (the upload one)
+            const uploadPond = ponds.find(p => !p.element.disabled);
+
+            if (!uploadPond || uploadPond.getFiles().length === 0) {
+                Swal.fire('No File', 'Please select a file first.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Confirm Upload',
+                text: 'Do you want to upload this file?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, upload it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('file', uploadPond.getFiles()[0].file);
+                    formData.append('trainingApplicationId', '@ViewBag.ApplicationId');
+
+                    $.ajax({
+                        url: '/Employer/UploadCertificate',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        beforeSend: function () {
+                            Swal.fire({
+                                title: 'Uploading...',
+                                text: 'Please wait while we upload your file.',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                title: 'Uploaded!',
+                                text: response.message || 'Your certificate has been uploaded.',
+                                icon: 'success'
+                            }).then(() => {
+                                $('#fileUploadModal').modal('hide');
+                                uploadPond.removeFiles();
+                                location.reload();
+                            });
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            Swal.fire('Error', 'File upload failed.', 'error');
+                        }
+                    });
+                }
             });
         });
     </script>
