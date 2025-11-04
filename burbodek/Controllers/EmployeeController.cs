@@ -125,12 +125,13 @@ namespace burbodek.Controllers
             {
                 var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
 
+
                 var draftCount = _context.EmailThreads
                     .Include(t => t.Emails)
-                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                     .Count();
                 var inboxCount = _context.EmailRecipients
-                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                     .Count();
                 ViewBag.DraftCount = draftCount;
                 ViewBag.InboxCount = inboxCount;
@@ -146,11 +147,7 @@ namespace burbodek.Controllers
                         .ThenInclude(e => e.Attachments)
                     .FirstOrDefaultAsync(t =>
                         t.Id == id &&
-                        t.Emails.Any(e =>
-                            (e.SenderID == currentUserId &&
-                             e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)) ||
-                            e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)
-                        )
+                        t.Emails.Any()
                     );
                 if (thread == null)
                 {
@@ -242,11 +239,12 @@ namespace burbodek.Controllers
                     .Where(er => er.Id == Id)
                     .ToList();
 
+
                 foreach (var recipient in recipients)
                 {
                     if (recipient.Email.Thread.CreatedBy == currentUserId)
                     {
-                        recipient.Email.IsTrashed = false;
+                        recipient.Email.Thread.IsTrashed = false;
                     }
                     else
                     {
@@ -268,7 +266,7 @@ namespace burbodek.Controllers
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             if (Id != null)
             {
-                var email = _context.EmailRecipients.FirstOrDefault(u => u.EmailID == Id && u.RecipientID == userId);
+                var email = _context.EmailRecipients.FirstOrDefault(u => u.Email.ThreadID == Id && u.RecipientID == userId);
                 if (email.IsStarred)
                 {
                     email.IsStarred = false;
@@ -422,21 +420,30 @@ namespace burbodek.Controllers
 
             var trashedEmails = _context.Emails
                 .Include(e => e.Thread)
+                    .ThenInclude(e => e.Creator)
+                .Include(e => e.Thread)
+                    .ThenInclude(e => e.Emails)
+                        .ThenInclude(e => e.Recipients)
+                .Include(e => e.Thread)
+                    .ThenInclude(e => e.Emails)
+                        .ThenInclude(e => e.Sender)
                 .Include(e => e.Sender)
                 .Include(e => e.Recipients)
                 .Where(e =>
                     (e.SenderID == currentUserId && e.IsTrashed) ||
+                    e.Thread.CreatedBy == currentUserId && e.Thread.IsTrashed ||
                     e.Recipients.Any(r => r.RecipientID == currentUserId && r.IsTrashed)
                 )
                 .OrderByDescending(r => r.SentAt)
+                .Select(u => u.Thread)
                 .Distinct()
                 .ToList();
             var draftCount = _context.EmailThreads
                 .Include(t => t.Emails)
-                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                 .Count();
             var inboxCount = _context.EmailRecipients
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                 .Count();
             ViewBag.DraftCount = draftCount;
             ViewBag.InboxCount = inboxCount;
@@ -453,17 +460,17 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Thread)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
-                .Where(e => e.Email.SenderID == currentUserId && !e.Email.IsTrashed)
+                .Where(e => e.Email.SenderID == currentUserId && !e.Email.IsTrashed && !e.Email.Thread.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
                 .Select(r => r.Email)
                 .Distinct()
                 .ToList();
             var draftCount = _context.EmailThreads
                 .Include(t => t.Emails)
-                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                 .Count();
             var inboxCount = _context.EmailRecipients
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                 .Count();
             ViewBag.DraftCount = draftCount;
             ViewBag.InboxCount = inboxCount;
@@ -487,10 +494,10 @@ namespace burbodek.Controllers
                 .ToList();
             var draftCount = _context.EmailThreads
                 .Include(t => t.Emails)
-                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                 .Count();
             var inboxCount = _context.EmailRecipients
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                 .Count();
             ViewBag.DraftCount = draftCount;
             ViewBag.InboxCount = inboxCount;
@@ -507,17 +514,17 @@ namespace burbodek.Controllers
                     .ThenInclude(e => e.Thread)
                 .Include(r => r.Email)
                     .ThenInclude(e => e.Sender)
-                .Where(r => !r.IsTrashed && r.Email.IsDraft && r.Email.SenderID == currentUserId)
+                .Where(r => !r.IsTrashed && r.Email.IsDraft && r.Email.SenderID == currentUserId && !r.Email.Thread.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
                 .Select(r => r.Email)
                 .Distinct()
                 .ToList();
             var draftCount = _context.EmailThreads
                 .Include(t => t.Emails)
-                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                 .Count();
             var inboxCount = _context.EmailRecipients
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                 .Count();
             ViewBag.DraftCount = draftCount;
             ViewBag.InboxCount = inboxCount;
@@ -525,36 +532,38 @@ namespace burbodek.Controllers
         }
         public IActionResult Message()
         {
-            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value); // however you identify logged-in user
+            int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
+
             var inboxEmails = _context.EmailRecipients
                 .Include(r => r.Email)
-                    .ThenInclude(e => e.Recipients)
-                .Include(r => r.Email)
                     .ThenInclude(e => e.Thread)
-                        .ThenInclude(e => e.Emails)
-                            .ThenInclude(e => e.Recipients)
-                .Include(r => r.Email)
-                    .ThenInclude(e => e.Thread)
-                        .ThenInclude(e => e.Creator)
-                .Include(r => r.Email)
-                    .ThenInclude(e => e.Sender)
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.IsTrashed)
+                        .ThenInclude(t => t.Creator)
+                .Include(r => r.Email.Sender)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.IsTrashed && !r.Email.Thread.IsTrashed)
                 .OrderByDescending(r => r.Email.SentAt)
-                .Select(r => r.Email.Thread)
-                .Distinct()
+                .AsEnumerable()
+                .GroupBy(r => r.Email.ThreadID)
+                .Select(g => new InboxViewModel
+                {
+                    Thread = g.First().Email.Thread,
+                    Email = g.OrderByDescending(x => x.Email.SentAt).First().Email, // ✅ FIXED
+                    Recipient = g.First(x => x.RecipientID == currentUserId)
+                })
                 .ToList();
-
             var draftCount = _context.EmailThreads
                 .Include(t => t.Emails)
-                .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId && !e.IsTrashed))
+                .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                 .Count();
             var inboxCount = _context.EmailRecipients
-                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.IsTrashed)
+                .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                 .Count();
+
             ViewBag.DraftCount = draftCount;
             ViewBag.InboxCount = inboxCount;
+
             return View(inboxEmails);
         }
+
         public IActionResult Compose()
         {
             return View();
@@ -566,27 +575,30 @@ namespace burbodek.Controllers
             {
                 var currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);
 
-                var changeisRead = _context.EmailRecipients.Where(u => u.Email.ThreadID == id && u.RecipientID == currentUserId).ToList();
-                if(changeisRead.Count > 0)
+                // Mark all messages in this thread as read for the current user
+                var changeIsRead = _context.EmailRecipients
+                    .Where(u => u.Email.ThreadID == id && u.RecipientID == currentUserId)
+                    .ToList();
+
+                if (changeIsRead.Any())
                 {
-                    foreach (var data in changeisRead)
-                    {
+                    foreach (var data in changeIsRead)
                         data.IsRead = true;
-                    }
+
                     _context.SaveChanges();
                 }
 
                 var draftCount = _context.EmailThreads
                     .Include(t => t.Emails)
-                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                     .Count();
                 var inboxCount = _context.EmailRecipients
-                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.IsTrashed)
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                     .Count();
                 ViewBag.DraftCount = draftCount;
                 ViewBag.InboxCount = inboxCount;
-                // Get the thread with all emails
 
+                // Load the thread and all its related data
                 var thread = await _context.EmailThreads
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Sender)
@@ -595,34 +607,42 @@ namespace burbodek.Controllers
                             .ThenInclude(r => r.Recipient)
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Attachments)
-                    .FirstOrDefaultAsync(t =>
-                        t.Id == id &&
-                        t.Emails.Any(e =>
-                            (e.SenderID == currentUserId &&
-                             e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed)) ||
-                            e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed)
-                        )
-                    );
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
                 if (thread == null)
                 {
-                    TempData["Error"] = "Thread not found";
+                    TempData["Error"] = "Thread not found.";
                     return RedirectToAction("Index");
                 }
 
-                // Get the latest email in the thread
-                var latestEmail = thread.Emails.OrderByDescending(e => e.SentAt).FirstOrDefault();
+                // 🧠 Filter only the emails the current user should see
+               var visibleEmails = thread.Emails
+                .Where(e =>
+                    e.SenderID == currentUserId ||
+                    e.Recipients.Any(r => r.RecipientID == currentUserId))
+                .OrderBy(e => e.SentAt)
+                .ToList();
 
+
+                if (!thread.Emails.Any())
+                {
+                    TempData["Error"] = "You do not have permission to view this thread.";
+                    return RedirectToAction("Index");
+                }
+
+                // Get latest visible email
+                var latestEmail = thread.Emails.OrderByDescending(e => e.SentAt).FirstOrDefault();
                 if (latestEmail == null)
                 {
-                    TempData["Error"] = "No emails found in thread";
+                    TempData["Error"] = "No emails found in this thread.";
                     return RedirectToAction("Index");
                 }
 
-                // Prepare reply data
+                // Prepare recipient data for reply
                 var toRecipients = new List<dynamic>();
                 var ccRecipients = new List<dynamic>();
 
-                // Reply-to logic: Add original sender and all TO recipients (excluding current user)
+                // Add the sender (if not current user)
                 if (latestEmail.SenderID != currentUserId)
                 {
                     toRecipients.Add(new
@@ -632,7 +652,9 @@ namespace burbodek.Controllers
                     });
                 }
 
-                foreach (var recipient in latestEmail.Recipients.Where(r => r.RecipientType == RecipientType.TO && r.RecipientID != currentUserId))
+                // Add TO recipients except current user
+                foreach (var recipient in latestEmail.Recipients
+                    .Where(r => r.RecipientType == RecipientType.TO && r.RecipientID != currentUserId))
                 {
                     toRecipients.Add(new
                     {
@@ -641,8 +663,9 @@ namespace burbodek.Controllers
                     });
                 }
 
-                // Include CC recipients (excluding current user)
-                foreach (var recipient in latestEmail.Recipients.Where(r => r.RecipientType == RecipientType.CC && r.RecipientID != currentUserId))
+                // Add CC recipients except current user
+                foreach (var recipient in latestEmail.Recipients
+                    .Where(r => r.RecipientType == RecipientType.CC && r.RecipientID != currentUserId))
                 {
                     ccRecipients.Add(new
                     {
@@ -651,21 +674,23 @@ namespace burbodek.Controllers
                     });
                 }
 
-                // Prepare view model
+                // Prepare ViewModel
                 var viewModel = new ThreadViewModel
                 {
                     ThreadID = thread.Id,
                     Subject = thread.Subject,
-                    Emails = thread.Emails.OrderBy(e => e.SentAt).ToList()
+                    Emails = visibleEmails
                 };
 
-                // Prepare reply data for ViewBag
+                // Prepare ReplyData for the view
                 ViewBag.ReplyData = new
                 {
                     ToRecipients = toRecipients,
                     CcRecipients = ccRecipients,
                     BccRecipients = new List<dynamic>(),
-                    ReplySubject = thread.Subject.StartsWith("Re: ") ? thread.Subject : $"Re: {thread.Subject}",
+                    ReplySubject = thread.Subject.StartsWith("Re: ", StringComparison.OrdinalIgnoreCase)
+                        ? thread.Subject
+                        : $"Re: {thread.Subject}",
                     OriginalBody = latestEmail.Body,
                     OriginalSenderName = latestEmail.Sender.Username,
                     OriginalSentAt = latestEmail.SentAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
@@ -697,10 +722,10 @@ namespace burbodek.Controllers
 
                 var draftCount = _context.EmailThreads
                     .Include(t => t.Emails)
-                    .Where(t => t.Emails.Any(e => e.IsDraft && e.SenderID == currentUserId))
+                    .Where(t => t.Emails.Any(e => e.IsDraft && !e.Thread.IsTrashed && e.SenderID == currentUserId))
                     .Count();
                 var inboxCount = _context.EmailRecipients
-                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead)
+                    .Where(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.IsRead && !r.Email.Thread.IsTrashed)
                     .Count();
                 ViewBag.DraftCount = draftCount;
                 ViewBag.InboxCount = inboxCount;
@@ -1442,7 +1467,7 @@ namespace burbodek.Controllers
                 {
                     if (recipient.Email.Thread.CreatedBy == currentUserId)
                     {
-                        recipient.Email.IsTrashed = true;
+                        recipient.Email.Thread.IsTrashed = true;
                     }
                     else
                     {
