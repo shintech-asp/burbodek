@@ -336,6 +336,9 @@ namespace burbodek.Controllers
                 TempData["Success"] = "Email successfully registered!";
                 return RedirectToAction("SignIn", "Index");
             }
+            TempData["Error"] = string.Join("; ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
             return View(employer);
         }
 
