@@ -2,7 +2,7 @@
     ViewData["Title"] = "Messages";
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
-@model List<EmailThread>
+@model List<burbodek.Models.ViewModels.InboxViewModel>
 <!--begin::Inbox App - Messages -->
 <div class="d-flex flex-column flex-lg-row">
     <!--begin::Sidebar-->
@@ -79,74 +79,64 @@
                         <table class="table table-hover table-row-dashed fs-6 gy-5 my-0 dataTable" id="kt_inbox_listing" style="width: 100%;">
                             <colgroup><col data-dt-column="0" style="width: 29.9px;"><col data-dt-column="1" style="width: 73.875px;"><col data-dt-column="2" style="width: 140.262px;"><col data-dt-column="3" style="width: 181.475px;"><col data-dt-column="4" style="width: 62.1375px;"></colgroup>
                             <thead class="d-none">
-                                <tr>
-                                    <th data-dt-column="0" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Checkbox: Activate to sort" tabindex="0">
-                                        <span class="dt-column-title" role="button">Checkbox</span><span class="dt-column-order"></span>
-                                        </th>
-                                    <th data-dt-column="1" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Actions: Activate to sort" tabindex="0">
-                                        <span class="dt-column-title" role="button">Actions</span><span class="dt-column-order"></span>
-                                    </th>
-                                    <th data-dt-column="2" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Author: Activate to sort" tabindex="0">
-                                        <span class="dt-column-title" role="button">Author</span><span class="dt-column-order"></span>
-                                    </th>
-                                    <th data-dt-column="3" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Title: Activate to sort" tabindex="0">
-                                        <span class="dt-column-title" role="button">Title</span><span class="dt-column-order"></span>
-                                    </th>
-                                    <th data-dt-column="4" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Date: Activate to sort" tabindex="0">
-                                        <span class="dt-column-title" role="button">Date</span><span class="dt-column-order"></span>
-                                    </th>
-                                </tr>
+                                <tr><th data-dt-column="0" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Checkbox: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Checkbox</span><span class="dt-column-order"></span></th><th data-dt-column="1" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Actions: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Actions</span><span class="dt-column-order"></span></th><th data-dt-column="2" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Author: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Author</span><span class="dt-column-order"></span></th><th data-dt-column="3" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Title: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Title</span><span class="dt-column-order"></span></th><th data-dt-column="4" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Date: Activate to sort" tabindex="0"><span class="dt-column-title" role="button">Date</span><span class="dt-column-order"></span></th></tr>
                             </thead>
                             <tbody>
                                 @if (Model.Count > 0)
                                 {
-                                    @foreach (var thread in Model)
+                                    @foreach (var item in Model)
                                     {
-                                        var email = thread.Emails?.FirstOrDefault();
-                                        if (email != null)
-                                        {
-                                            var recipient = email.Recipients?.FirstOrDefault();
-                                            <tr class="@(recipient?.IsRead == false ? "bg-light-info" : "")"
-                                                data-recipient-id="@recipient?.Id">
-                                                <td class="ps-9">
-                                                    <div class="form-check form-check-sm form-check-custom form-check-solid mt-3">
-                                                        <input class="form-check-input" type="checkbox" value="@email.Id">
-                                                    </div>
-                                                </td>
-                                                <td class="min-w-80px">
-                                                    <a href="#"
-                                                       class="btn btn-icon w-35px h-35px toggle-star"
-                                                       data-email-id="@email.Id"
-                                                       data-is-starred="@(recipient?.IsStarred.ToString().ToLower() ?? "false")">
-                                                        <i class="ki-duotone ki-star fs-3 @(recipient?.IsStarred == true ? "text-warning" : "text-gray-500")"></i>
-                                                    </a>
-                                                </td>
-                                                <td class="w-150px w-md-175px">
-                                                    <a href="#" class="d-flex align-items-center text-gray-900">
-                                                        <div class="symbol symbol-35px me-3">
-                                                            <div class="symbol-label bg-light-primary">
-                                                                <span class="text-primary">@(thread.Creator?.Username.Substring(0, 1) ?? "?")</span>
-                                                            </div>
+                                        var email = item.Email;
+                                        var thread = item.Thread;
+                                        var recipient = item.Recipient;
+
+                                        <tr class="@(recipient?.IsRead == false ? "bg-light-info" : "")" data-recipient-id="@recipient?.Id">
+                                            <td class="ps-9">
+                                                <div class="form-check form-check-sm form-check-custom form-check-solid mt-3">
+                                                    <input class="form-check-input" type="checkbox" value="@email.Id">
+                                                </div>
+                                            </td>
+
+                                            <!-- Star -->
+                                            <td class="min-w-80px">
+                                                <a href="#"
+                                                   class="btn btn-icon w-35px h-35px toggle-star"
+                                                   data-email-id="@email.ThreadID"
+                                                   data-is-starred="@(recipient?.IsStarred.ToString().ToLower() ?? "false")">
+                                                    <i class="ki-duotone ki-star fs-3 @(recipient?.IsStarred == true ? "text-warning" : "text-gray-500")"></i>
+                                                </a>
+                                            </td>
+
+                                            <!-- Sender -->
+                                            <td class="w-150px w-md-175px">
+                                                <a href="#" class="d-flex align-items-center text-gray-900">
+                                                    <div class="symbol symbol-35px me-3">
+                                                        <div class="symbol-label bg-light-primary">
+                                                            <span class="text-primary">@(thread.Creator?.Username?.Substring(0, 1) ?? "?")</span>
                                                         </div>
-                                                        <span class="@(recipient?.IsRead == false ? "fw-semibold" : "")">@thread.Creator?.Email</span>
-                                                    </a>
-                                                </td>
-                                                <td>
-                                                    <div class="text-gray-900 gap-1 pt-2">
-                                                        <a asp-action="Reply" asp-route-Id="@thread.Id" class="text-gray-900">
-                                                            <span class="@(recipient?.IsRead == false ? "fw-bold" : "")">@thread.Subject</span>
-                                                            <span class="@(recipient?.IsRead == false ? "fw-bold" : "") d-none d-md-inline"> - </span>
-                                                            <span class="d-none d-md-inline text-muted">
-                                                                @Html.Raw(email.Body?.Length > 10 ? email.Body.Substring(0, 10) + "..." : email.Body ?? "")
-                                                            </span>
-                                                        </a>
                                                     </div>
-                                                </td>
-                                                <td class="w-100px text-end fs-7 pe-9">
-                                                    <span class="fw-semibold text-muted">@email.SentAt.ToString("MMM dd, hh:mm tt")</span>
-                                                </td>
-                                            </tr>
-                                        }
+                                                    <span class="@(recipient?.IsRead == false ? "fw-semibold" : "")">@thread.Creator?.Email</span>
+                                                </a>
+                                            </td>
+
+                                            <!-- Subject & Body Preview -->
+                                            <td>
+                                                <div class="text-gray-900 gap-1 pt-2">
+                                                    <a asp-action="Reply" asp-route-Id="@thread.Id" class="text-gray-900">
+                                                        <span class="@(recipient?.IsRead == false ? "fw-bold" : "")">@thread.Subject</span>
+                                                        <span class="@(recipient?.IsRead == false ? "fw-bold" : "") d-none d-md-inline"> - </span>
+                                                        <span class="d-none d-md-inline text-muted">
+                                                            @Html.Raw(email.Body?.Length > 10 ? email.Body.Substring(0, 10) + "..." : email.Body ?? "")
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            </td>
+
+                                            <!-- Date -->
+                                            <td class="w-100px text-end fs-7 pe-9">
+                                                <span class="fw-semibold text-muted">@email.SentAt.ToString("MMM dd, hh:mm tt")</span>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                                 else

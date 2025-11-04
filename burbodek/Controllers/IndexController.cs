@@ -1,6 +1,7 @@
 ﻿using burbodek.Data;
 using burbodek.Filters;
 using burbodek.Models;
+using burbodek.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,96 @@ namespace burbodek.Controllers
         {
             return View();
         }
-        public IActionResult BrowseJob()
+
+        public IActionResult BrowseJob(string keyword, string location, int page = 1)
         {
-            return View();
+            int pageSize = 10;
+
+            // --- JOBS QUERY ---
+            var jobQuery = _context.Jobs
+                .Include(j => j.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                .Include(j => j.JobApplication)
+                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null);
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                jobQuery = jobQuery.Where(j =>
+                    j.JobTitle.Contains(keyword) ||
+                    j.JobDescription.Contains(keyword) ||
+                    j.JobRole.Any(r => r.Role.Contains(keyword)));
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
+            }
+
+            int totalJobs = jobQuery.Count();
+
+            var jobs = jobQuery
+                .OrderByDescending(j => j.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(j => new JobItemViewModel
+                {
+                    Id = j.Id,
+                    JobTitle = j.JobTitle,
+                    JobDescription = j.JobDescription,
+                    EmployerAddress = j.Users.EmployerDetails.Address,
+                    SalaryMin = j.SalaryMin,
+                    SalaryMax = j.SalaryMax,
+                    CreatedAt = j.CreatedAt
+                })
+                .AsNoTracking()
+                .ToList();
+
+            // --- TRAININGS QUERY ---
+            var trainingQuery = _context.Training
+                .Include(t => t.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                .Include(t => t.TrainingApplication)
+                .Where(t => t.isArchived == null);
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                trainingQuery = trainingQuery.Where(t =>
+                    t.Name.Contains(keyword) || t.TrainingDescription.Contains(keyword));
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                trainingQuery = trainingQuery.Where(t => t.Users.EmployerDetails.Address.Contains(location));
+            }
+
+            var trainings = trainingQuery
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new TrainingItemViewModel
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    TrainingDescription = t.TrainingDescription,
+                    EmployerAddress = t.Users.EmployerDetails.Address,
+                    Price = t.Price,
+                    ModeOfPayment = t.ModeOfPayment,
+                    PaymentOption = t.PaymentOption,
+                    CreatedAt = t.CreatedAt
+                })
+                .AsNoTracking()
+                .ToList();
+
+            // --- COMBINE INTO ONE VIEWMODEL ---
+            var viewModel = new JobListViewModel
+            {
+                Jobs = jobs,
+                Trainings = trainings,
+                CurrentPage = page,
+                TotalPages = (int)Math.Ceiling(totalJobs / (double)pageSize),
+                Keyword = keyword,
+                Location = location
+            };
+
+            return View(viewModel);
         }
         public IActionResult SignIn()
         {
@@ -153,15 +241,14 @@ namespace burbodek.Controllers
                 string.IsNullOrWhiteSpace(employer.BusinessName) ||
                 string.IsNullOrWhiteSpace(employer.Address))
             {
-                ModelState.AddModelError("", "Please fill in all required fields.");
-                return View(employer);
+                TempData["Error"] = "Please fill in all required fields.";
             }
 
             if (ModelState.IsValid)
             {
                 if (_context.Users.Any(u => u.Email == employer.Users.Email))
                 {
-                    ModelState.AddModelError("Email", "Email is already registered.");
+                    TempData["Error"] = "Email is already registered.";
                     return View(employer);
                 }
 
@@ -246,9 +333,9 @@ namespace burbodek.Controllers
                 SaveFile(poea_license, "poea_license");
                 SaveFile(proof_partnership, "proof_partnership");
 
+                TempData["Success"] = "Email successfully registered!";
                 return RedirectToAction("SignIn", "Index");
             }
-
             return View(employer);
         }
 

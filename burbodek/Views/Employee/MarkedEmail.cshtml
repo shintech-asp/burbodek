@@ -193,6 +193,7 @@
                 data: { id: emailId, starred: !isStarred },
                 success: function (response) {
                     console.log('Star toggled successfully:', response);
+                    location.reload();
                 },
                 error: function (xhr) {
                     console.error('Failed to toggle star:', xhr);

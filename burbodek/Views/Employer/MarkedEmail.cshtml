@@ -97,9 +97,9 @@
 
                                             <td class="min-w-80px">
                                                 <a href="#"
-                                                    class="btn btn-icon w-35px h-35px toggle-star"
-                                                    data-email-id="@email.Id"
-                                                    data-is-starred="@email.Recipients.FirstOrDefault().IsStarred.ToString().ToLower()">
+                                                   class="btn btn-icon w-35px h-35px toggle-star"
+                                                   data-email-id="@email.Id"
+                                                   data-is-starred="@email.Recipients.FirstOrDefault().IsStarred.ToString().ToLower()">
                                                     <i class="ki-duotone ki-star fs-3 @(email.Recipients.FirstOrDefault().IsStarred ? "text-warning" : "text-gray-500")"></i>
                                                 </a>
                                             </td>
@@ -138,7 +138,7 @@
                             <tfoot></tfoot>
                         </table>
                     </div>
-                    </div>
+                </div>
                 <!--end::Table-->
             </div>
         </div>
@@ -151,7 +151,6 @@
 <!--end::Inbox App - Messages -->
 @section Scripts {
     <script>
-
         $(document).ready(function () {
             // Initialize DataTable
             var table = $('#kt_inbox_listing').DataTable({

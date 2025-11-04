@@ -11,5 +11,6 @@
         // Navigation
         public Users? Creator { get; set; }
         public ICollection<Email>? Emails { get; set; }
+        public bool IsTrashed { get; set; }
     }
 }
