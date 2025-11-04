@@ -88,6 +88,7 @@
 			<div class="flex-lg-row-fluid me-0 me-lg-20">
 				<!--begin::Form-->
 				<form asp-controller="Employee" asp-action="TrainingApply" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" enctype="multipart/form-data">
+					<input id="redirect" name="redirect" hidden/>
 					<!--begin::Input group-->
 					@if(Model.UserInfo != null)
 					{
@@ -869,105 +870,115 @@
 </div>
 @section Scripts {
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			FilePond.registerPlugin(
-				FilePondPluginImagePreview,
-				FilePondPluginPdfPreview
-			);
-			FilePond.setOptions({
-				allowMultiple: false,
-				acceptedFileTypes: ['image/*', 'application/pdf'],
-				fileValidateTypeLabelExpectedTypes: 'Expects an image or PDF',
-				allowImagePreview: true,
-				imagePreviewMaxHeight: 200,
-				allowPdfPreview: true,
-				pdfPreviewHeight: 240,
-				pdfComponentExtraParams: 'toolbar=0&navpanes=0&scrollbar=0&view=fitH&page=1',
-				server: null,
-				instantUpload: false,
-				allowRevert: true,
-				storeAsFile: true, // ✅ very important!
-				// Add these options:
-				chunkUploads: false,
-				allowReplace: true,
-				allowReorder: false
-			});
+		document.addEventListener("DOMContentLoaded", function () {
 
-			const inputs = document.querySelectorAll('.filepond');
-			inputs.forEach(input => {
-				const pond = FilePond.create(input);
-				const defaultFile = input.dataset.defaultFile;
-				if (defaultFile) {
-					pond.addFile(defaultFile);
-				}
-				pond.on('addfile', (error, file) => {
-					if (error) {
-						alert('Invalid file: Only images and PDFs allowed.');
-					}
-				});
-			});
-		document.getElementById("ReserveNow").addEventListener("click", function (e) {
-			e.preventDefault(); // prevent immediate form submission
-
-			Swal.fire({
-				title: "Choose Payment Option",
-				text: "Would you like to pay now or later?",
-				icon: "question",
-				showCancelButton: true,
-				confirmButtonText: "Pay Now",
-				cancelButtonText: "Pay Later",
-				reverseButtons: true,
-			}).then((result) => {
-				if (result.isConfirmed) {
-					// ✅ Pay Now selected
+			// ✅ SweetAlert2 - ReserveNow
+			const reserveBtn = document.getElementById("ReserveNow");
+			if (reserveBtn) {
+				reserveBtn.addEventListener("click", function (e) {
+					e.preventDefault();
 					Swal.fire({
-						title: "Redirecting to Payment...",
-						icon: "info",
-						timer: 1500,
-						showConfirmButton: false
-					});
-					window.location.href = "/Training/Payment";
-				}
-				else if (result.dismiss === Swal.DismissReason.cancel) {
-					// ✅ Pay Later selected
-					Swal.fire({
-						title: "Application Saved",
-						text: "You can pay later from your dashboard.",
-						icon: "success",
-						timer: 2000,
-						showConfirmButton: false
+						title: "Choose Payment Option",
+						text: "Would you like to pay now or later?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Pay Now",
+						cancelButtonText: "Pay Later",
+						reverseButtons: true,
 					}).then((result) => {
-						document.querySelector("form").submit();
-					}
-				}
-			});
-		});
-		document.getElementById("PayNow").addEventListener("click", function (e) {
-			e.preventDefault(); // prevent immediate form submission
-
-			Swal.fire({
-				title: "Are you sure you want to apply?",
-				icon: "question",
-				showCancelButton: true,
-				confirmButtonText: "Confirm",
-				cancelButtonText: "Cancel",
-				reverseButtons: true,
-			}).then((result) => {
-				if (result.isConfirmed) {
-					// ✅ Pay Now selected
-					Swal.fire({
-						title: "Application Saved",
-						text: "You secured your slot! Congratulations!",
-						icon: "success",
-						timer: 2000,
-						showConfirmButton: false
+						if (result.isConfirmed) {
+							Swal.fire({
+								title: "Redirecting to Payment...",
+								icon: "info",
+								timer: 1500,
+								showConfirmButton: false
+							}).then(() => {
+								$("#redirect").val("1")
+								document.querySelector("form").submit();
+							});
+						} else if (result.dismiss === Swal.DismissReason.cancel) {
+							Swal.fire({
+								title: "Application Saved",
+								text: "You can pay later from your dashboard.",
+								icon: "success",
+								timer: 2000,
+								showConfirmButton: false
+							}).then(() => {
+								document.querySelector("form").submit();
+							});
+						}
 					});
+				});
+			}
 
-					// Example: redirect to payment page or trigger payment logic
-					document.querySelector("form").submit();
-				}
-			});
-		});
+			// ✅ SweetAlert2 - PayNow
+			const payNowBtn = document.getElementById("PayNow");
+			if (payNowBtn) {
+				payNowBtn.addEventListener("click", function (e) {
+					e.preventDefault();
+					Swal.fire({
+						title: "Are you sure you want to apply?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Confirm",
+						cancelButtonText: "Cancel",
+						reverseButtons: true,
+					}).then((result) => {
+						if (result.isConfirmed) {
+							Swal.fire({
+								title: "Application Saved",
+								text: "You secured your slot! Congratulations!",
+								icon: "success",
+								timer: 2000,
+								showConfirmButton: false
+							});
+							document.querySelector("form").submit();
+						}
+					});
+				});
+			}
+
+			// ✅ FilePond initialization
+			if (window.FilePond) {
+				FilePond.registerPlugin(
+					FilePondPluginImagePreview,
+					FilePondPluginPdfPreview
+				);
+
+				FilePond.setOptions({
+					allowMultiple: false,
+					acceptedFileTypes: ['image/*', 'application/pdf'],
+					fileValidateTypeLabelExpectedTypes: 'Expects an image or PDF',
+					allowImagePreview: true,
+					imagePreviewMaxHeight: 200,
+					allowPdfPreview: true,
+					pdfPreviewHeight: 240,
+					pdfComponentExtraParams: 'toolbar=0&navpanes=0&scrollbar=0&view=fitH&page=1',
+					server: null,
+					instantUpload: false,
+					allowRevert: true,
+					storeAsFile: true,
+					chunkUploads: false,
+					allowReplace: true,
+					allowReorder: false
+				});
+
+				const inputs = document.querySelectorAll('.filepond');
+				inputs.forEach(input => {
+					const pond = FilePond.create(input);
+					const defaultFile = input.dataset.defaultFile;
+					if (defaultFile) {
+						pond.addFile(defaultFile);
+					}
+					pond.on('addfile', (error) => {
+						if (error) {
+							alert('Invalid file: Only images and PDFs allowed.');
+						}
+					});
+				});
+			} else {
+				console.error("FilePond not loaded!");
+			}
 		});
 	</script>
 }

@@ -1641,7 +1641,7 @@ namespace burbodek.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TrainingApply(TrainingApplication model, int Id, IFormFile? ResumeFile, IFormFile? CoeFile, IFormFile? TorFile, IFormFile? SeamansBookFile, IFormFile? PassportIdFile, IFormFile? DiplomaFile)
+        public async Task<IActionResult> TrainingApply(TrainingApplication model, int Id, IFormFile? ResumeFile, IFormFile? CoeFile, IFormFile? TorFile, IFormFile? SeamansBookFile, IFormFile? PassportIdFile, IFormFile? DiplomaFile, string? redirect)
         {
             // Remove unrelated properties from ModelState
             ModelState.Remove("Jobs");
@@ -1723,8 +1723,15 @@ namespace burbodek.Controllers
 
             _context.TrainingPayments.Add(trainingPayment);
             await _context.SaveChangesAsync();
-            TempData["success"] = "Application submitted successfully!";
-            return RedirectToAction("Index");
+            if(redirect == null)
+            {
+                TempData["success"] = "Application submitted successfully!";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return RedirectToAction("TrainingPayment", new { Id = trainingPayment.Id });
+            }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
