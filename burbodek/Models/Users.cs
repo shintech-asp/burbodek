@@ -31,5 +31,8 @@ namespace burbodek.Models
         public List<Files>? Files { get; set; }
         public List<PaymentDetails>? PaymentDetails { get; set; }
         public List<Payments>? Payments { get; set; }
+        public List<Training>? Training { get; set; }
+        public List<Jobs>? Jobs { get; set; }
+        public List<EmailTemplate>? EmailTemplate { get; set; }
     }
 }

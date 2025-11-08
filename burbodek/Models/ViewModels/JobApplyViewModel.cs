@@ -3,6 +3,6 @@
     public class JobApplyViewModel
     {
         public Jobs Jobs { get; set; }
-        public JobApplication UserInfo { get; set; }
+        public JobApplication? UserInfo { get; set; }
     }
 }

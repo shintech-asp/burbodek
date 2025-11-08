@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251108032947_AddEmailTemplateForJobs")]
+    partial class AddEmailTemplateForJobs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,6 +147,9 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("ModifiedAt")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -156,15 +162,10 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("isActive")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UsersId");
 
                     b.ToTable("EmailTemplate");
                 });
@@ -1012,17 +1013,6 @@ namespace burbodek.Migrations
                     b.Navigation("Recipient");
                 });
 
-            modelBuilder.Entity("burbodek.Models.EmailTemplate", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("burbodek.Models.EmailThread", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Creator")
@@ -1116,7 +1106,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("Jobs")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1168,7 +1158,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.Training", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("Training")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1301,15 +1291,11 @@ namespace burbodek.Migrations
 
                     b.Navigation("JobApplication");
 
-                    b.Navigation("Jobs");
-
                     b.Navigation("PaymentDetails");
 
                     b.Navigation("Payments");
 
                     b.Navigation("Subscription");
-
-                    b.Navigation("Training");
                 });
 #pragma warning restore 612, 618
         }

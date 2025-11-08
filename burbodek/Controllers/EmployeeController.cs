@@ -1743,7 +1743,7 @@ namespace burbodek.Controllers
             ModelState.Remove("CV");
 
             model.JobsId = Id;
-            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value ?? throw new InvalidOperationException("User ID not found"));
+            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
 
             // Debug: Log all received files
             Console.WriteLine($"ResumeFile: {(ResumeFile != null ? ResumeFile.FileName : "null")}");
@@ -1807,6 +1807,64 @@ namespace burbodek.Controllers
             _context.JobApplication.Add(jobApplication);
             await _context.SaveChangesAsync();
 
+            var job = await _context.Jobs
+           .Include(j => j.Users)
+            .ThenInclude(j => j.EmployerDetails)
+           .FirstOrDefaultAsync(j => j.Id == Id);
+
+            // Get the applicant user details
+            var applicant = await _context.Users.FirstOrDefaultAsync(u => u.Id == model.AppliedBy);
+
+            // Get the "Applied" email template
+            var emailTemplate = await _context.EmailTemplate
+                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied" && et.UsersId == job.UsersId);
+
+            if (emailTemplate != null && applicant != null)
+            {
+                // Replace template variables
+                string subject = emailTemplate.Subject
+                    .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
+                    .Replace("{{JobTitle}}", job.JobTitle)
+                    .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+
+                string body = emailTemplate.Body
+                    .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
+                    .Replace("{{JobTitle}}", job.JobTitle)
+                    .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+            }
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var sendEmail = new EmailThread
+            {
+                Subject = emailTemplate.Subject,
+                CreatedBy = job.UsersId,
+                CreatedAt = DateTime.Now
+            };
+            _context.EmailThreads.Add(sendEmail);
+            await _context.SaveChangesAsync();
+            var email = new Email
+            {
+                Thread = sendEmail,
+                SenderID = job.UsersId,
+                Body = emailTemplate.Body,
+                SentAt = DateTime.Now,
+                IsDraft = false,
+                IsTrashed = false,
+                IsRead = false,
+                IsStarred = false
+            };
+            _context.Emails.Add(email);
+            await _context.SaveChangesAsync();
+            var emailRecipient = new EmailRecipient
+            {
+                EmailID = email.Id,
+                RecipientID = userId,
+                RecipientType = RecipientType.TO,
+                IsRead = false,
+                IsTrashed = false,
+                IsStarred = false
+            };
+            _context.EmailRecipients.Add(emailRecipient);
+            await _context.SaveChangesAsync();
             TempData["success"] = "Application submitted successfully!";
             return RedirectToAction("Index");
         }
