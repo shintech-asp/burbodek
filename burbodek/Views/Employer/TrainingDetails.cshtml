@@ -110,7 +110,7 @@
 											{
 												@foreach (var data in Model.TrainingApplication)
 												{
-													<tr>
+													<tr data-applied-id="@data.AppliedBy">
 														<td>@data.FirstName, @data.LastName</td>
 														<td>@ViewBag.ModeOfPayment</td>
 														<td>
@@ -255,15 +255,25 @@
 </div>
 @section Scripts {
 	<script>
-		 $("#openStartDateModal").on("click", function() {
+				$("#openStartDateModal").on("click", function() {
 			$("#startDateModal").modal("show");
 		});
 
-		// ✅ Handle submission
 		$("#startDateSubmit").on("click", function() {
+			// Collect all application IDs from the table
+			var applicationIds = [];
+			$('table tbody tr').each(function() {
+				var appliedId = $(this).data('applied-id');
+				if (appliedId) {
+					applicationIds.push(appliedId);
+				}
+			});
+
+			console.log('Application IDs collected:', applicationIds);
+
 			Swal.fire({
 				title: 'Are you sure?',
-				text: "All applicants will be notified about this start date.",
+				text: "All " + applicationIds.length + " applicants will be notified about this start date.",
 				icon: 'warning',
 				showCancelButton: true,
 				confirmButtonColor: '#d33',
@@ -276,11 +286,19 @@
 						method: "POST",
 						data: {
 							startDate: $("#startDateInput").val(),
-							trainingId: @Model.Id
+							trainingId: @Model.Id,
+							applicationIds: applicationIds.join(',')
 						},
 						success: function(response) {
-							Swal.fire('Success!', 'Start date has been saved.', 'success');
-							$("#startDateModal").modal("hide");
+							if (response.response) {
+								Swal.fire('Success!', response.message || 'Start date has been saved.', 'success');
+								$("#startDateModal").modal("hide");
+								setTimeout(function() {
+									location.reload();
+								}, 2000);
+							} else {
+								Swal.fire('Error', response.message || 'Something went wrong.', 'error');
+							}
 						},
 						error: function(xhr) {
 							console.error(xhr.responseText);

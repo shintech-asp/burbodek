@@ -23,6 +23,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	  <Content Update="wwwroot/uploads/**">
+		  <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+	  </Content>
   </ItemGroup>
 
 </Project>

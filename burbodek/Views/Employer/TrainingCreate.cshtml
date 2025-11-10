@@ -20,11 +20,11 @@
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Price</label>
-                    <input type="number" class="form-control" name="Price" placeholder="e.g. 2000" required />
+                    <input type="number" class="form-control" name="Price" placeholder="e.g. 2000" min="0" required />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Expiration Date</label>
-                    <input type="date" class="form-control" name="Expiration" required />
+                    <input type="date" class="form-control" name="Expiration" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                 </div>
             </div>
 
@@ -38,7 +38,7 @@
             <div class="mb-5">
                 <label class="form-label fw-bold">Training Duration</label>
                 <div class="input-group input-group-solid mb-5">
-                    <input type="text" class="form-control" name="Duration" placeholder="30" aria-describedby="basic-addon2">
+                    <input type="text" class="form-control" name="Duration" placeholder="30" min="1" aria-describedby="basic-addon2">
                     <span class="input-group-text" id="basic-addon2">/days</span>
                 </div>
             </div>
@@ -273,5 +273,44 @@
             delimiter: ',',
             placeholder: 'Select or add benefits...'
         });
+                document.querySelector("form").addEventListener("submit", function(e) {
+            const price = parseFloat(document.querySelector("input[name='Price']").value);
+            const expDate = new Date(document.querySelector("input[name='Expiration']").value);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let errors = [];
+
+            // Price validation
+            if(price <= 0) {
+                errors.push("Price must be greater than 0.");
+            }
+
+            // Expiration date validation
+            if(expDate < today) {
+                errors.push("Expiration date cannot be in the past.");
+            }
+
+            // Down Payment validation (if DPForm exists)
+            const dpInput = document.querySelector("input[name='DownPayment']");
+            if(dpInput) {
+                const dpValue = parseFloat(dpInput.value);
+                if(isNaN(dpValue) || dpValue <= 0) {
+                    errors.push("Down payment must be a positive number.");
+                } else if(dpValue >= price) {
+                    errors.push("Down payment must be less than the full price.");
+                }
+            }
+
+            if(errors.length > 0) {
+                e.preventDefault(); // stop form submission
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: errors.join("<br/>")
+                });
+            }
+        });
+
     </script>
 }

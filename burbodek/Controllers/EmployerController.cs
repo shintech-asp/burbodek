@@ -31,9 +31,139 @@ namespace burbodek.Controllers
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
-            return View(data);
+            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId).ToList();
+            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId).ToList();
+            var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
+
+            var dashboard = new EmployerCampaignViewModel
+            {
+                Subscription = data,
+                Jobs = jobs,
+                Training = training,
+                Campaign = campaigns
+            };
+            return View(dashboard);
+        }
+        public IActionResult ActivateCampaing(int id)
+        {
+            var campaing = _context.Campaign.Find(id);
+            if (campaing != null)
+            {
+                campaing.IsActive = true;
+                _context.Campaign.Update(campaing);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Campaign Activated successfully!" });
+            }
+            return Json(new { success = false, message = "Error occured!" });
+
+        }
+        public IActionResult DeactivateCampaing(int id)
+        {
+            var campaing = _context.Campaign.Find(id);
+            if(campaing != null)
+            {
+                campaing.IsActive = false;
+                _context.Campaign.Update(campaing);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Campaign deactivated successfully!" });
+            }
+            return Json(new { success = false, message = "Error occured!" });
+
+        }
+        [HttpGet]
+        public IActionResult GetCampaign(int id)
+        {
+            var campaign = _context.Campaign
+                .Include(c => c.CreatedByUser)
+                .FirstOrDefault(c => c.Id == id);
+
+            if (campaign == null)
+                return NotFound();
+
+            string listingTitle = null;
+
+            if (campaign.ListingType == "Jobs")
+            {
+                listingTitle = _context.Jobs
+                    .Where(j => j.Id == campaign.SelectedListingId)
+                    .Select(j => j.JobTitle)
+                    .FirstOrDefault();
+            }
+            else if (campaign.ListingType == "Training")
+            {
+                listingTitle = _context.Training
+                    .Where(t => t.Id == campaign.SelectedListingId)
+                    .Select(t => t.Name)
+                    .FirstOrDefault();
+            }
+
+            return Json(new
+            {
+                campaign.Id,
+                campaign.CampaignName,
+                campaign.CampaignDescription,
+                campaign.LogoFilePath,
+                campaign.City,
+                campaign.Province,
+                campaign.FullAddress,
+                campaign.CreatedAt,
+                campaign.IsActive,
+                campaign.ListingType,
+                ListingName = listingTitle,
+                CreatorName = campaign.CreatedByUser?.Username
+            });
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitCampaign(Campaign campaign, IFormFile CampaignLogo)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            ModelState.Remove("CreatedByUser");
+            ModelState.Remove("SelectedTraining");
+            ModelState.Remove("SelectedJob");
+            ModelState.Remove("LogoFilePath");
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid campaign data.");
+
+            try
+            {
+                // ✅ Handle File Upload
+                if (CampaignLogo != null && CampaignLogo.Length > 0)
+                {
+                    // Create upload folder if not existing
+                    string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
+                    if (!Directory.Exists(uploadPath))
+                        Directory.CreateDirectory(uploadPath);
+
+                    // Generate unique filename
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
+                    string filePath = Path.Combine(uploadPath, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await CampaignLogo.CopyToAsync(fileStream);
+                    }
+
+                    // Save relative path for database
+                    campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
+                }
+
+                // ✅ Save campaign to database
+                campaign.CreatedAt = DateTime.Now;
+                campaign.IsActive =  true; // You can set to "Active" if needed
+                campaign.CreatedByUserId = userId;
+                _context.Campaign.Add(campaign);
+                await _context.SaveChangesAsync();
+
+                // ✅ Return success
+                return Json(new { success = true, message = "Campaign submitted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
         public IActionResult Subscription()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -132,34 +262,259 @@ namespace burbodek.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadCertificate(IFormFile file, int trainingApplicationId)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
-
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certificates");
-
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var fileExtension = Path.GetExtension(file.FileName);
-            var fileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
+                if (file == null || file.Length == 0)
+                    return BadRequest("No file uploaded.");
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certificates");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileExtension = Path.GetExtension(file.FileName);
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var trainingCertificate = new TrainingCertificate
+                {
+                    FilePath = $"/uploads/certificates/{fileName}",
+                    FileType = file.ContentType,
+                    TrainingApplicationId = trainingApplicationId
+                };
+                _context.TrainingCertificate.Add(trainingCertificate);
+                await _context.SaveChangesAsync();
+
+                // ========== SEND EMAIL NOTIFICATION ==========
+                try
+                {
+                    var trainingApplication = await _context.TrainingApplication
+                        .Include(ta => ta.Training)
+                        .ThenInclude(t => t.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                        .FirstOrDefaultAsync(ta => ta.Id == trainingApplicationId);
+
+                    if (trainingApplication != null)
+                    {
+                        var applicant = await _context.Users.FirstOrDefaultAsync(u => u.Id == trainingApplication.AppliedBy);
+
+                        if (applicant != null)
+                        {
+                            // Create email thread
+                            var sendEmail = new EmailThread
+                            {
+                                Subject = "Your Certificate Has Been Uploaded - " + trainingApplication.Training.Name,
+                                CreatedBy = trainingApplication.Training.UsersId,
+                                CreatedAt = DateTime.Now
+                            };
+                            _context.EmailThreads.Add(sendEmail);
+                            await _context.SaveChangesAsync();
+
+                            var email = new Email
+                            {
+                                Thread = sendEmail,
+                                SenderID = trainingApplication.Training.UsersId,
+                                Body = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #333;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .highlight-box p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .highlight-label {
+            font-weight: 600;
+            color: #ff9800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .highlight-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 5px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .certificate-box {
+            background-color: #f0f7ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .certificate-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .certificate-text {
+            font-weight: 600;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #ff9800;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #f57c00;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🎓 Certificate Uploaded!</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear " + applicant.Username + @",</p>
+            <p class='body-text'>Congratulations! Your certificate for the training program has been successfully uploaded and is now available in your account.</p>
+
+            <div class='highlight-box'>
+                <p class='highlight-label'>Training Program</p>
+                <p class='highlight-value'>" + trainingApplication.Training.Name + @"</p>
+                <p style='margin-top: 15px; font-size: 13px; color: #666;'>
+                    <strong>Provider:</strong> " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @"
+                </p>
+            </div>
+
+            <div class='certificate-box'>
+                <div class='certificate-icon'>📜</div>
+                <div class='certificate-text'>Your certificate is ready for download!</div>
+            </div>
+
+            <p class='body-text'>You can now download your certificate and add it to your professional credentials. This certification recognizes your successful completion of the training program.</p>
+
+            <p class='body-text'>Thank you for completing this training program with us. We hope you found it valuable and informative. If you have any questions or need assistance, please don't hesitate to reach out.</p>
+
+            <div style='text-align: center;'>
+                <p style='font-size: 13px; color: #888;'>Log in to your account to view and download your certificate.</p>
+            </div>
+
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
+                        ",
+                                SentAt = DateTime.Now,
+                                IsDraft = false,
+                                IsTrashed = false,
+                                IsRead = false,
+                                IsStarred = false
+                            };
+                            _context.Emails.Add(email);
+                            await _context.SaveChangesAsync();
+
+                            var emailRecipient = new EmailRecipient
+                            {
+                                EmailID = email.Id,
+                                RecipientID = trainingApplication.AppliedBy,
+                                RecipientType = RecipientType.TO,
+                                IsRead = false,
+                                IsTrashed = false,
+                                IsStarred = false
+                            };
+                            _context.EmailRecipients.Add(emailRecipient);
+                            await _context.SaveChangesAsync();
+
+                            Console.WriteLine($"Certificate upload notification sent to {applicant.Email}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending certificate notification email: {ex.Message}");
+                    // Don't fail the certificate upload if email fails
+                }
+
+                return Json(new { success = true, message = "File uploaded successfully! Applicant has been notified." });
             }
-
-            var trainingCertificate = new TrainingCertificate
+            catch (Exception ex)
             {
-                FilePath = $"/uploads/certificates/{fileName}",
-                FileType = file.ContentType,
-                TrainingApplicationId = trainingApplicationId
-            };
-
-            _context.TrainingCertificate.Add(trainingCertificate);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, message = "File uploaded successfully!" });
+                Console.WriteLine($"Error uploading certificate: {ex.Message}");
+                return Json(new { success = false, message = "Error uploading file: " + ex.Message });
+            }
         }
 
         public IActionResult JobDetails(int Id)
@@ -410,20 +765,258 @@ namespace burbodek.Controllers
 
             return Json(new { response = jobs });
         }
-        public IActionResult AddStartDateTraining(DateTime startDate, int TrainingId)
+        public async Task<IActionResult> AddStartDateTraining(DateTime startDate, int TrainingId, string applicationIds = "")
         {
-            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
-            var jobs = _context.Training
-                .Where(j => j.UsersId == userId && j.Id == TrainingId)
-                .FirstOrDefault();
+                var training = _context.Training
+                    .Include(t => t.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                    .Where(j => j.UsersId == userId && j.Id == TrainingId)
+                    .FirstOrDefault();
 
-            jobs.StartDate = startDate;
-            jobs.EndDate = startDate.AddDays(int.Parse(jobs.Duration));
-            _context.Training.Update(jobs);
-            _context.SaveChanges();
+                if (training == null)
+                {
+                    return Json(new { response = false, message = "Training not found" });
+                }
 
-            return Json(new { response = true });
+                // Parse duration safely
+                int trainingDays = 0;
+                if (!string.IsNullOrEmpty(training.Duration) && int.TryParse(training.Duration, out int days))
+                {
+                    trainingDays = days;
+                }
+
+                // Parse the comma-separated application IDs
+                var applicationIdList = string.IsNullOrEmpty(applicationIds)
+                    ? new List<int>()
+                    : applicationIds.Split(',').Select(id => int.TryParse(id.Trim(), out var result) ? result : 0)
+                        .Where(id => id > 0).ToList();
+
+                // If no specific IDs provided, get all applicants for this training
+                if (applicationIdList.Count == 0)
+                {
+                    applicationIdList = _context.TrainingApplication
+                        .Where(ta => ta.TrainingId == TrainingId)
+                        .Select(ta => ta.AppliedBy)
+                        .ToList();
+                }
+
+                // Send emails to each applicant
+                foreach (var applicantId in applicationIdList)
+                {
+                    try
+                    {
+                        var applicantInfo = _context.Users.FirstOrDefault(u => u.Id == applicantId);
+
+                        if (applicantInfo == null) continue;
+
+                        // Calculate end date
+                        DateTime endDate = startDate.AddDays(trainingDays);
+
+                        // Create email thread
+                        var sendEmail = new EmailThread
+                        {
+                            Subject = "Training Start Date Announced - " + training.Name,
+                            CreatedBy = training.UsersId,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.EmailThreads.Add(sendEmail);
+                        await _context.SaveChangesAsync();
+
+                        var email = new Email
+                        {
+                            Thread = sendEmail,
+                            SenderID = training.UsersId,
+                            Body = @"
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                        <meta charset='UTF-8'>
+                                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                        <style>
+                                            body {
+                                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                                                line-height: 1.6;
+                                                color: #333;
+                                                margin: 0;
+                                                padding: 0;
+                                                background-color: #f5f5f5;
+                                            }
+                                            .container {
+                                                max-width: 600px;
+                                                margin: 20px auto;
+                                                background-color: #ffffff;
+                                                border-radius: 8px;
+                                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                                overflow: hidden;
+                                            }
+                                            .header {
+                                                background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+                                                color: white;
+                                                padding: 40px 20px;
+                                                text-align: center;
+                                            }
+                                            .header h1 {
+                                                margin: 0;
+                                                font-size: 28px;
+                                                font-weight: 600;
+                                            }
+                                            .content {
+                                                padding: 40px;
+                                            }
+                                            .greeting {
+                                                font-size: 16px;
+                                                margin-bottom: 20px;
+                                                color: #333;
+                                            }
+                                            .highlight-box {
+                                                background-color: #e8f5e9;
+                                                border-left: 4px solid #28a745;
+                                                padding: 20px;
+                                                margin: 25px 0;
+                                                border-radius: 4px;
+                                            }
+                                            .highlight-box p {
+                                                margin: 8px 0;
+                                                font-size: 15px;
+                                            }
+                                            .highlight-label {
+                                                font-weight: 600;
+                                                color: #28a745;
+                                                font-size: 12px;
+                                                text-transform: uppercase;
+                                                letter-spacing: 0.5px;
+                                            }
+                                            .highlight-value {
+                                                font-size: 18px;
+                                                font-weight: 600;
+                                                color: #333;
+                                                margin-top: 5px;
+                                            }
+                                            .body-text {
+                                                font-size: 15px;
+                                                line-height: 1.7;
+                                                color: #555;
+                                                margin-bottom: 20px;
+                                            }
+                                            .date-box {
+                                                background-color: #fff3e0;
+                                                border-left: 4px solid #ff9800;
+                                                padding: 15px;
+                                                margin: 15px 0;
+                                                border-radius: 4px;
+                                            }
+                                            .date-item {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                padding: 10px 0;
+                                                font-size: 14px;
+                                            }
+                                            .date-item strong {
+                                                color: #ff9800;
+                                            }
+                                            .footer {
+                                                background-color: #f9f9f9;
+                                                padding: 20px;
+                                                border-top: 1px solid #e0e0e0;
+                                                text-align: center;
+                                                font-size: 12px;
+                                                color: #888;
+                                            }
+                                            .divider {
+                                                height: 1px;
+                                                background-color: #e0e0e0;
+                                                margin: 30px 0;
+                                            }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <div class='container'>
+                                            <div class='header'>
+                                                <h1>📅 Training Start Date Announced!</h1>
+                                            </div>
+                                            <div class='content'>
+                                                <p class='greeting'>Dear " + applicantInfo.Username + @",</p>
+                                                <p class='body-text'>Great news! We're excited to inform you that the start date for your training program has been confirmed.</p>
+            
+                                                <div class='highlight-box'>
+                                                    <p class='highlight-label'>Training Details</p>
+                                                    <p class='highlight-value'>" + training.Name + @"</p>
+                                                    <p style='margin-top: 15px; font-size: 13px; color: #666;'>
+                                                        <strong>Training Provider:</strong> " + training.Users?.EmployerDetails?.BusinessName + @"
+                                                    </p>
+                                                </div>
+            
+                                                <div class='date-box'>
+                                                    <div class='date-item'>
+                                                        <strong>📌 Start Date:</strong>
+                                                        <span>" + startDate.ToString("MMMM dd, yyyy") + @"</span>
+                                                    </div>
+                                                    <div class='date-item'>
+                                                        <strong>📌 End Date:</strong>
+                                                        <span>" + endDate.ToString("MMMM dd, yyyy") + @"</span>
+                                                    </div>
+                                                    <div class='date-item'>
+                                                        <strong>⏱️ Duration:</strong>
+                                                        <span>" + trainingDays + @" days</span>
+                                                    </div>
+                                                </div>
+            
+                                                <p class='body-text'>Please make sure you're prepared for the training on the scheduled date. If you have any questions or concerns, don't hesitate to reach out to us.</p>
+            
+                                                <div class='divider'></div>
+                                                <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+                                            </div>
+                                            <div class='footer'>
+                                                <p>This is an automated message from " + training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+                                            </div>
+                                        </div>
+                                    </body>
+                                    </html>
+                                    ",
+                            SentAt = DateTime.Now,
+                            IsDraft = false,
+                            IsTrashed = false,
+                            IsRead = false,
+                            IsStarred = false
+                        };
+                        _context.Emails.Add(email);
+                        await _context.SaveChangesAsync();
+
+                        var emailRecipient = new EmailRecipient
+                        {
+                            EmailID = email.Id,
+                            RecipientID = applicantId,
+                            RecipientType = RecipientType.TO,
+                            IsRead = false,
+                            IsTrashed = false,
+                            IsStarred = false
+                        };
+                        _context.EmailRecipients.Add(emailRecipient);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error sending email to applicant {applicantId}: {ex.Message}");
+                    }
+                }
+
+                // Update training with start and end dates
+                training.StartDate = startDate;
+                training.EndDate = startDate.AddDays(trainingDays);
+                _context.Training.Update(training);
+                await _context.SaveChangesAsync();
+
+                return Json(new { response = true, message = $"Training start date set and {applicationIdList.Count} applicants notified!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { response = false, message = ex.Message });
+            }
         }
         public IActionResult JobListing()
         {
@@ -1851,8 +2444,7 @@ namespace burbodek.Controllers
                         t.Id == id &&
                         t.Emails.Any(e =>
                             (e.SenderID == currentUserId &&
-                             e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.Thread.IsTrashed)) ||
-                            e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.Thread.IsTrashed)
+                             e.Recipients.Any(r => !r.IsTrashed && !r.Email.Thread.IsTrashed))
                         )
                     );
                 if (thread == null)
