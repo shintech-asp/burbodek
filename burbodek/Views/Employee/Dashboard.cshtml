@@ -334,6 +334,24 @@
 	<div class="feed-main">
 		@foreach (var campaign in Model.Campaign.OrderByDescending(c => c.CreatedAt))
 		{
+			@if (!Model.Campaign.Any())
+			{
+				<!--begin::Empty State - No Campaigns-->
+				<div class="text-center py-10 px-4">
+					<img src="~/assets/media/illustrations/sketchy-1/5.png"
+						 class="mw-100 mh-250px mb-6"
+						 alt="No campaigns" />
+
+					<h4 class="fw-bold text-gray-800 mb-3">
+						No campaigns yet
+					</h4>
+
+					<p class="text-gray-600 fs-6 mb-0">
+						When employers post job or training campaigns,<br>they will appear here.
+					</p>
+				</div>
+				<!--end::Empty State-->
+			}
 			<div class="feed-card">
 				<!-- Post Header -->
 				<div class="feed-header">

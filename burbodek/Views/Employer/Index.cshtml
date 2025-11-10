@@ -1355,55 +1355,67 @@ else
 				submitBtn.find('.indicator-progress').show();
 
 				// Submit via AJAX
-				$.ajax({
-					url: '/Employer/SubmitCampaign',
-					type: 'POST',
-					data: formData,
-					contentType: false,
-					processData: false,
-					success: function(response) {
-						console.log('Success:', response);
-						submitBtn.prop('disabled', false);
-						submitBtn.find('.indicator-label').show();
-						submitBtn.find('.indicator-progress').hide();
+						$.ajax({
+			url: '/Employer/SubmitCampaign',
+			type: 'POST',
+			data: formData,
+			contentType: false,
+			processData: false,
+			success: function (response) {
+				// Always re-enable the button
+				submitBtn.prop('disabled', false)
+						 .find('.indicator-label').show()
+						 .end()
+						 .find('.indicator-progress').hide();
 
-						if (response.success) {
-							Swal.fire({
-								title: 'Success!',
-								text: response.message,
-								icon: 'success',
-								showConfirmButton: false,
-								timer: 2000
-							});
-
+				if (response.success) {
+					// ---- SUCCESS ----
+					Swal.fire({
+						title: 'Success!',
+						text: response.message,
+						icon: 'success',
+						showConfirmButton: true,          // show OK button
+						confirmButtonText: 'OK',
+						timer: false                      // no auto-close
+					}).then((result) => {
+						if (result.isConfirmed) {
 							// Reset form
 							$('#kt_modal_create_campaign_stepper_form')[0].reset();
 							selectedListingId = null;
 
-							// Move to completed step (optional)
-							setTimeout(function() {
-								// Reload or redirect
-								location.reload();
-							}, 2000);
+							// Reload the page
 							location.reload();
-						} else {
-							Swal.fire('Error', response.message || 'Failed to create campaign', 'error');
 						}
-					},
-					error: function(xhr) {
-						console.error('Error:', xhr);
-						submitBtn.prop('disabled', false);
-						submitBtn.find('.indicator-label').show();
-						submitBtn.find('.indicator-progress').hide();
+					});
+				} else {
+					// ---- SERVER-SIDE FAILURE ----
+					Swal.fire({
+						title: 'Error',
+						text: response.message || 'Failed to create campaign',
+						icon: 'error',
+						showConfirmButton: true,
+						confirmButtonText: 'OK'
+					}).then(() => location.reload());   // reload on OK
+				}
+			},
+			error: function (xhr) {
+				// ---- NETWORK / UNEXPECTED ERROR ----
+				submitBtn.prop('disabled', false)
+						 .find('.indicator-label').show()
+						 .end()
+						 .find('.indicator-progress').hide();
 
-						let errorMessage = 'An unexpected error occurred';
-						if (xhr.responseJSON && xhr.responseJSON.message) {
-							errorMessage = xhr.responseJSON.message;
-						}
+				const errorMessage = xhr.responseJSON?.message || 'An unexpected error occurred';
 
-						Swal.fire('Error!', errorMessage, 'error');
-					}
-				});
+				Swal.fire({
+					title: 'Error!',
+					text: errorMessage,
+					icon: 'error',
+					showConfirmButton: true,
+					confirmButtonText: 'OK'
+				}).then(() => location.reload());       // reload on OK
+			}
+		});
 			}
 
 			// Update review preview when data changes
