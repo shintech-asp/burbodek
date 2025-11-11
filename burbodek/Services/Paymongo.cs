@@ -43,8 +43,8 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "http://techasp-001-site1.mtempurl.com/Employer/SuccessPayment",
-                        cancel_url = "http://techasp-001-site1.mtempurl.com//Employer/CancelledPayment",
+                        success_url = "http://techasp-001-site1.atempurl.com/Employer/SuccessPayment",
+                        cancel_url = "http://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
                         billing = new
                         {
                             name = name,
@@ -96,8 +96,8 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "http://techasp-001-site1.mtempurl.com/Employee/SuccessPayment",
-                        cancel_url = "http://techasp-001-site1.mtempurl.com/Employee/CancelledPayment",
+                        success_url = "http://techasp-001-site1.atempurl.com/Employee/SuccessPayment",
+                        cancel_url = "http://techasp-001-site1.atempurl.com/Employee/CancelledPayment",
                         billing = new
                         {
                             name = name,
