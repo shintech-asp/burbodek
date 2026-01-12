@@ -1,6 +1,8 @@
 ﻿using burbodek.Data;
 using burbodek.Migrations;
 using burbodek.Models;
+using burbodek.Models.ViewModels;
+using burbodek.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +16,15 @@ namespace burbodek.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         ApplicationDbContext _context;
+        private readonly EmailServices _email;
+        private readonly IWebHostEnvironment _env;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, EmailServices email, IWebHostEnvironment env)
         {
             _logger = logger;
             _context = context;
+            _email = email;
+            _env = env;
         }
 
         public IActionResult Index()
@@ -33,6 +39,121 @@ namespace burbodek.Controllers
         public IActionResult Users()
         {
             return View();
+        }
+        public IActionResult Faq()
+        {
+            var data = _context.Faq.ToList();
+            var FaqTitle = _context.FaqTitle.OrderByDescending(u => u.Id).FirstOrDefault();
+
+            var model = new FAQViewModel
+            {
+                Faqs = data,
+                FaqTitle = FaqTitle
+            };
+            return View(model);
+        }
+        public IActionResult Subscription()
+        {
+            var plan = _context.Plans.ToList();
+            return View(plan);
+        }
+        [HttpPost]
+        public IActionResult UpdateSubscription(int Id, string PlanName, string PlanDetails, double Price, int Discount)
+        {
+            try
+            {
+                var plan = _context.Plans.FirstOrDefault(p => p.Id == Id);
+
+                if (plan == null)
+                {
+                    return Json(new { success = false, message = "Plan not found" });
+                }
+
+                plan.PlanName = PlanName;
+                plan.PlanDetails = PlanDetails;
+                plan.Price = Price;
+                plan.Discount = Discount;
+
+                _context.SaveChanges();
+
+                return Json(new { success = true, message = "Plan updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPost]
+        public IActionResult UpdateFaq(int Id, string Title, string Description)
+        {
+            try
+            {
+                var faq = _context.Faq.FirstOrDefault(f => f.Id == Id);
+                if (faq == null)
+                    return Json(new { success = false, message = "FAQ not found" });
+
+                faq.Title = Title;
+                faq.Description = Description;
+                _context.SaveChanges();
+
+                return Json(new { success = true, message = "FAQ updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteFaq(int Id)
+        {
+            try
+            {
+                var faq = _context.Faq.FirstOrDefault(f => f.Id == Id);
+                if (faq == null)
+                    return Json(new { success = false, message = "FAQ not found" });
+
+                _context.Faq.Remove(faq);
+                _context.SaveChanges();
+
+                return Json(new { success = true, message = "FAQ deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        public IActionResult SubmitFaq(string Title, string Description)
+        {
+            if(Title != null && Description != null)
+            {
+                var faq = new Faq
+                {
+                    Title = Title,
+                    Description = Description,
+                    isActive = true
+                };
+                _context.Faq.Add(faq);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Added successfully!" });
+            }
+            return Json(new { success = false, message = "Faq adding failed!" });
+
+        }
+        public IActionResult SubmitFaqDescription(string Description)
+        {
+            if (Description != null)
+            {
+                var faq = new FaqTitle
+                {
+                    Description = Description
+                };
+                _context.FaqTitle.Add(faq);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Added successfully!" });
+            }
+            return Json(new { success = false, message = "Faq adding failed!" });
+
         }
         public IActionResult Application()
         {
@@ -636,41 +757,74 @@ namespace burbodek.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        [HttpPost]
-        public IActionResult ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails)
+        private string LoadTemplate(string fileName)
         {
-            if(ApprovalDetails == "decline")
+            var path = Path.Combine(_env.ContentRootPath, "EmailTemplates", fileName);
+            if (!System.IO.File.Exists(path))
             {
-                var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
-
-                data.Expiration = DateTime.Now;
-                data.Status = "Expired";
-                _context.Subscription.Update(data);
-                var employer = _context.EmployerDetails.Where(u => u.Id == Id).FirstOrDefault();
-                employer.Status = "Decline";
-                _context.EmployerDetails.Update(employer);
-                _context.SaveChanges();
-                TempData["success"] = "Employer declined";
-                return RedirectToAction("Index");
-            }else if(ApprovalDetails == "approve")
-            {
-                var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
-
-                data.Expiration = null;
-                data.Status = "Current";
-                _context.Subscription.Update(data);
-                var employer = _context.EmployerDetails.Where(u => u.UsersId == Id).FirstOrDefault();
-                employer.Status = "Approved";
-                _context.EmployerDetails.Update(employer);
-                _context.SaveChanges();
-                AddDefaultEmailTemplates(Id);
-                TempData["success"] = "Employer successfully approved!";
-                return RedirectToAction("Index");
+                throw new FileNotFoundException("Email template not found", path);
             }
-            else
+            return System.IO.File.ReadAllText(path);
+        }
+        [HttpPost]
+        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails)
+        {
+            try
             {
-                TempData["error"] = "Unexpected error occur";
-                return RedirectToAction("Application");
+                var employer = _context.EmployerDetails.Include(u => u.Users).Where(u => u.UsersId == Id).FirstOrDefault();
+
+                if (ApprovalDetails == "decline")
+                {
+                    var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
+
+                    // Load decline email template
+                    string emailBody = LoadTemplate("Declined.html");
+
+                    // Send email
+                    await _email.SendEmailAsync(employer.Users.Email, "Application Declined", emailBody);
+                    data.Expiration = DateTime.Now;
+                    data.Status = "Expired";
+                    _context.Subscription.Update(data);
+
+                    employer.Status = "Decline";
+                    _context.EmployerDetails.Update(employer);
+
+                    await _context.SaveChangesAsync();
+
+                    TempData["success"] = "Employer declined";
+                    return RedirectToAction("Index");
+                }
+                else if (ApprovalDetails == "approve")
+                {
+                    var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
+                    // Load approval template
+                    string emailBody = LoadTemplate("Approved.html");
+
+                    // Send email
+                    await _email.SendEmailAsync(employer.Users.Email, "Employer Approved!", emailBody);
+                    data.Expiration = null;
+                    data.Status = "Current";
+                    _context.Subscription.Update(data);
+
+                    employer.Status = "Approved";
+                    _context.EmployerDetails.Update(employer);
+
+                    await _context.SaveChangesAsync();
+
+
+                    TempData["success"] = "Employer successfully approved!";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["error"] = "Unexpected error occurred.";
+                    return RedirectToAction("Application");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Content($"Error: {ex.Message}<br><br>Stack Trace: {ex.StackTrace}");
+
             }
         }
     }

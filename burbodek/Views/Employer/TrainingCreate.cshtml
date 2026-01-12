@@ -24,7 +24,11 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Expiration Date</label>
-                    <input type="date" class="form-control" name="Expiration" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    <input type="datetime-local"
+                                                                                    class="form-control"
+                                                                                    name="Expiration"
+                                                                                    required
+                                                                                    min="@DateTime.Now.AddDays(1).Date.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm")" />
                 </div>
             </div>
 

@@ -5,16 +5,6 @@
 	Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
 @model EmployerCampaignViewModel;
-<style>
-	.subscription-overlay {
-		backdrop-filter: grayscale(80%) blur(1px);
-		pointer-events: auto; /* prevents interacting with cards under overlay */
-	}
-
-	.dashboard-wrapper .card {
-		pointer-events: none; /* disable card interactions when overlay is active */
-	}
-</style>
 @if (@User.FindFirst("Status")?.Value == "Pending" || @User.FindFirst("Status")?.Value == "For Approval")
 {
 	if (@User.FindFirst("Status")?.Value == "Pending")
@@ -46,14 +36,6 @@ else
 					Please renew your subscription to continue using our services.
 					<a class="btn btn-primary btn-sm" asp-action="Subscription" asp-controller="Employer">Renew now</a>.
 				</strong>
-			</div>
-		}
-		<p>@User.FindFirst("Plan")?.Value</p>
-		@if (User.FindFirst("Plan")?.Value == "Basic")
-		{
-			<div class="subscription-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center flex-column" style="background: rgba(200,200,200,0.7); z-index: 10;">
-				<h3 class="fw-bold text-dark mb-3">Upgrade to Premium</h3>
-				<a asp-controller="Employer" asp-action="Subscription" class="btn btn-primary">Subscribe Now</a>
 			</div>
 		}
 		<div class="row gy-5 g-xl-10">
@@ -231,29 +213,54 @@ else
 										<tbody>
 											@foreach(var data in Model.Campaign)
 											{
-												<tr class="odd">
-													<td class="min-w-175px">
-														<div class="position-relative ps-6 pe-3 py-2">
-															<div class="position-absolute start-0 top-0 w-4px h-100 rounded-2 bg-info"></div>
-															<a class="mb-1 text-dark text-hover-primary fw-bold view-campaign-btn" data-id="@data.Id">
-																@data.CampaignName</a>
-															<div class="fs-7 text-muted fw-bold">Created on @data.CreatedAt.ToString("dddd dd MMMM yyyy")</div>
-														</div>
-													</td>
-													<td>
-														<span class="badge @(data.IsActive ? "badge-light-success" : "badge-light-danger")">@(data.IsActive ? "Live Now" : "Disabled")</span>
-													</td>
-													<td class="min-w-150px">
-														<div class="mb-2 fw-bold">@data.CreatedAt.ToString("dd MMMM yyyy")</div>
-														<div class="fs-7 fw-bold text-muted">Date created</div>
-													</td>
-													<td class="d-none">Pending</td>
-													<td class="text-end">
-														<button type="button" class="btn btn-icon btn-sm btn-light btn-active-primary w-25px h-25px view-campaign-btn" data-id="@data.Id">
-															<i class="ki-duotone ki-black-right fs-2 text-muted"></i>
-														</button>
-													</td>
-												</tr>
+												@if(data.isPaid != false)
+												{
+													<tr class="odd">
+														<td class="min-w-175px">
+															<div class="position-relative ps-6 pe-3 py-2">
+																<div class="position-absolute start-0 top-0 w-4px h-100 rounded-2 bg-info"></div>
+																<a class="mb-1 text-dark text-hover-primary fw-bold view-campaign-btn" data-id="@data.Id">
+																	@data.CampaignName
+																</a>
+																<div class="fs-7 text-muted fw-bold">Created on @data.CreatedAt.ToString("dddd dd MMMM yyyy")</div>
+															</div>
+														</td>
+														<td>
+															@{
+																string badgeClass;
+																string badgeText;
+
+																if (data.IsActive)
+																{
+																	badgeClass = "badge-light-success";
+																	badgeText = "Live Now";
+																}
+																else if (data.isPaid == false)
+																{
+																	badgeClass = "badge-light-warning";
+																	badgeText = "Pending";
+																}
+																else
+																{
+																	badgeClass = "badge-light-danger";
+																	badgeText = "Disabled";
+																}
+															}
+
+															<span class="badge @badgeClass">@badgeText</span>
+														</td>
+														<td class="min-w-150px">
+															<div class="mb-2 fw-bold">@data.CreatedAt.ToString("dd MMMM yyyy")</div>
+															<div class="fs-7 fw-bold text-muted">Date created</div>
+														</td>
+														<td class="d-none">Pending</td>
+														<td class="text-end">
+															<button type="button" class="btn btn-icon btn-sm btn-light btn-active-primary w-25px h-25px view-campaign-btn" data-id="@data.Id">
+																<i class="ki-duotone ki-black-right fs-2 text-muted"></i>
+															</button>
+														</td>
+													</tr>
+												}
 											}
 										</tbody>
 										<!--end::Table-->
@@ -959,7 +966,160 @@ else
 												<span>Once you submit, your campaign will be published and visible to all users in the selected location.</span>
 											</div>
 										</div>
+
 										<!--end::Confirmation Alert-->
+										<!--begin::Heading-->
+										@if (User.FindFirst("Plan")?.Value == "Basic")
+										{
+											<div class="pb-10 pb-lg-15 pt-10 pt-lg-15">
+												<!--begin::Title-->
+												<h2 class="fw-bold d-flex align-items-center text-dark">
+													Billings
+													<span class="ms-1" data-bs-toggle="tooltip" aria-label="Review all details before submitting your campaign" data-bs-original-title="Review all details before submitting your campaign" data-kt-initialized="1">
+														<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
+															<span class="path1"></span>
+															<span class="path2"></span>
+															<span class="path3"></span>
+														</i>
+													</span>
+												</h2>
+												<!--end::Title-->
+												<!--begin::Notice-->
+												<div class="text-muted fw-semibold fs-6">
+													For non-subscriber. Kindly set your billing for payment.
+												</div>
+												<!--end::Notice-->
+											</div>
+											<!--end::Heading-->
+
+											<div class="card bg-white shadow-sm mb-10">
+												<div class="card-body">
+													<!--begin::Post Content-->
+													<div class="px-6 py-8">
+														<!--begin::Campaign Name as Title-->
+														<h3 class="fw-bold text-gray-900 mb-3 fs-4" id="reviewCampaignName">
+															Choose billing option
+														</h3>
+														<!--end::Campaign Name-->
+														<!--begin::Campaign Description-->
+														<div class="fw-semibold text-gray-700 fs-6 mb-6 line-clamp-3" id="reviewCampaignDescription">
+															<h2 class="fw-bold">Payment Method</h2>
+															<!--begin::Card title-->
+															<!--begin::Card toolbar-->
+															<div class="card-toolbar">
+																<a asp-controller="Employer" asp-action="PaymentDetails" class="btn btn-light-primary">
+																	New Method
+																</a>
+															</div>
+															<!--end::Card toolbar-->
+														</div>
+														<!--end::Card header-->
+														<!--begin::Card body-->
+														<div class="card-body pt-0">
+															<!--begin::Options-->
+															@if (Model.PaymentDetails.Count != 0)
+															{
+																@foreach (var data in Model.PaymentDetails.Select((value, index) => new { value, index }))
+																{
+																	var collapseId = $"kt_create_new_payment_method_{data.index}";
+																	<div class="py-1">
+																		<!--begin::Header-->
+																		<div class="py-3 d-flex flex-stack flex-wrap">
+																			<!--begin::Toggle-->
+																			<div class="d-flex align-items-center collapsible toggle"
+																				 data-bs-toggle="collapse"
+																				 data-bs-target="#@collapseId">
+																				<!--begin::Arrow-->
+																				<div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+																					<i class="ki-duotone ki-minus-square toggle-on text-primary fs-2"><span class="path1"></span><span class="path2"></span></i>
+																					<i class="ki-duotone ki-plus-square toggle-off fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+																				</div>
+																				<!--end::Arrow-->
+																				<!--begin::Logo-->
+																				<img src="~/assets/media/svg/card-logos/gcash.jpeg" class="w-40px me-3" alt="">
+																				<!--end::Logo-->
+																				<!--begin::Summary-->
+																				<div class="me-3">
+																					<div class="d-flex align-items-center fw-bold">
+																						Gcash
+																					</div>
+																				</div>
+																				<!--end::Summary-->
+																			</div>
+																			<!--end::Toggle-->
+																			<!--begin::Input-->
+																			@{
+																				string maskedPhone = data.value.PhoneNumber;
+																				if (!string.IsNullOrEmpty(maskedPhone) && maskedPhone.Length > 5)
+																				{
+																					maskedPhone = maskedPhone.Substring(0, maskedPhone.Length - 5) + new string('*', 5);
+																				}
+																			}
+																			<div class="d-flex my-3 ms-9">
+																				<label class="form-check form-check-custom form-check-solid me-5">
+																					<input class="form-check-input payment-option"
+																						   type="radio"
+																						   name="payment_method"
+																						   id="PaymentMethod"
+																						   value="@data.value.Id"
+																						   data-payment-type="Gcash"
+																						   data-payment-name="@data.value.Name"
+																						   data-payment-number="@maskedPhone"
+																						   data-payment-real-number="@data.value.PhoneNumber"
+																						   required>
+
+
+																				</label>
+																			</div>
+																			<!--end::Input-->
+																		</div>
+																		<!--end::Header-->
+																		<!--begin::Body-->
+																		<div id="@collapseId" class="collapse @(data.index == 0 ? "show" : "") fs-6 ps-10">
+																			<div class="d-flex flex-wrap py-5">
+																				<div class="flex-equal me-5">
+																					<table class="table table-flush fw-semibold gy-1">
+																						<tbody>
+																							<tr>
+																								<td class="text-muted min-w-125px w-125px">Name</td>
+																								<td class="text-gray-800">@data.value.Name</td>
+																							</tr>
+																							<tr>
+																								<td class="text-muted min-w-125px w-125px">Number</td>
+																								<td class="text-gray-800">@maskedPhone</td>
+																							</tr>
+																							<tr>
+																								<td class="text-muted min-w-125px w-125px">Type</td>
+																								<td class="text-gray-800">Gcash</td>
+																							</tr>
+																						</tbody>
+																					</table>
+																				</div>
+																			</div>
+																		</div>
+																		<!--end::Body-->
+																	</div>
+
+																	@if (Model.PaymentDetails.Count > 1 && data.index < Model.PaymentDetails.Count - 1)
+																	{
+																		<div class="separator separator-dashed"></div>
+																	}
+																}
+															}
+															else
+															{
+																<div class="text-center py-1">
+																	<p class="fst-italic">Please add payment method</p>
+																</div>
+															}
+															<!--end::Options-->
+														</div>
+														<!--end::Card body-->
+													</div>
+													<!--end::Payment method-->
+												</div>
+											</div>
+										}
 										<!--begin::Actions-->
 										<div class="d-flex flex-stack pt-10">
 											<!--begin::Wrapper-->
@@ -1292,7 +1452,7 @@ else
 				const latitude = $('input[name="Latitude"]').val();
 				const longitude = $('input[name="Longitude"]').val();
 				const logoFile = $('input[name="CampaignLogo"]')[0]?.files[0];
-
+				const PaymentDetails = $('#PaymentMethod').val();
 				console.log('Form Values:', {
 					campaignName,
 					campaignDescription,
@@ -1302,7 +1462,8 @@ else
 					province,
 					fullAddress,
 					latitude,
-					longitude
+					longitude,
+					PaymentDetails
 				});
 
 				// Validation
@@ -1311,11 +1472,15 @@ else
 					return;
 				}
 
+				if (!PaymentDetails || PaymentDetails.trim() === '') {
+					Swal.fire('Validation Error', 'Please enter payment details', 'warning');
+					return;
+				}
+
 				if (!campaignDescription || campaignDescription.trim() === '') {
 					Swal.fire('Validation Error', 'Please enter campaign description', 'warning');
 					return;
 				}
-
 				if (!selectedListingId) {
 					Swal.fire('Validation Error', 'Please select a job or training', 'warning');
 					return;
@@ -1342,6 +1507,7 @@ else
 				formData.append('FullAddress', fullAddress);
 				formData.append('Latitude', latitude);
 				formData.append('Longitude', longitude);
+				formData.append('PaymentDetailsId', PaymentDetails);
 
 				// Add logo if exists
 				if (logoFile) {
@@ -1370,23 +1536,28 @@ else
 
 				if (response.success) {
 					// ---- SUCCESS ----
-					Swal.fire({
-						title: 'Success!',
-						text: response.message,
-						icon: 'success',
-						showConfirmButton: true,          // show OK button
-						confirmButtonText: 'OK',
-						timer: false                      // no auto-close
-					}).then((result) => {
-						if (result.isConfirmed) {
-							// Reset form
-							$('#kt_modal_create_campaign_stepper_form')[0].reset();
-							selectedListingId = null;
+					 if (response.redirectUrl) {
+						window.location.href = response.redirectUrl; // 🔥 Do redirect here
+					}else{
 
-							// Reload the page
-							location.reload();
-						}
-					});
+						Swal.fire({
+							title: 'Success!',
+							text: response.message,
+							icon: 'success',
+							showConfirmButton: true,          // show OK button
+							confirmButtonText: 'OK',
+							timer: false                      // no auto-close
+						}).then((result) => {
+							if (result.isConfirmed) {
+								// Reset form
+								$('#kt_modal_create_campaign_stepper_form')[0].reset();
+								selectedListingId = null;
+
+								// Reload the page
+								location.reload();
+							}
+						});
+					}
 				} else {
 					// ---- SERVER-SIDE FAILURE ----
 					Swal.fire({

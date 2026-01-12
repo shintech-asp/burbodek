@@ -34,13 +34,15 @@ namespace burbodek.Controllers
             var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId).ToList();
             var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId).ToList();
             var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
+            var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
 
             var dashboard = new EmployerCampaignViewModel
             {
                 Subscription = data,
                 Jobs = jobs,
                 Training = training,
-                Campaign = campaigns
+                Campaign = campaigns,
+                PaymentDetails = userPaymentOption
             };
             return View(dashboard);
         }
@@ -119,45 +121,93 @@ namespace burbodek.Controllers
         public async Task<IActionResult> SubmitCampaign(Campaign campaign, IFormFile CampaignLogo)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userPlan = User.FindFirst("Plan")?.Value;
             ModelState.Remove("CreatedByUser");
             ModelState.Remove("SelectedTraining");
             ModelState.Remove("SelectedJob");
             ModelState.Remove("LogoFilePath");
             if (!ModelState.IsValid)
                 return BadRequest("Invalid campaign data.");
-
+            if(userPlan == "Basic" && campaign.PaymentDetailsId == null)
+            {
+                return Json(new { success = false, message = "Error: Please add a payment details "});
+            }
             try
             {
-                // ✅ Handle File Upload
-                if (CampaignLogo != null && CampaignLogo.Length > 0)
+                if(campaign.PaymentDetailsId != null)
                 {
-                    // Create upload folder if not existing
-                    string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
-                    if (!Directory.Exists(uploadPath))
-                        Directory.CreateDirectory(uploadPath);
-
-                    // Generate unique filename
-                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
-                    string filePath = Path.Combine(uploadPath, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    // ✅ Handle File Upload
+                    if (CampaignLogo != null && CampaignLogo.Length > 0)
                     {
-                        await CampaignLogo.CopyToAsync(fileStream);
+                        // Create upload folder if not existing
+                        string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
+                        if (!Directory.Exists(uploadPath))
+                            Directory.CreateDirectory(uploadPath);
+
+                        // Generate unique filename
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
+                        string filePath = Path.Combine(uploadPath, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await CampaignLogo.CopyToAsync(fileStream);
+                        }
+
+                        // Save relative path for database
+                        campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
                     }
 
-                    // Save relative path for database
-                    campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
+                    // ✅ Save campaign to database
+                    campaign.CreatedAt = DateTime.Now;
+                    campaign.IsActive = false; // You can set to "Active" if needed
+                    campaign.CreatedByUserId = userId;
+                    campaign.Payment = (decimal)(_context.Plans.FirstOrDefault(u => u.Id == 2).Price/10);
+                    campaign.isPaid = false;
+                    _context.Campaign.Add(campaign);
+                    await _context.SaveChangesAsync();
+
+                    // ✅ Return success
+                    TempData["campaignId"] = campaign.Id;
+                    return Json(new
+                    {
+                        success = true,
+                        redirectUrl = Url.Action("CheckoutCampaign", new { id = campaign.Id })
+                    });
+
                 }
+                else
+                {
+                    // ✅ Handle File Upload
+                    if (CampaignLogo != null && CampaignLogo.Length > 0)
+                    {
+                        // Create upload folder if not existing
+                        string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
+                        if (!Directory.Exists(uploadPath))
+                            Directory.CreateDirectory(uploadPath);
 
-                // ✅ Save campaign to database
-                campaign.CreatedAt = DateTime.Now;
-                campaign.IsActive =  true; // You can set to "Active" if needed
-                campaign.CreatedByUserId = userId;
-                _context.Campaign.Add(campaign);
-                await _context.SaveChangesAsync();
+                        // Generate unique filename
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
+                        string filePath = Path.Combine(uploadPath, uniqueFileName);
 
-                // ✅ Return success
-                return Json(new { success = true, message = "Campaign submitted successfully!" });
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await CampaignLogo.CopyToAsync(fileStream);
+                        }
+
+                        // Save relative path for database
+                        campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
+                    }
+
+                    // ✅ Save campaign to database
+                    campaign.CreatedAt = DateTime.Now;
+                    campaign.IsActive = true; // You can set to "Active" if needed
+                    campaign.CreatedByUserId = userId;
+                    _context.Campaign.Add(campaign);
+                    await _context.SaveChangesAsync();
+
+                    // ✅ Return success
+                    return Json(new { success = true, message = "Campaign submitted successfully!" });
+                }
             }
             catch (Exception ex)
             {
@@ -212,6 +262,68 @@ namespace burbodek.Controllers
             }
 
             return RedirectToAction("PaymentDetails");
+        }
+
+        public async Task<IActionResult> SuccessCampaignPayment()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            // Example: values you might pass via TempData or querystring
+            var campaign = TempData["Campaign"] != null ? Convert.ToInt32(TempData["Campaign"]) : 0;
+            int amount = TempData["Amount"] != null ? Convert.ToInt32(TempData["Amount"]) : 0;
+            var data = _context.Campaign.Find(campaign);
+            data.isPaid = true;
+            data.IsActive = true;
+            _context.Campaign.Update(data);
+            _context.SaveChanges();
+            return RedirectToAction("Index");
+        }
+        [HttpGet]
+        public async Task<IActionResult> CheckoutCampaign(int Id)
+        {
+            try
+            {
+
+                // ✅ Basic validation
+                if (Id <= 0 )
+                {
+                    // Return back with validation error
+                    TempData["Error"] = "Invalid checkout details. Please make sure all fields are filled correctly.";
+                    return RedirectToAction("Index", "Employer");
+                }
+                var campaign = _context.Campaign.FirstOrDefault(u => u.Id == Id);
+                var userDetails = _context.Users.Find(campaign.CreatedByUserId);
+                var paymentDetails = _context.PaymentDetails.FirstOrDefault(u => u.Id == campaign.PaymentDetailsId);
+                // ✅ Create checkout session
+                var responseJson = await _paymongo.CreateCheckoutCampaignSession(
+                    campaign.Payment,
+                    "PHP",
+                    paymentDetails.Name,
+                    userDetails.Email,
+                    paymentDetails.PhoneNumber,
+                    "Campaign"
+                );
+
+                // ✅ Parse response
+                var json = JObject.Parse(responseJson);
+                var checkoutUrl = json["data"]?["attributes"]?["checkout_url"]?.ToString();
+
+                if (string.IsNullOrEmpty(checkoutUrl))
+                {
+                    TempData["Error"] = "Failed to retrieve checkout URL. Please try again later.";
+                    return RedirectToAction("Subscription", "Employer");
+                }
+
+                TempData["Campaign"] = campaign.Id;
+                TempData["Amount"] = (int)campaign.Payment;
+
+                return Redirect(checkoutUrl);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Checkout failed: {ex.Message}";
+                return RedirectToAction("Index", "Employer");
+            }
         }
         [HttpPost]
         public async Task<IActionResult> Checkout(decimal amount, string planName, string email, string? contact, string username)
@@ -2441,11 +2553,7 @@ namespace burbodek.Controllers
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Attachments)
                     .FirstOrDefaultAsync(t =>
-                        t.Id == id &&
-                        t.Emails.Any(e =>
-                            (e.SenderID == currentUserId &&
-                             e.Recipients.Any(r => !r.IsTrashed && !r.Email.Thread.IsTrashed))
-                        )
+                        t.Id == id
                     );
                 if (thread == null)
                 {

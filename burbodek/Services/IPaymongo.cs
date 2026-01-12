@@ -9,6 +9,13 @@
            string email,
            string contact,
            string productNames);
+        public Task<string> CreateCheckoutCampaignSession(
+          decimal? amount,
+          string currency,
+          string name,
+          string email,
+          string contact,
+          string productNames);
         public Task<string> TrainingCheckout(
          decimal amount,
          string currency,

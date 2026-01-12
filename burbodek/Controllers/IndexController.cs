@@ -22,7 +22,15 @@ namespace burbodek.Controllers
         }
         public IActionResult Index()
         {
-            return View();
+            var data = _context.Faq.ToList();
+            var FaqTitle = _context.FaqTitle.OrderByDescending(u => u.Id).FirstOrDefault();
+
+            var model = new FAQViewModel
+            {
+                Faqs = data,
+                FaqTitle = FaqTitle
+            };
+            return View(model);
         }
 
         public IActionResult BrowseJob(string keyword, string location, int page = 1)
@@ -130,7 +138,14 @@ namespace burbodek.Controllers
                 ModelState.AddModelError("Email", "No account found with this email.");
                 return View();
             }
-
+            if(user.EmployerDetails != null)
+            {
+                if (user.EmployerDetails.Status == "For Approval")
+                {
+                    TempData["Status"] = "Your account is still pending for admins approval.";
+                    return View();
+                }
+            }
             var passwordHasher = new PasswordHasher<Users>();
             var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
 

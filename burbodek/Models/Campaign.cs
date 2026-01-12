@@ -29,5 +29,10 @@
         public Jobs? SelectedJob { get; set; }
         public Training? SelectedTraining { get; set; }
         public int TotalClicks { get; set; }
+
+        public int? PaymentDetailsId { get; set; }
+        public PaymentDetails? PaymentDetails { get; set; }
+        public decimal? Payment { get; set; }
+        public bool? isPaid { get; set; }
     }
 }
