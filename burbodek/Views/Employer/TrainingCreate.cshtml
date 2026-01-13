@@ -110,17 +110,23 @@
                 <hr />
                 <h5>Upload settings</h5>
             </div>
+
             <div class="row">
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="Resume">
-                        <label class="form-check-label fw-bold" for="resumeSwitch">Resume</label>
+                        <input type="hidden" name="Uploads[0].Name" value="Resume" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[0].IsActive" value="true">
+                        <input type="hidden" name="Uploads[0].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Resume</label>
                     </div>
                 </div>
+
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="PassportId">
-                        <label class="form-check-label fw-bold" for="passportSwitch">Passport ID</label>
+                        <input type="hidden" name="Uploads[1].Name" value="Passport ID" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[1].IsActive" value="true">
+                        <input type="hidden" name="Uploads[1].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Passport ID</label>
                     </div>
                 </div>
             </div>
@@ -128,14 +134,19 @@
             <div class="row">
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="SeamansBook">
-                        <label class="form-check-label fw-bold" for="seamansSwitch">Seaman's Book</label>
+                        <input type="hidden" name="Uploads[2].Name" value="Seaman's Book" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[2].IsActive" value="true">
+                        <input type="hidden" name="Uploads[2].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Seaman's Book</label>
                     </div>
                 </div>
+
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="Tor">
-                        <label class="form-check-label fw-bold" for="torSwitch">Transcript of Records</label>
+                        <input type="hidden" name="Uploads[3].Name" value="Transcript of Records" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[3].IsActive" value="true">
+                        <input type="hidden" name="Uploads[3].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Transcript of Records</label>
                     </div>
                 </div>
             </div>
@@ -143,17 +154,31 @@
             <div class="row">
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="Diploma">
-                        <label class="form-check-label fw-bold" for="diplomaSwitch">Diploma</label>
+                        <input type="hidden" name="Uploads[4].Name" value="Diploma" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[4].IsActive" value="true">
+                        <input type="hidden" name="Uploads[4].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Diploma</label>
                     </div>
                 </div>
+
                 <div class="col">
                     <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" value="true" name="Coe">
-                        <label class="form-check-label fw-bold" for="coeSwitch">Certificate of Employment</label>
+                        <input type="hidden" name="Uploads[5].Name" value="Certificate of Employment" />
+                        <input class="form-check-input" type="checkbox" name="Uploads[5].IsActive" value="true">
+                        <input type="hidden" name="Uploads[5].IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Certificate of Employment</label>
                     </div>
                 </div>
             </div>
+
+            <div id="dynamicSwitchContainer" class="row"></div>
+
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" id="newSwitch">+ Add More</button>
+                </div>
+            </div>
+
             <!-- Submit -->
             <div class="text-end">
                 <button type="submit" class="btn btn-primary">Create Training</button>
@@ -174,6 +199,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let index = 6;
+
+                    $("#newSwitch").click(function (e) {
+            e.preventDefault();
+
+            let html = `
+            <div class="col-6">
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="Uploads[${index}].IsActive"
+                           value="true">
+                    <input type="hidden" name="Uploads[${index}].IsActive" value="false">
+                    <input type="text"
+                           class="form-control mt-2"
+                           name="Uploads[${index}].Name"
+                           placeholder="Upload name" required>
+                </div>
+            </div>`;
+
+            $("#dynamicSwitchContainer").append(html);
+            index++;
+        });
             $("#PaymentOption").on('change', function(){
                 if($(this).val() == "Down"){
                     $("#PaymentForm").append(`
@@ -181,9 +229,19 @@
                         <div class="col">
                             <label class="form-label">Down payment</label>
                             <div class="input-group input-group-solid mb-5">
-                                <input type="text" class="form-control" name="DownPayment" placeholder="5000" aria-describedby="basic-addon2">
-                                <span class="input-group-text" id="basic-addon2">₱/Peso</span>
+                                <input type="text"
+                                        class="form-control"
+                                        name="DownPayment"
+                                        placeholder="5000">
+
+                                <select class="form-select input-group-text"
+                                        name="Unit"
+                                        style="max-width:120px">
+                                    <option value="PHP" selected>₱ PHP</option>
+                                    <option value="Percentage">% PERCENT</option>
+                                </select>
                             </div>
+
                         </div>
                     </div>`)
                 }else{

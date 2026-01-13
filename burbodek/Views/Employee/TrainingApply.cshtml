@@ -158,84 +158,27 @@
 						</div>
 						<!--end::Input group-->
 						<!-- Upload Media -->
-						@if (Model.Training.Coe)
+						@if (Model.Training.TrainingUploads != null)
 						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Certificate of Employment</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Coe" />
+							var uploadsList = Model.Training.TrainingUploads.ToList();
+							@for (int i = 0; i < uploadsList.Count; i++)
+							{
+								var data = uploadsList[i];
+
+								<div class="mb-5">
+									<label class="form-label fw-bold required">@data.Name</label>
+
+									<div class="card">
+										<div class="card-body">
+											<input type="hidden" name="Uploads[@i].TrainingUploadsId" value="@data.Id" />
+											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
+										</div>
 									</div>
 								</div>
-							</div>
+							}
+
 						}
-						@if (Model.Training.Tor)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Transcript of Records</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Tor" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Training.Diploma)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Diploma</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Diploma" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Training.PassportId)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Passport Id</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.PassportId" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Training.Resume)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Resume</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Resume" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Training.SeamansBook)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Seaman's Book</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.SeamansBook" />
-									</div>
-								</div>
-							</div>
-						}
+
 					}
 					else
 					{
@@ -618,15 +561,32 @@
 								</div>
 								@if(Model.Training.PaymentOption == "Down")
 								{
+									@if (Model.Training.Unit == "PHP" || Model.Training.Unit == null)
+									{
+										<div class="d-flex align-items-center mb-3">
+											<!--begin::Bullet-->
+											<span class="bullet me-3"></span>
+											<!--end::Bullet-->
+											<!--begin::Label-->
 
-									<div class="d-flex align-items-center mb-3">
-										<!--begin::Bullet-->
-										<span class="bullet me-3"></span>
-										<!--end::Bullet-->
-										<!--begin::Label-->
-										<div class="text-gray-600 fw-semibold fs-6">Required @Model.Training.DownPayment as downpayment</div>
-										<!--end::Label-->
-									</div>
+											<div class=" fw-semibold fs-6 required text-danger fst-italic">Required ₱@Model.Training.DownPayment as downpayment</div>
+											<!--end::Label-->
+										</div>
+									}
+									else if (Model.Training.Unit == "Percentage")
+									{
+										<div class="d-flex align-items-center mb-3">
+											<!--begin::Bullet-->
+											<span class="bullet me-3"></span>
+											<!--end::Bullet-->
+											<!--begin::Label-->
+
+											<div class=" fw-semibold fs-6 required text-danger fst-italic">
+												Required ₱@(((Model.Training.DownPayment ?? 0) / 100m * Model.Training.Price).ToString("N2")) as downpayment
+											</div>
+											<!--end::Label-->
+										</div>
+									}
 								}
 								else
 								{

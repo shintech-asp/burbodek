@@ -445,6 +445,7 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
                         .Include(u => u.TrainingApplication.Where(ap => ap.AppliedBy == userId))
+                        .Include(u => u.TrainingUploads.Where(ap => ap.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
             return View(data);
@@ -1662,6 +1663,7 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingUploads.Where(u => u.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
             var userInfo = _context.TrainingApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
@@ -1678,7 +1680,14 @@ namespace burbodek.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TrainingApply(TrainingApplication model, int Id, IFormFile? ResumeFile, IFormFile? CoeFile, IFormFile? TorFile, IFormFile? SeamansBookFile, IFormFile? PassportIdFile, IFormFile? DiplomaFile, string? redirect)
         {
-            // Remove unrelated properties from ModelState
+            ModelState.Keys
+            .Where(k => k.EndsWith("TrainingUploads"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.EndsWith("Upload"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
             ModelState.Remove("Jobs");
             ModelState.Remove("AppliedBy");
             ModelState.Remove("CV");
@@ -1686,14 +1695,6 @@ namespace burbodek.Controllers
 
             model.TrainingId = Id;
             model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value ?? throw new InvalidOperationException("User ID not found"));
-
-            // Debug: Log all received files
-            Console.WriteLine($"ResumeFile: {(ResumeFile != null ? ResumeFile.FileName : "null")}");
-            Console.WriteLine($"CoeFile: {(CoeFile != null ? CoeFile.FileName : "null")}");
-            Console.WriteLine($"TorFile: {(TorFile != null ? TorFile.FileName : "null")}");
-            Console.WriteLine($"SeamansBookFile: {(SeamansBookFile != null ? SeamansBookFile.FileName : "null")}");
-            Console.WriteLine($"PassportIdFile: {(PassportIdFile != null ? PassportIdFile.FileName : "null")}");
-            Console.WriteLine($"DiplomaFile: {(DiplomaFile != null ? DiplomaFile.FileName : "null")}");
 
             if (!ModelState.IsValid)
             {
@@ -1724,7 +1725,6 @@ namespace burbodek.Controllers
 
                 return "/uploads/requirements/" + uniqueFileName;
             }
-
             var trainingApplication = new TrainingApplication
             {
                 TrainingId = model.TrainingId,
@@ -1734,16 +1734,21 @@ namespace burbodek.Controllers
                 MobileNo = model.MobileNo,
                 Age = model.Age,
                 City = model.City,
-                PaymentStatus = model.PaymentStatus,
-                Resume = await SaveFile(ResumeFile),
-                Diploma = await SaveFile(DiplomaFile),
-                PassportId = await SaveFile(PassportIdFile),
-                Tor = await SaveFile(TorFile),
-                Coe = await SaveFile(CoeFile),
-                SeamansBook = await SaveFile(SeamansBookFile)
+                PaymentStatus = model.PaymentStatus
             };
             _context.TrainingApplication.Add(trainingApplication);
             await _context.SaveChangesAsync();
+
+            foreach (var data in model.Uploads)
+            {
+                var uploads = new ApplicantTrainingUpload
+                {
+                    TrainingUploadsId = data.TrainingUploadsId,
+                    Upload = await SaveFile(data.File)
+                };
+                _context.ApplicantTrainingUpload.Add(uploads);
+                await _context.SaveChangesAsync();
+            }
 
             var trainingDesc = _context.Training
                 .Include(t => t.Users)

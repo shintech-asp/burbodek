@@ -16,6 +16,7 @@
         public ICollection<TrainingBenefits> TrainingBenefits { get; set; } = new List<TrainingBenefits>();
         public ICollection<TrainingMedia> TrainingMedia { get; set; } = new List<TrainingMedia>();
         public ICollection<TrainingApplication> TrainingApplication { get; set; } = new List<TrainingApplication>();
+        public ICollection<TrainingUploads> TrainingUploads { get; set; } = new List<TrainingUploads>();
         public bool Diploma { get; set; }
         public bool Resume { get; set; }
         public bool PassportId { get; set; }
@@ -25,6 +26,7 @@
         public string PaymentOption { get; set; }
         public string ModeOfPayment { get; set; }
         public decimal? DownPayment { get; set; }
+        public string? Unit { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }

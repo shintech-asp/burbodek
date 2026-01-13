@@ -1,4 +1,5 @@
 ﻿@using Humanizer
+@using System.Globalization
 @{
 	ViewData["Title"] = "Training Information";
 	Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
@@ -296,15 +297,31 @@
 								</div>
 								@if (Model.DownPayment != null)
 								{
-									<div class="d-flex align-items-center mb-3">
-										<!--begin::Bullet-->
-										<span class="bullet me-3"></span>
-										<!--end::Bullet-->
-										<!--begin::Label-->
+									@if(Model.Unit == "PHP" || Model.Unit == null)
+									{
+										<div class="d-flex align-items-center mb-3">
+											<!--begin::Bullet-->
+											<span class="bullet me-3"></span>
+											<!--end::Bullet-->
+											<!--begin::Label-->
 
 											<div class=" fw-semibold fs-6 required text-danger fst-italic">It requires a minimum downpayment of ₱@Model.DownPayment</div>
-										<!--end::Label-->
-									</div>
+											<!--end::Label-->
+										</div>
+									}else if(Model.Unit == "Percentage")
+									{
+										<div class="d-flex align-items-center mb-3">
+											<!--begin::Bullet-->
+											<span class="bullet me-3"></span>
+											<!--end::Bullet-->
+											<!--begin::Label-->
+
+											<div class=" fw-semibold fs-6 required text-danger fst-italic">
+												It requires a minimum downpayment of ₱@(((Model.DownPayment ?? 0) / 100m * Model.Price).ToString("N2"))
+											</div>
+											<!--end::Label-->
+										</div>
+									}
 								}
 								<!--end::Row-->
 								<div class="d-flex align-items-center mb-3">

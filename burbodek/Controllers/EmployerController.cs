@@ -2111,15 +2111,21 @@ namespace burbodek.Controllers
         [HttpPost]
         public async Task<IActionResult> TrainingCreate(TrainingCreateViewModel model,  List<string> Requirement, List<string> Benefit)
         {
-            if(model.PaymentOption == "Full")
+            ModelState.Keys
+            .Where(k => k.StartsWith("Uploads"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
+            if (model.PaymentOption == "Full")
             {
                 ModelState.Remove("DownPayment");
+                ModelState.Remove("Unit");
             }
             if (!ModelState.IsValid)
             {
                 TempData["error"] = "Please fill up all the details.";
                 return View(model);
             }
+            
 
             var train = new Training
             {
@@ -2129,20 +2135,33 @@ namespace burbodek.Controllers
                 Expiration = model.Expiration,
                 TrainingDescription = model.TrainingDescription,
                 Duration = model.Duration,
-                Diploma = model.Diploma,
-                Resume = model.Resume,
-                Tor = model.Tor,
-                Coe = model.Coe,
-                SeamansBook = model.SeamansBook,
-                PassportId = model.PassportId,
+                Diploma = false,
+                Resume = false,
+                Tor = false,
+                Coe = false,
+                SeamansBook = false,
+                PassportId = false,
                 PaymentOption = model.PaymentOption,
                 ModeOfPayment = model.ModeOfPayment,
-                DownPayment = model.DownPayment
+                DownPayment = model.DownPayment,
+                Unit = model.Unit
             };
 
             _context.Training.Add(train);
             await _context.SaveChangesAsync();
 
+            foreach (var data in model.Uploads)
+            {
+                var trainUploads = new TrainingUploads
+                {
+                    TrainingId = train.Id,
+                    Name = data.Name,
+                    isActive = data.isActive
+                };
+
+                _context.TrainingUploads.Add(trainUploads);
+                await _context.SaveChangesAsync();
+            }
             // Requirements (many)
             foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
             {

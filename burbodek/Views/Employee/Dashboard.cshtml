@@ -328,142 +328,143 @@
 
 	}
 </style>
-
-<div class="feed-wrapper">
-	<!-- Main Feed (Scrollable) -->
-	<div class="feed-main">
-		@foreach (var campaign in Model.Campaign.OrderByDescending(c => c.CreatedAt))
-		{
-			@if (!Model.Campaign.Any())
-			{
-				<!--begin::Empty State - No Campaigns-->
-				<div class="text-center py-10 px-4">
-					<img src="~/assets/media/illustrations/sketchy-1/5.png"
-						 class="mw-100 mh-250px mb-6"
-						 alt="No campaigns" />
-
-					<h4 class="fw-bold text-gray-800 mb-3">
-						No campaigns yet
-					</h4>
-
-					<p class="text-gray-600 fs-6 mb-0">
-						When employers post job or training campaigns,<br>they will appear here.
-					</p>
-				</div>
-				<!--end::Empty State-->
-			}
-			<div class="feed-card">
-				<!-- Post Header -->
-				<div class="feed-header">
-					<img src="@(campaign.LogoFilePath ?? "~/assets/media/avatars/default.jpg")"
-						 class="feed-avatar"
-						 alt="@campaign.CampaignName" />
-					<div class="feed-user-info flex-grow-1">
-						<h6>@campaign.CampaignName</h6>
-						<p class="feed-timestamp">@campaign.CreatedAt.Humanize()</p>
-					</div>
-				</div>
-
-				<!-- Post Content -->
-				@if (!string.IsNullOrEmpty(campaign.CampaignDescription))
+<div class="row">
+	<div class="col-9">
+		<div class="feed-wrapper">
+			<!-- Main Feed (Scrollable) -->
+			<div class="feed-main">
+				@if (Model.Campaign.Count == 0)
 				{
-					<div class="feed-content">
-						<p class="feed-text">@campaign.CampaignDescription</p>
+					<!--begin::Empty State - No Campaigns-->
+					<div class="text-center py-10 px-4">
+						<img src="~/assets/media/illustrations/sketchy-1/5.png"
+							 class="mw-100 mh-250px mb-6"
+							 alt="No campaigns" />
+
+						<h4 class="fw-bold text-gray-800 mb-3">
+							No campaigns yet
+						</h4>
+
+						<p class="text-gray-600 fs-6 mb-0">
+							When employers post job or training campaigns,<br>they will appear here.
+						</p>
 					</div>
+					<!--end::Empty State-->
 				}
-
-				<!-- Post Image -->
-				@if (!string.IsNullOrEmpty(campaign.LogoFilePath))
+				@foreach (var campaign in Model.Campaign.OrderByDescending(c => c.CreatedAt))
 				{
-					<img src="@campaign.LogoFilePath"
-						 class="feed-image"
-						 alt="@campaign.CampaignName" />
-				}
+					<div class="feed-card">
+						<!-- Post Header -->
+						<div class="feed-header">
+							<img src="@(campaign.LogoFilePath ?? "~/assets/media/avatars/default.jpg")"
+								 class="feed-avatar"
+								 alt="@campaign.CampaignName" />
+							<div class="feed-user-info flex-grow-1">
+								<h6>@campaign.CampaignName</h6>
+								<p class="feed-timestamp">@campaign.CreatedAt.Humanize()</p>
+							</div>
+						</div>
 
-				<!-- Post Stats -->
-				<div class="feed-stats">
-					<div class="feed-views">
-						<i class="ki-duotone ki-eye fs-5"></i>
-						<span>@campaign.TotalClicks views</span>
-					</div>
-				</div>
+						<!-- Post Content -->
+						@if (!string.IsNullOrEmpty(campaign.CampaignDescription))
+						{
+							<div class="feed-content">
+								<p class="feed-text">@campaign.CampaignDescription</p>
+							</div>
+						}
 
-				<!-- Post Actions -->
-				<div class="feed-actions">
-					@if(campaign.ListingType == "Jobs")
-					{
-						<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="JobViewCampaign"asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
-							<i class="ki-duotone ki-arrow-right fs-3"></i>
-							View Details
-						</a>
-					}
-					else
-					{
-						<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="TrainingViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
-							<i class="ki-duotone ki-arrow-right fs-3"></i>
-							View Details
-						</a>
-					}
-				</div>
-			</div>
-		}
-	</div>
+						<!-- Post Image -->
+						@if (!string.IsNullOrEmpty(campaign.LogoFilePath))
+						{
+							<img src="@campaign.LogoFilePath"
+								 class="feed-image"
+								 alt="@campaign.CampaignName" />
+						}
 
-	<!-- Right Sidebar (Fixed) -->
-	<div class="feed-sidebar">
-		<div class="payment-sidebar">
-			<div class="payment-header">
-				<h5 class="payment-title">Training Pending Payment</h5>
-			</div>
+						<!-- Post Stats -->
+						<div class="feed-stats">
+							<div class="feed-views">
+								<i class="ki-duotone ki-eye fs-5"></i>
+								<span>@campaign.TotalClicks views</span>
+							</div>
+						</div>
 
-			@if (Model != null && Model.Training.Count > 0)
-			{
-				@foreach (var data in Model.Training)
-				{
-					<div class="payment-item">
-						<a href="#" class="payment-training-name">@data.TrainingApplication.Training.Name</a>
-						<span class="payment-username">@data.TrainingApplication.Training.Users.Username</span>
-
-						<div class="payment-details">
-							<span class="payment-price">₱@data.Price.ToString("N0")</span>
-
-							@if (data.ModeOfPayment == "Cash" && data.PaymentOption == "Full")
+						<!-- Post Actions -->
+						<div class="feed-actions">
+							@if (campaign.ListingType == "Jobs")
 							{
-								<span class="payment-badge badge-reserved">Slot Reserved</span>
+								<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="JobViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+									<i class="ki-duotone ki-arrow-right fs-3"></i>
+									View Details
+								</a>
 							}
 							else
 							{
-								@if (data.Paid == null)
-								{
-									<span class="payment-badge badge-pending">Pending</span>
-								}
-								else if (data.Paid != data.Price)
-								{
-									<span class="payment-badge badge-paid">Paid Downpayment</span>
-								}
-								else
-								{
-									<span class="payment-badge badge-full">Fully Paid</span>
-								}
+								<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="TrainingViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+									<i class="ki-duotone ki-arrow-right fs-3"></i>
+									View Details
+								</a>
 							}
-
-							<a asp-action="TrainingPayment" asp-controller="Employee" asp-route-Id="@data.Id" class="payment-view-btn">
-								<i class="ki-duotone ki-arrow-right fs-4"></i>
-							</a>
-						</div>
-
-						<div class="payment-due">
-							Due: @data.TrainingApplication.Training.Expiration.Humanize()
 						</div>
 					</div>
 				}
-			}
-			else
-			{
-				<div class="payment-empty">
-					No training pending for payment.
+			</div>
+		</div>
+	</div>
+	<div class="col-3">
+		<!-- Right Sidebar (Fixed) -->
+		<div class="feed-sidebar">
+			<div class="payment-sidebar">
+				<div class="payment-header">
+					<h5 class="payment-title">Training Pending Payment</h5>
 				</div>
-			}
+
+				@if (Model != null && Model.Training.Count > 0)
+				{
+					@foreach (var data in Model.Training)
+					{
+						<div class="payment-item">
+							<a asp-action ="TrainingPayment" asp-controller="Employee" asp-route-Id="@data.Id" class="payment-training-name">
+								@data.TrainingApplication.Training.Name</a>
+							<span class="payment-username">@data.TrainingApplication.Training.Users.Username</span>
+
+							<div class="payment-details">
+								<span class="payment-price">₱@data.Price.ToString("N0")</span>
+
+								@if (data.ModeOfPayment == "Cash" && data.PaymentOption == "Full")
+								{
+									<span class="payment-badge badge-reserved">Slot Reserved</span>
+								}
+								else
+								{
+									@if (data.Paid == null)
+									{
+										<span class="payment-badge badge-pending">Pending</span>
+									}
+									else if (data.Paid != data.Price)
+									{
+										<span class="payment-badge badge-paid">Paid Downpayment</span>
+									}
+									else
+									{
+										<span class="payment-badge badge-full">Fully Paid</span>
+									}
+								}
+							</div>
+
+							<div class="payment-due">
+								Due: @data.TrainingApplication.Training.Expiration.Humanize()
+							</div>
+						</div>
+					}
+				}
+				else
+				{
+					<div class="payment-empty">
+						No training pending for payment.
+					</div>
+				}
+			</div>
 		</div>
 	</div>
 </div>
