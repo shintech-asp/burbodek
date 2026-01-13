@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260113024416_AddUnitOFCash")]
+    partial class AddUnitOFCash
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,32 +24,6 @@ namespace burbodek.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("burbodek.Models.ApplicantTrainingUpload", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("TrainingApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TrainingUploadsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Upload")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TrainingApplicationId");
-
-                    b.HasIndex("TrainingUploadsId");
-
-                    b.ToTable("ApplicantTrainingUpload");
-                });
 
             modelBuilder.Entity("burbodek.Models.Campaign", b =>
                 {
@@ -1171,21 +1148,6 @@ namespace burbodek.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.ApplicantTrainingUpload", b =>
-                {
-                    b.HasOne("burbodek.Models.TrainingApplication", null)
-                        .WithMany("Uploads")
-                        .HasForeignKey("TrainingApplicationId");
-
-                    b.HasOne("burbodek.Models.TrainingUploads", "TrainingUploads")
-                        .WithMany()
-                        .HasForeignKey("TrainingUploadsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TrainingUploads");
-                });
-
             modelBuilder.Entity("burbodek.Models.Campaign", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "CreatedByUser")
@@ -1567,8 +1529,6 @@ namespace burbodek.Migrations
                     b.Navigation("TrainingCertificate");
 
                     b.Navigation("TrainingPayments");
-
-                    b.Navigation("Uploads");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

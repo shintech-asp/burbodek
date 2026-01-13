@@ -26,12 +26,15 @@ namespace burbodek.Data
         public DbSet<TrainingPayments> TrainingPayments { get; set; }
         public DbSet<TrainingApplication> TrainingApplication { get; set; }
         public DbSet<TrainingCertificate> TrainingCertificate { get; set; }
+        public DbSet<ApplicantTrainingUpload> ApplicantTrainingUpload { get; set; }
         public DbSet<Subscription> Subscription { get; set; }
         public DbSet<EmailThread> EmailThreads { get; set; }
         public DbSet<Email> Emails { get; set; }
         public DbSet<Campaign> Campaign { get; set; }
         public DbSet<Faq> Faq { get; set; }
         public DbSet<FaqTitle> FaqTitle { get; set; }
+        public DbSet<JobUploads> JobUploads { get; set; }
+        public DbSet<TrainingUploads> TrainingUploads { get; set; }
         public DbSet<EmailRecipient> EmailRecipients { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<EmailTemplate> EmailTemplate { get; set; }
