@@ -382,7 +382,13 @@ namespace burbodek.Controllers
                                     .ThenInclude(u => u.Training)
                                         .ThenInclude(u => u.Users)
                                 .Where(u => u.UsersId == userId && u.TrainingApplication.Training.Expiration >= DateTime.Now && u.ModeOfPayment == "E-wallet" && u.Paid == null).ToList();
-            return View(data);
+            var campaign = _context.Campaign.Where(u => u.IsActive).ToList();
+            var dashboard = new EmployeeDashboardViewModel
+            {
+                Training = data,
+                Campaign = campaign
+            };
+            return View(dashboard);
         }
         public IActionResult JobInfo(int Id)
         {
@@ -399,7 +405,36 @@ namespace burbodek.Controllers
                         .FirstOrDefault();
             return View(data);
         }
+        public IActionResult TrainingViewCampaign(int Id, int CampaignId)
+        {
+            var data = _context.Campaign.Find(CampaignId);
+            if (data == null)
+            {
+                // You can redirect to an error page or show a message
+                return NotFound("Campaign not found");
+            }
 
+            data.TotalClicks += 1;
+            _context.Campaign.Update(data);
+            _context.SaveChanges();
+
+            return RedirectToAction("TrainingInfo", new { Id = Id });
+        }
+        public IActionResult JobViewCampaign(int Id, int CampaignId)
+        {
+            var data = _context.Campaign.Find(CampaignId);
+            if (data == null)
+            {
+                // You can redirect to an error page or show a message
+                return NotFound("Campaign not found");
+            }
+
+            data.TotalClicks += 1;
+            _context.Campaign.Update(data);
+            _context.SaveChanges();
+
+            return RedirectToAction("JobInfo", new { Id = Id });
+        }
         public IActionResult TrainingInfo(int Id)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -1710,7 +1745,11 @@ namespace burbodek.Controllers
             _context.TrainingApplication.Add(trainingApplication);
             await _context.SaveChangesAsync();
 
-            var trainingDesc = _context.Training.FirstOrDefault(u => u.Id == model.TrainingId);
+            var trainingDesc = _context.Training
+                .Include(t => t.Users)
+                .ThenInclude(u => u.EmployerDetails)
+                .FirstOrDefault(u => u.Id == model.TrainingId);
+
             var trainingPayment = new TrainingPayments
             {
                 UsersId = model.AppliedBy,
@@ -1723,7 +1762,156 @@ namespace burbodek.Controllers
 
             _context.TrainingPayments.Add(trainingPayment);
             await _context.SaveChangesAsync();
-            if(redirect == null)
+
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var sendEmail = new EmailThread
+            {
+                Subject = "Thank you for applying!",
+                CreatedBy = trainingDesc.UsersId,
+                CreatedAt = DateTime.Now
+            };
+            _context.EmailThreads.Add(sendEmail);
+            await _context.SaveChangesAsync();
+
+            var email = new Email
+            {
+                Thread = sendEmail,
+                SenderID = trainingDesc.UsersId,
+                Body = @"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                            margin: 0;
+                            padding: 0;
+                            background-color: #f5f5f5;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 20px auto;
+                            background-color: #ffffff;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                            overflow: hidden;
+                        }
+                        .header {
+                            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+                            color: white;
+                            padding: 40px 20px;
+                            text-align: center;
+                        }
+                        .header h1 {
+                            margin: 0;
+                            font-size: 28px;
+                            font-weight: 600;
+                        }
+                        .content {
+                            padding: 40px;
+                        }
+                        .greeting {
+                            font-size: 16px;
+                            margin-bottom: 20px;
+                            color: #333;
+                        }
+                        .highlight-box {
+                            background-color: #e8f4f8;
+                            border-left: 4px solid #0066cc;
+                            padding: 20px;
+                            margin: 25px 0;
+                            border-radius: 4px;
+                        }
+                        .highlight-box p {
+                            margin: 8px 0;
+                            font-size: 15px;
+                        }
+                        .highlight-label {
+                            font-weight: 600;
+                            color: #0066cc;
+                            font-size: 12px;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        }
+                        .highlight-value {
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: #333;
+                            margin-top: 5px;
+                        }
+                        .body-text {
+                            font-size: 15px;
+                            line-height: 1.7;
+                            color: #555;
+                            margin-bottom: 20px;
+                        }
+                        .footer {
+                            background-color: #f9f9f9;
+                            padding: 20px;
+                            border-top: 1px solid #e0e0e0;
+                            text-align: center;
+                            font-size: 12px;
+                            color: #888;
+                        }
+                        .divider {
+                            height: 1px;
+                            background-color: #e0e0e0;
+                            margin: 30px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>✓ Application Received</h1>
+                        </div>
+                        <div class='content'>
+                            <p class='greeting'>Dear " + model.FirstName + @" " + model.LastName + @",</p>
+                            <p class='body-text'>Thank you for applying to the <strong>" + trainingDesc.Name + @"</strong> training program at <strong>" + trainingDesc.Users.EmployerDetails.BusinessName + @"</strong>. We've received your application and appreciate your interest.</p>
+                            
+                            <div class='highlight-box'>
+                                <p class='highlight-label'>What's Next?</p>
+                                <p class='body-text' style='margin: 10px 0; font-size: 14px;'>Our team is currently reviewing applications. If your qualifications match what we're looking for, we'll reach out to schedule an interview.</p>
+                            </div>
+                            
+                            <p class='body-text'>In the meantime, feel free to explore more about " + trainingDesc.Users.EmployerDetails.BusinessName + @" and learn about our training programs and values.</p>
+                            
+                            <div class='divider'></div>
+                            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + trainingDesc.Users.EmployerDetails.BusinessName + @" Team</strong></p>
+                        </div>
+                        <div class='footer'>
+                            <p>This is an automated message from " + trainingDesc.Users.EmployerDetails.BusinessName + @". Please do not reply to this email.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+        ",
+                SentAt = DateTime.Now,
+                IsDraft = false,
+                IsTrashed = false,
+                IsRead = false,
+                IsStarred = false
+            };
+            _context.Emails.Add(email);
+            await _context.SaveChangesAsync();
+
+            var emailRecipient = new EmailRecipient
+            {
+                EmailID = email.Id,
+                RecipientID = userId,
+                RecipientType = RecipientType.TO,
+                IsRead = false,
+                IsTrashed = false,
+                IsStarred = false
+            };
+            _context.EmailRecipients.Add(emailRecipient);
+            await _context.SaveChangesAsync();
+
+            if (redirect == null)
             {
                 TempData["success"] = "Application submitted successfully!";
                 return RedirectToAction("Index");
@@ -1743,7 +1931,7 @@ namespace burbodek.Controllers
             ModelState.Remove("CV");
 
             model.JobsId = Id;
-            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value ?? throw new InvalidOperationException("User ID not found"));
+            model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
 
             // Debug: Log all received files
             Console.WriteLine($"ResumeFile: {(ResumeFile != null ? ResumeFile.FileName : "null")}");
@@ -1807,6 +1995,64 @@ namespace burbodek.Controllers
             _context.JobApplication.Add(jobApplication);
             await _context.SaveChangesAsync();
 
+            var job = await _context.Jobs
+           .Include(j => j.Users)
+            .ThenInclude(j => j.EmployerDetails)
+           .FirstOrDefaultAsync(j => j.Id == Id);
+
+            // Get the applicant user details
+            var applicant = await _context.Users.FirstOrDefaultAsync(u => u.Id == model.AppliedBy);
+
+            // Get the "Applied" email template
+            var emailTemplate = await _context.EmailTemplate
+                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied" && et.UsersId == job.UsersId);
+
+            if (emailTemplate != null && applicant != null)
+            {
+                // Replace template variables
+                string subject = emailTemplate.Subject
+                    .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
+                    .Replace("{{JobTitle}}", job.JobTitle)
+                    .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+
+                string body = emailTemplate.Body
+                    .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
+                    .Replace("{{JobTitle}}", job.JobTitle)
+                    .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+            }
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var sendEmail = new EmailThread
+            {
+                Subject = emailTemplate.Subject,
+                CreatedBy = job.UsersId,
+                CreatedAt = DateTime.Now
+            };
+            _context.EmailThreads.Add(sendEmail);
+            await _context.SaveChangesAsync();
+            var email = new Email
+            {
+                Thread = sendEmail,
+                SenderID = job.UsersId,
+                Body = emailTemplate.Body,
+                SentAt = DateTime.Now,
+                IsDraft = false,
+                IsTrashed = false,
+                IsRead = false,
+                IsStarred = false
+            };
+            _context.Emails.Add(email);
+            await _context.SaveChangesAsync();
+            var emailRecipient = new EmailRecipient
+            {
+                EmailID = email.Id,
+                RecipientID = userId,
+                RecipientType = RecipientType.TO,
+                IsRead = false,
+                IsTrashed = false,
+                IsStarred = false
+            };
+            _context.EmailRecipients.Add(emailRecipient);
+            await _context.SaveChangesAsync();
             TempData["success"] = "Application submitted successfully!";
             return RedirectToAction("Index");
         }

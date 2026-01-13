@@ -5,6 +5,7 @@ using burbodek.Models.ViewModels;
 using burbodek.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -30,9 +31,189 @@ namespace burbodek.Controllers
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
-            return View(data);
+            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId).ToList();
+            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId).ToList();
+            var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
+            var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
+
+            var dashboard = new EmployerCampaignViewModel
+            {
+                Subscription = data,
+                Jobs = jobs,
+                Training = training,
+                Campaign = campaigns,
+                PaymentDetails = userPaymentOption
+            };
+            return View(dashboard);
+        }
+        public IActionResult ActivateCampaing(int id)
+        {
+            var campaing = _context.Campaign.Find(id);
+            if (campaing != null)
+            {
+                campaing.IsActive = true;
+                _context.Campaign.Update(campaing);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Campaign Activated successfully!" });
+            }
+            return Json(new { success = false, message = "Error occured!" });
+
+        }
+        public IActionResult DeactivateCampaing(int id)
+        {
+            var campaing = _context.Campaign.Find(id);
+            if(campaing != null)
+            {
+                campaing.IsActive = false;
+                _context.Campaign.Update(campaing);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Campaign deactivated successfully!" });
+            }
+            return Json(new { success = false, message = "Error occured!" });
+
+        }
+        [HttpGet]
+        public IActionResult GetCampaign(int id)
+        {
+            var campaign = _context.Campaign
+                .Include(c => c.CreatedByUser)
+                .FirstOrDefault(c => c.Id == id);
+
+            if (campaign == null)
+                return NotFound();
+
+            string listingTitle = null;
+
+            if (campaign.ListingType == "Jobs")
+            {
+                listingTitle = _context.Jobs
+                    .Where(j => j.Id == campaign.SelectedListingId)
+                    .Select(j => j.JobTitle)
+                    .FirstOrDefault();
+            }
+            else if (campaign.ListingType == "Training")
+            {
+                listingTitle = _context.Training
+                    .Where(t => t.Id == campaign.SelectedListingId)
+                    .Select(t => t.Name)
+                    .FirstOrDefault();
+            }
+
+            return Json(new
+            {
+                campaign.Id,
+                campaign.CampaignName,
+                campaign.CampaignDescription,
+                campaign.LogoFilePath,
+                campaign.City,
+                campaign.Province,
+                campaign.FullAddress,
+                campaign.CreatedAt,
+                campaign.IsActive,
+                campaign.ListingType,
+                ListingName = listingTitle,
+                CreatorName = campaign.CreatedByUser?.Username
+            });
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitCampaign(Campaign campaign, IFormFile CampaignLogo)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userPlan = User.FindFirst("Plan")?.Value;
+            ModelState.Remove("CreatedByUser");
+            ModelState.Remove("SelectedTraining");
+            ModelState.Remove("SelectedJob");
+            ModelState.Remove("LogoFilePath");
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid campaign data.");
+            if(userPlan == "Basic" && campaign.PaymentDetailsId == null)
+            {
+                return Json(new { success = false, message = "Error: Please add a payment details "});
+            }
+            try
+            {
+                if(campaign.PaymentDetailsId != null)
+                {
+                    // ✅ Handle File Upload
+                    if (CampaignLogo != null && CampaignLogo.Length > 0)
+                    {
+                        // Create upload folder if not existing
+                        string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
+                        if (!Directory.Exists(uploadPath))
+                            Directory.CreateDirectory(uploadPath);
+
+                        // Generate unique filename
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
+                        string filePath = Path.Combine(uploadPath, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await CampaignLogo.CopyToAsync(fileStream);
+                        }
+
+                        // Save relative path for database
+                        campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
+                    }
+
+                    // ✅ Save campaign to database
+                    campaign.CreatedAt = DateTime.Now;
+                    campaign.IsActive = false; // You can set to "Active" if needed
+                    campaign.CreatedByUserId = userId;
+                    campaign.Payment = (decimal)(_context.Plans.FirstOrDefault(u => u.Id == 2).Price/10);
+                    campaign.isPaid = false;
+                    _context.Campaign.Add(campaign);
+                    await _context.SaveChangesAsync();
+
+                    // ✅ Return success
+                    TempData["campaignId"] = campaign.Id;
+                    return Json(new
+                    {
+                        success = true,
+                        redirectUrl = Url.Action("CheckoutCampaign", new { id = campaign.Id })
+                    });
+
+                }
+                else
+                {
+                    // ✅ Handle File Upload
+                    if (CampaignLogo != null && CampaignLogo.Length > 0)
+                    {
+                        // Create upload folder if not existing
+                        string uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "campaigns");
+                        if (!Directory.Exists(uploadPath))
+                            Directory.CreateDirectory(uploadPath);
+
+                        // Generate unique filename
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(CampaignLogo.FileName);
+                        string filePath = Path.Combine(uploadPath, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await CampaignLogo.CopyToAsync(fileStream);
+                        }
+
+                        // Save relative path for database
+                        campaign.LogoFilePath = Path.Combine("/uploads/campaigns/", uniqueFileName);
+                    }
+
+                    // ✅ Save campaign to database
+                    campaign.CreatedAt = DateTime.Now;
+                    campaign.IsActive = true; // You can set to "Active" if needed
+                    campaign.CreatedByUserId = userId;
+                    _context.Campaign.Add(campaign);
+                    await _context.SaveChangesAsync();
+
+                    // ✅ Return success
+                    return Json(new { success = true, message = "Campaign submitted successfully!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
         public IActionResult Subscription()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -81,6 +262,68 @@ namespace burbodek.Controllers
             }
 
             return RedirectToAction("PaymentDetails");
+        }
+
+        public async Task<IActionResult> SuccessCampaignPayment()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            // Example: values you might pass via TempData or querystring
+            var campaign = TempData["Campaign"] != null ? Convert.ToInt32(TempData["Campaign"]) : 0;
+            int amount = TempData["Amount"] != null ? Convert.ToInt32(TempData["Amount"]) : 0;
+            var data = _context.Campaign.Find(campaign);
+            data.isPaid = true;
+            data.IsActive = true;
+            _context.Campaign.Update(data);
+            _context.SaveChanges();
+            return RedirectToAction("Index");
+        }
+        [HttpGet]
+        public async Task<IActionResult> CheckoutCampaign(int Id)
+        {
+            try
+            {
+
+                // ✅ Basic validation
+                if (Id <= 0 )
+                {
+                    // Return back with validation error
+                    TempData["Error"] = "Invalid checkout details. Please make sure all fields are filled correctly.";
+                    return RedirectToAction("Index", "Employer");
+                }
+                var campaign = _context.Campaign.FirstOrDefault(u => u.Id == Id);
+                var userDetails = _context.Users.Find(campaign.CreatedByUserId);
+                var paymentDetails = _context.PaymentDetails.FirstOrDefault(u => u.Id == campaign.PaymentDetailsId);
+                // ✅ Create checkout session
+                var responseJson = await _paymongo.CreateCheckoutCampaignSession(
+                    campaign.Payment,
+                    "PHP",
+                    paymentDetails.Name,
+                    userDetails.Email,
+                    paymentDetails.PhoneNumber,
+                    "Campaign"
+                );
+
+                // ✅ Parse response
+                var json = JObject.Parse(responseJson);
+                var checkoutUrl = json["data"]?["attributes"]?["checkout_url"]?.ToString();
+
+                if (string.IsNullOrEmpty(checkoutUrl))
+                {
+                    TempData["Error"] = "Failed to retrieve checkout URL. Please try again later.";
+                    return RedirectToAction("Subscription", "Employer");
+                }
+
+                TempData["Campaign"] = campaign.Id;
+                TempData["Amount"] = (int)campaign.Payment;
+
+                return Redirect(checkoutUrl);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Checkout failed: {ex.Message}";
+                return RedirectToAction("Index", "Employer");
+            }
         }
         [HttpPost]
         public async Task<IActionResult> Checkout(decimal amount, string planName, string email, string? contact, string username)
@@ -131,34 +374,259 @@ namespace burbodek.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadCertificate(IFormFile file, int trainingApplicationId)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
-
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certificates");
-
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var fileExtension = Path.GetExtension(file.FileName);
-            var fileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
+                if (file == null || file.Length == 0)
+                    return BadRequest("No file uploaded.");
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certificates");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileExtension = Path.GetExtension(file.FileName);
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var trainingCertificate = new TrainingCertificate
+                {
+                    FilePath = $"/uploads/certificates/{fileName}",
+                    FileType = file.ContentType,
+                    TrainingApplicationId = trainingApplicationId
+                };
+                _context.TrainingCertificate.Add(trainingCertificate);
+                await _context.SaveChangesAsync();
+
+                // ========== SEND EMAIL NOTIFICATION ==========
+                try
+                {
+                    var trainingApplication = await _context.TrainingApplication
+                        .Include(ta => ta.Training)
+                        .ThenInclude(t => t.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                        .FirstOrDefaultAsync(ta => ta.Id == trainingApplicationId);
+
+                    if (trainingApplication != null)
+                    {
+                        var applicant = await _context.Users.FirstOrDefaultAsync(u => u.Id == trainingApplication.AppliedBy);
+
+                        if (applicant != null)
+                        {
+                            // Create email thread
+                            var sendEmail = new EmailThread
+                            {
+                                Subject = "Your Certificate Has Been Uploaded - " + trainingApplication.Training.Name,
+                                CreatedBy = trainingApplication.Training.UsersId,
+                                CreatedAt = DateTime.Now
+                            };
+                            _context.EmailThreads.Add(sendEmail);
+                            await _context.SaveChangesAsync();
+
+                            var email = new Email
+                            {
+                                Thread = sendEmail,
+                                SenderID = trainingApplication.Training.UsersId,
+                                Body = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #333;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .highlight-box p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .highlight-label {
+            font-weight: 600;
+            color: #ff9800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .highlight-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 5px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .certificate-box {
+            background-color: #f0f7ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .certificate-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .certificate-text {
+            font-weight: 600;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #ff9800;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #f57c00;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🎓 Certificate Uploaded!</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear " + applicant.Username + @",</p>
+            <p class='body-text'>Congratulations! Your certificate for the training program has been successfully uploaded and is now available in your account.</p>
+
+            <div class='highlight-box'>
+                <p class='highlight-label'>Training Program</p>
+                <p class='highlight-value'>" + trainingApplication.Training.Name + @"</p>
+                <p style='margin-top: 15px; font-size: 13px; color: #666;'>
+                    <strong>Provider:</strong> " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @"
+                </p>
+            </div>
+
+            <div class='certificate-box'>
+                <div class='certificate-icon'>📜</div>
+                <div class='certificate-text'>Your certificate is ready for download!</div>
+            </div>
+
+            <p class='body-text'>You can now download your certificate and add it to your professional credentials. This certification recognizes your successful completion of the training program.</p>
+
+            <p class='body-text'>Thank you for completing this training program with us. We hope you found it valuable and informative. If you have any questions or need assistance, please don't hesitate to reach out.</p>
+
+            <div style='text-align: center;'>
+                <p style='font-size: 13px; color: #888;'>Log in to your account to view and download your certificate.</p>
+            </div>
+
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from " + trainingApplication.Training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
+                        ",
+                                SentAt = DateTime.Now,
+                                IsDraft = false,
+                                IsTrashed = false,
+                                IsRead = false,
+                                IsStarred = false
+                            };
+                            _context.Emails.Add(email);
+                            await _context.SaveChangesAsync();
+
+                            var emailRecipient = new EmailRecipient
+                            {
+                                EmailID = email.Id,
+                                RecipientID = trainingApplication.AppliedBy,
+                                RecipientType = RecipientType.TO,
+                                IsRead = false,
+                                IsTrashed = false,
+                                IsStarred = false
+                            };
+                            _context.EmailRecipients.Add(emailRecipient);
+                            await _context.SaveChangesAsync();
+
+                            Console.WriteLine($"Certificate upload notification sent to {applicant.Email}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending certificate notification email: {ex.Message}");
+                    // Don't fail the certificate upload if email fails
+                }
+
+                return Json(new { success = true, message = "File uploaded successfully! Applicant has been notified." });
             }
-
-            var trainingCertificate = new TrainingCertificate
+            catch (Exception ex)
             {
-                FilePath = $"/uploads/certificates/{fileName}",
-                FileType = file.ContentType,
-                TrainingApplicationId = trainingApplicationId
-            };
-
-            _context.TrainingCertificate.Add(trainingCertificate);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, message = "File uploaded successfully!" });
+                Console.WriteLine($"Error uploading certificate: {ex.Message}");
+                return Json(new { success = false, message = "Error uploading file: " + ex.Message });
+            }
         }
 
         public IActionResult JobDetails(int Id)
@@ -409,24 +877,263 @@ namespace burbodek.Controllers
 
             return Json(new { response = jobs });
         }
-        public IActionResult AddStartDateTraining(DateTime startDate, int TrainingId)
+        public async Task<IActionResult> AddStartDateTraining(DateTime startDate, int TrainingId, string applicationIds = "")
         {
-            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
-            var jobs = _context.Training
-                .Where(j => j.UsersId == userId && j.Id == TrainingId)
-                .FirstOrDefault();
+                var training = _context.Training
+                    .Include(t => t.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                    .Where(j => j.UsersId == userId && j.Id == TrainingId)
+                    .FirstOrDefault();
 
-            jobs.StartDate = startDate;
-            jobs.EndDate = startDate.AddDays(int.Parse(jobs.Duration));
-            _context.Training.Update(jobs);
-            _context.SaveChanges();
+                if (training == null)
+                {
+                    return Json(new { response = false, message = "Training not found" });
+                }
 
-            return Json(new { response = true });
+                // Parse duration safely
+                int trainingDays = 0;
+                if (!string.IsNullOrEmpty(training.Duration) && int.TryParse(training.Duration, out int days))
+                {
+                    trainingDays = days;
+                }
+
+                // Parse the comma-separated application IDs
+                var applicationIdList = string.IsNullOrEmpty(applicationIds)
+                    ? new List<int>()
+                    : applicationIds.Split(',').Select(id => int.TryParse(id.Trim(), out var result) ? result : 0)
+                        .Where(id => id > 0).ToList();
+
+                // If no specific IDs provided, get all applicants for this training
+                if (applicationIdList.Count == 0)
+                {
+                    applicationIdList = _context.TrainingApplication
+                        .Where(ta => ta.TrainingId == TrainingId)
+                        .Select(ta => ta.AppliedBy)
+                        .ToList();
+                }
+
+                // Send emails to each applicant
+                foreach (var applicantId in applicationIdList)
+                {
+                    try
+                    {
+                        var applicantInfo = _context.Users.FirstOrDefault(u => u.Id == applicantId);
+
+                        if (applicantInfo == null) continue;
+
+                        // Calculate end date
+                        DateTime endDate = startDate.AddDays(trainingDays);
+
+                        // Create email thread
+                        var sendEmail = new EmailThread
+                        {
+                            Subject = "Training Start Date Announced - " + training.Name,
+                            CreatedBy = training.UsersId,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.EmailThreads.Add(sendEmail);
+                        await _context.SaveChangesAsync();
+
+                        var email = new Email
+                        {
+                            Thread = sendEmail,
+                            SenderID = training.UsersId,
+                            Body = @"
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                        <meta charset='UTF-8'>
+                                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                        <style>
+                                            body {
+                                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                                                line-height: 1.6;
+                                                color: #333;
+                                                margin: 0;
+                                                padding: 0;
+                                                background-color: #f5f5f5;
+                                            }
+                                            .container {
+                                                max-width: 600px;
+                                                margin: 20px auto;
+                                                background-color: #ffffff;
+                                                border-radius: 8px;
+                                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                                overflow: hidden;
+                                            }
+                                            .header {
+                                                background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+                                                color: white;
+                                                padding: 40px 20px;
+                                                text-align: center;
+                                            }
+                                            .header h1 {
+                                                margin: 0;
+                                                font-size: 28px;
+                                                font-weight: 600;
+                                            }
+                                            .content {
+                                                padding: 40px;
+                                            }
+                                            .greeting {
+                                                font-size: 16px;
+                                                margin-bottom: 20px;
+                                                color: #333;
+                                            }
+                                            .highlight-box {
+                                                background-color: #e8f5e9;
+                                                border-left: 4px solid #28a745;
+                                                padding: 20px;
+                                                margin: 25px 0;
+                                                border-radius: 4px;
+                                            }
+                                            .highlight-box p {
+                                                margin: 8px 0;
+                                                font-size: 15px;
+                                            }
+                                            .highlight-label {
+                                                font-weight: 600;
+                                                color: #28a745;
+                                                font-size: 12px;
+                                                text-transform: uppercase;
+                                                letter-spacing: 0.5px;
+                                            }
+                                            .highlight-value {
+                                                font-size: 18px;
+                                                font-weight: 600;
+                                                color: #333;
+                                                margin-top: 5px;
+                                            }
+                                            .body-text {
+                                                font-size: 15px;
+                                                line-height: 1.7;
+                                                color: #555;
+                                                margin-bottom: 20px;
+                                            }
+                                            .date-box {
+                                                background-color: #fff3e0;
+                                                border-left: 4px solid #ff9800;
+                                                padding: 15px;
+                                                margin: 15px 0;
+                                                border-radius: 4px;
+                                            }
+                                            .date-item {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                padding: 10px 0;
+                                                font-size: 14px;
+                                            }
+                                            .date-item strong {
+                                                color: #ff9800;
+                                            }
+                                            .footer {
+                                                background-color: #f9f9f9;
+                                                padding: 20px;
+                                                border-top: 1px solid #e0e0e0;
+                                                text-align: center;
+                                                font-size: 12px;
+                                                color: #888;
+                                            }
+                                            .divider {
+                                                height: 1px;
+                                                background-color: #e0e0e0;
+                                                margin: 30px 0;
+                                            }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <div class='container'>
+                                            <div class='header'>
+                                                <h1>📅 Training Start Date Announced!</h1>
+                                            </div>
+                                            <div class='content'>
+                                                <p class='greeting'>Dear " + applicantInfo.Username + @",</p>
+                                                <p class='body-text'>Great news! We're excited to inform you that the start date for your training program has been confirmed.</p>
+            
+                                                <div class='highlight-box'>
+                                                    <p class='highlight-label'>Training Details</p>
+                                                    <p class='highlight-value'>" + training.Name + @"</p>
+                                                    <p style='margin-top: 15px; font-size: 13px; color: #666;'>
+                                                        <strong>Training Provider:</strong> " + training.Users?.EmployerDetails?.BusinessName + @"
+                                                    </p>
+                                                </div>
+            
+                                                <div class='date-box'>
+                                                    <div class='date-item'>
+                                                        <strong>📌 Start Date:</strong>
+                                                        <span>" + startDate.ToString("MMMM dd, yyyy") + @"</span>
+                                                    </div>
+                                                    <div class='date-item'>
+                                                        <strong>📌 End Date:</strong>
+                                                        <span>" + endDate.ToString("MMMM dd, yyyy") + @"</span>
+                                                    </div>
+                                                    <div class='date-item'>
+                                                        <strong>⏱️ Duration:</strong>
+                                                        <span>" + trainingDays + @" days</span>
+                                                    </div>
+                                                </div>
+            
+                                                <p class='body-text'>Please make sure you're prepared for the training on the scheduled date. If you have any questions or concerns, don't hesitate to reach out to us.</p>
+            
+                                                <div class='divider'></div>
+                                                <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+                                            </div>
+                                            <div class='footer'>
+                                                <p>This is an automated message from " + training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+                                            </div>
+                                        </div>
+                                    </body>
+                                    </html>
+                                    ",
+                            SentAt = DateTime.Now,
+                            IsDraft = false,
+                            IsTrashed = false,
+                            IsRead = false,
+                            IsStarred = false
+                        };
+                        _context.Emails.Add(email);
+                        await _context.SaveChangesAsync();
+
+                        var emailRecipient = new EmailRecipient
+                        {
+                            EmailID = email.Id,
+                            RecipientID = applicantId,
+                            RecipientType = RecipientType.TO,
+                            IsRead = false,
+                            IsTrashed = false,
+                            IsStarred = false
+                        };
+                        _context.EmailRecipients.Add(emailRecipient);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error sending email to applicant {applicantId}: {ex.Message}");
+                    }
+                }
+
+                // Update training with start and end dates
+                training.StartDate = startDate;
+                training.EndDate = startDate.AddDays(trainingDays);
+                _context.Training.Update(training);
+                await _context.SaveChangesAsync();
+
+                return Json(new { response = true, message = $"Training start date set and {applicationIdList.Count} applicants notified!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { response = false, message = ex.Message });
+            }
         }
         public IActionResult JobListing()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            _context.Database.SetCommandTimeout(120);
             var data = _context.Jobs
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobApplication)
@@ -455,15 +1162,610 @@ namespace burbodek.Controllers
         }
         public IActionResult AccountSettings()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.EmployerDetails).Include(u => u.Jobs).Include(u => u.Training).FirstOrDefault(u => u.Id == userId);
+            var TotalApplication = _context.TrainingApplication
+                                .Include(u => u.Training)
+                                    .ThenInclude(u => u.Users)
+                                .Include(u => u.TrainingPayments)
+                                .Where(u => u.Training.UsersId == userId).ToList();
+            var TotalJobApplication = _context.JobApplication.Where(u => u.Jobs.UsersId == userId).ToList();
+            decimal? total = 0;
+            int? totalSuccessApplicant = 0;
+            totalSuccessApplicant += TotalApplication.Where(u => u.PaymentStatus == "Paid").Count();
+            totalSuccessApplicant += TotalJobApplication.Where(u => u.Status == "Hired").Count();
+            foreach (var data in TotalApplication)
+            {
+                foreach (var sumData in data.TrainingPayments)
+                {
+                    total += sumData.Paid ?? 0;
+                    ViewBag.TotalCash = total;
+                }
+            }
+            ViewBag.TotalHired = totalSuccessApplicant;
+            return View(userData);
         }
-        public IActionResult AccountBilling()
+
+        public IActionResult ChangeProfileDetails(string FullName, string BusinessName, string Address)
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var user = _context.Users
+                        .Include(u => u.EmployerDetails) // Make sure EmployerDetails is loaded
+                        .FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return Json(new { response = false, message = "User not found." });
+
+            user.Username = FullName ?? user.Username;
+            user.EmployerDetails.BusinessName = BusinessName ?? user.EmployerDetails.BusinessName;
+            user.EmployerDetails.Address = Address ?? user.EmployerDetails.Address;
+
+            _context.Users.Update(user);
+            _context.SaveChanges();
+
+            return Json(new { response = true });
+        }
+
+        public IActionResult ChangePassword(string CurrentPassword, string NewPassword, string ConfirmNewPassword)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return Json(new { response = false, message = "User not found." });
+
+            var passwordHasher = new PasswordHasher<Users>();
+            var result = passwordHasher.VerifyHashedPassword(user, user.Password, CurrentPassword);
+
+            if (result != PasswordVerificationResult.Success)
+                return Json(new { response = false, message = "Current password is incorrect." });
+
+            if (NewPassword != ConfirmNewPassword)
+                return Json(new { response = false, message = "Passwords do not match." });
+
+            user.Password = passwordHasher.HashPassword(user, NewPassword);
+            _context.Users.Update(user);
+            _context.SaveChanges();
+
+            return Json(new { response = true });
+        }
+
+        public IActionResult AccountEmail()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users
+                .Include(u => u.EmployerDetails)
+                .Include(u => u.Jobs)
+                .Include(u => u.Training)
+                .Include(u => u.EmailTemplate)
+                .FirstOrDefault(u => u.Id == userId);
+
+            // Initialize default email templates if they don't exist
+            var existingTemplates = userData.EmailTemplate?.Select(t => t.TypeOfEmail).ToList() ?? new List<string>();
+            var templates = new List<EmailTemplate>();
+
+            if (!existingTemplates.Contains("Applied"))
+            {
+                templates.Add(new EmailTemplate
+                {
+                    Category = "Job Notification",
+                    TypeOfEmail = "Applied",
+                    Subject = "Your job application has been received!",
+                    Body = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>✓ Application Received</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear {{ApplicantName}},</p>
+            <p class='body-text'>Thank you for applying to the <strong>{{JobTitle}}</strong> position at <strong>{{CompanyName}}</strong>. We've received your application and appreciate your interest in joining our team.</p>
+            <div class='highlight-box'>
+                <p class='body-text' style='margin: 0; font-size: 14px;'><strong>What's Next?</strong><br>Our hiring team is currently reviewing applications. If your qualifications match what we're looking for, we'll reach out to schedule an interview.</p>
+            </div>
+            <p class='body-text'>In the meantime, feel free to explore more about {{CompanyName}} and learn about our culture and values.</p>
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The {{CompanyName}} Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from {{CompanyName}}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>",
+                    ModifiedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    isActive = true,
+                    UsersId = userId
+                });
+            }
+
+            if (!existingTemplates.Contains("For Interview"))
+            {
+                templates.Add(new EmailTemplate
+                {
+                    Category = "Job Notification",
+                    TypeOfEmail = "For Interview",
+                    Subject = "Interview Invitation for {{JobTitle}}",
+                    Body = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🎤 You're Invited to Interview!</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear {{ApplicantName}},</p>
+            <p class='body-text'>Congratulations! We were impressed with your application and would like to move forward to the next stage. We're pleased to invite you to interview for the <strong>{{JobTitle}}</strong> position at <strong>{{CompanyName}}</strong>.</p>
+            <div class='highlight-box'>
+                <p style='margin: 0; font-size: 14px; color: #333;'><strong>Interview Details</strong><br>Position: {{JobTitle}}<br><br>Our hiring team will contact you shortly with specific details about the interview format, date, and time. Please ensure your contact information is up to date.</p>
+            </div>
+            <p class='body-text'>If you have any questions before the interview, please don't hesitate to reach out. We look forward to learning more about you!</p>
+            <div style='text-align: center;'>
+                <a href='#' class='cta-button'>Confirm Interview</a>
+            </div>
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The {{CompanyName}} Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from {{CompanyName}}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>",
+                    ModifiedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    isActive = true,
+                    UsersId = userId
+                });
+            }
+
+            if (!existingTemplates.Contains("Rejected"))
+            {
+                templates.Add(new EmailTemplate
+                {
+                    Category = "Job Notification",
+                    TypeOfEmail = "Rejected",
+                    Subject = "Update on your {{JobTitle}} application",
+                    Body = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Application Update</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear {{ApplicantName}},</p>
+            <p class='body-text'>Thank you for your interest in the <strong>{{JobTitle}}</strong> position at <strong>{{CompanyName}}</strong> and for taking the time to apply. We appreciate the effort you put into your application.</p>
+            <div class='highlight-box'>
+                <p style='margin: 0; font-size: 15px; color: #333;'>After careful consideration, we have decided not to move forward with your application at this time. This decision does not reflect your qualifications, but rather the specific needs of this particular role.</p>
+            </div>
+            <p class='body-text'>We encourage you to apply for other positions at {{CompanyName}} that may be a better fit for your background and experience. We also wish you the very best in your job search and future endeavors.</p>
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The {{CompanyName}} Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from {{CompanyName}}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>",
+                    ModifiedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    isActive = true,
+                    UsersId = userId
+                });
+            }
+
+            if (!existingTemplates.Contains("Hired"))
+            {
+                templates.Add(new EmailTemplate
+                {
+                    Category = "Job Notification",
+                    TypeOfEmail = "Hired",
+                    Subject = "Congratulations — You're hired!",
+                    Body = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #333;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .highlight-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .highlight-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 5px;
+        }
+        .body-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #ff9800;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🎉 Welcome Aboard!</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear {{ApplicantName}},</p>
+            <p class='body-text'>We're thrilled to offer you the position of <strong>{{JobTitle}}</strong> at <strong>{{CompanyName}}</strong>. Your background, skills, and enthusiasm impressed us, and we're confident you'll be a great addition to our team.</p>
+            <div class='highlight-box'>
+                <p style='margin: 0; font-size: 12px; font-weight: 600; color: #ff9800; text-transform: uppercase; letter-spacing: 0.5px;'>Position Details</p>
+                <p class='highlight-value'>{{JobTitle}}</p>
+                <p style='margin-top: 15px; font-size: 13px; color: #666;'>
+                    <strong>Company:</strong> {{CompanyName}}<br>
+                    <strong>Next Steps:</strong> We'll be in touch soon with details about your start date and onboarding process.
+                </p>
+            </div>
+            <p class='body-text'>We look forward to working with you and are excited about the opportunities ahead. If you have any questions in the meantime, please don't hesitate to reach out.</p>
+            <div style='text-align: center;'>
+                <a href='#' class='cta-button'>View Your Offer Details</a>
+            </div>
+            <div class='divider'></div>
+            <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The {{CompanyName}} Team</strong></p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from {{CompanyName}}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>",
+                    ModifiedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    isActive = true,
+                    UsersId = userId
+                });
+            }
+
+            // Add new templates to database if they don't exist
+            if (templates.Count > 0)
+            {
+                _context.EmailTemplate.AddRange(templates);
+                _context.SaveChanges();
+
+                // Reload user data with new templates
+                userData = _context.Users
+                    .Include(u => u.EmployerDetails)
+                    .Include(u => u.Jobs)
+                    .Include(u => u.Training)
+                    .Include(u => u.EmailTemplate)
+                    .FirstOrDefault(u => u.Id == userId);
+            }
+
+            // Calculate statistics
+            var TotalApplication = _context.TrainingApplication
+                .Include(u => u.Training)
+                    .ThenInclude(u => u.Users)
+                .Include(u => u.TrainingPayments)
+                .Where(u => u.Training.UsersId == userId)
+                .ToList();
+
+            var TotalJobApplication = _context.JobApplication
+                .Where(u => u.Jobs.UsersId == userId)
+                .ToList();
+
+            decimal? total = 0;
+            int? totalSuccessApplicant = 0;
+
+            totalSuccessApplicant += TotalApplication.Where(u => u.PaymentStatus == "Paid").Count();
+            totalSuccessApplicant += TotalJobApplication.Where(u => u.Status == "Hired").Count();
+
+            foreach (var data in TotalApplication)
+            {
+                foreach (var sumData in data.TrainingPayments)
+                {
+                    total += sumData.Paid ?? 0;
+                }
+            }
+
+            ViewBag.TotalCash = total;
+            ViewBag.TotalHired = totalSuccessApplicant;
+
+            return View(userData);
         }
         public IActionResult AccountOverview()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.EmployerDetails).Include(u => u.Jobs).Include(u =>u.Training).FirstOrDefault(u => u.Id == userId);
+            var TotalApplication = _context.TrainingApplication
+                                .Include(u => u.Training)
+                                    .ThenInclude(u =>u.Users)
+                                .Include(u => u.TrainingPayments)
+                                .Where(u => u.Training.UsersId == userId).ToList();
+            var TotalJobApplication = _context.JobApplication.Where(u => u.Jobs.UsersId == userId).ToList();
+            decimal? total = 0;
+            int? totalSuccessApplicant = 0;
+            totalSuccessApplicant += TotalApplication.Where(u => u.PaymentStatus == "Paid").Count();
+            totalSuccessApplicant += TotalJobApplication.Where(u => u.Status == "Hired").Count();
+            foreach (var data in TotalApplication)
+            {
+                foreach(var sumData in data.TrainingPayments)
+                {
+                    total += sumData.Paid ?? 0;
+                    ViewBag.TotalCash = total;
+                }
+            }
+            ViewBag.TotalHired = totalSuccessApplicant;
+
+            return View(userData);
         }
         public IActionResult TrainingReceipt(int Id, int AppliedId)
         {
@@ -522,17 +1824,28 @@ namespace burbodek.Controllers
         [HttpPost]
         public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id)
         {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             // Get the applicant for this job
             var getStatus = _context.JobApplication
                 .FirstOrDefault(u => u.AppliedBy == ApplicantId && u.JobsId == Id);
-
+            var getUser = _context.Users
+                .Include(u => u.EmployerDetails)
+                .FirstOrDefault(u => u.Id == userId);
+            var getJob = _context.Jobs
+                .Find(Id);
             if (getStatus == null)
             {
                 TempData["error"] = "Applicant not found.";
                 return RedirectToAction("JobDetails", new { Id });
             }
-
-            // Load job with related entities
+            var emailTemplate = _context.EmailTemplate
+                                .Where(u => u.UsersId == userId && u.TypeOfEmail == Status && u.isActive == true)
+                                .FirstOrDefault();
+            var emailContent = emailTemplate.Body
+                                .Replace("{{ApplicantName}}", getStatus.FirstName)
+                                .Replace("{{CompanyName}}", getUser.EmployerDetails.BusinessName)
+                                .Replace("{{JobTitle}}", getStatus.Jobs.JobTitle);
+            
             var data = _context.Jobs
                        .Include(u => u.Users)
                            .ThenInclude(u => u.EmployerDetails)
@@ -553,6 +1866,36 @@ namespace burbodek.Controllers
                 _context.Update(getStatus);
                 _context.SaveChanges();
                 TempData["success"] = "Applicant status updated successfully.";
+                var sendEmail = new EmailThread
+                {
+                    Subject = emailTemplate.Subject,
+                    CreatedBy = userId,
+                    IsTrashed = false
+                };
+                _context.EmailThreads.Add(sendEmail);
+                _context.SaveChanges();
+                var sendEmailContent = new Email
+                {
+                    ThreadID = sendEmail.Id,
+                    Body = emailContent,
+                    SenderID = userId,
+                    IsDraft = false,
+                    IsTrashed = false,
+                    IsRead = false,
+                    IsStarred = false,
+                };
+                _context.Emails.Add(sendEmailContent);
+                _context.SaveChanges();
+                var emailRecipient = new EmailRecipient
+                {
+                    EmailID = sendEmailContent.Id,
+                    RecipientID = getStatus.AppliedBy,
+                    IsStarred = false,
+                    IsTrashed = false,
+                    IsRead = false,
+                };
+                _context.EmailRecipients.Add(emailRecipient);
+                _context.SaveChanges();
             }
 
             return View(data);
@@ -1210,12 +2553,7 @@ namespace burbodek.Controllers
                     .Include(t => t.Emails)
                         .ThenInclude(e => e.Attachments)
                     .FirstOrDefaultAsync(t =>
-                        t.Id == id &&
-                        t.Emails.Any(e =>
-                            (e.SenderID == currentUserId &&
-                             e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.Thread.IsTrashed)) ||
-                            e.Recipients.Any(r => r.RecipientID == currentUserId && !r.IsTrashed && !r.Email.Thread.IsTrashed)
-                        )
+                        t.Id == id
                     );
                 if (thread == null)
                 {

@@ -90,20 +90,23 @@
             </table>
         </div>
     </div>
-    <div class="card-footer">
-       <div class="text-end">
-            <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
-                  asp-route-Id="@Model.Id"
-                  asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
-                  method="post">
+@if (Model.EmployerDetails.Status == "For Approval")
+    {
+        <div class="card-footer">
+            <div class="text-end">
+                <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
+                      asp-route-Id="@Model.Id"
+                      asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
+                      method="post">
 
-                <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
+                    <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
 
-                <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">Approve</button>
-                <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">Decline</button>
-            </form>
-       </div>
-    </div>
+                    <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">Approve</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">Decline</button>
+                </form>
+            </div>
+        </div>
+    }
 </div>
 @section Scripts {
     <script>

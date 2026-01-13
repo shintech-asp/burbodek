@@ -29,8 +29,12 @@ namespace burbodek.Data
         public DbSet<Subscription> Subscription { get; set; }
         public DbSet<EmailThread> EmailThreads { get; set; }
         public DbSet<Email> Emails { get; set; }
+        public DbSet<Campaign> Campaign { get; set; }
+        public DbSet<Faq> Faq { get; set; }
+        public DbSet<FaqTitle> FaqTitle { get; set; }
         public DbSet<EmailRecipient> EmailRecipients { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
+        public DbSet<EmailTemplate> EmailTemplate { get; set; }
         public DbSet<PaymentDetails> PaymentDetails { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

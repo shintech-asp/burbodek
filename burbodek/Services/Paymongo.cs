@@ -19,6 +19,59 @@ namespace burbodek.Services
         }
 
         // Create Checkout Session
+        public async Task<string> CreateCheckoutCampaignSession(
+         decimal? amount,
+         string currency,
+         string name,
+         string email,
+         string contact,
+         string productNames)
+        {
+            var payload = new
+            {
+                data = new
+                {
+                    attributes = new
+                    {
+                        line_items = new[]
+                        {
+                    new {
+                        name = productNames,
+                        amount = (int)(amount * 100), // in cents
+                        currency = currency,
+                        quantity = 1
+                    }
+                },
+                        payment_method_types = new[] { "gcash" },
+                        success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessCampaignPayment",
+                        cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
+                        billing = new
+                        {
+                            name = name,
+                            email = email,
+                            phone = contact
+                        },
+                        metadata = new
+                        {
+                            customer_name = name,
+                            customer_email = email,
+                            customer_contact = contact
+                        }
+                    }
+                }
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("https://api.paymongo.com/v1/checkout_sessions", content);
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Error creating checkout session: {response.StatusCode} - {responseString}");
+            }
+
+            return responseString;
+        }
         public async Task<string> CreateCheckoutSession(
          decimal amount,
          string currency,
@@ -43,8 +96,8 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://localhost:7136/Employer/SuccessPayment",
-                        cancel_url = "https://localhost:7136/Employer/CancelledPayment",
+                        success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessPayment",
+                        cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
                         billing = new
                         {
                             name = name,
@@ -96,8 +149,8 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://localhost:7136/Employee/SuccessPayment",
-                        cancel_url = "https://localhost:7136/Employee/CancelledPayment",
+                        success_url = "https://techasp-001-site1.atempurl.com/Employee/SuccessPayment",
+                        cancel_url = "https://techasp-001-site1.atempurl.com/Employee/CancelledPayment",
                         billing = new
                         {
                             name = name,

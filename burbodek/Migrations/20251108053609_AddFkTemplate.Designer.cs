@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251108053609_AddFkTemplate")]
+    partial class AddFkTemplate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,94 +24,6 @@ namespace burbodek.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("burbodek.Models.Campaign", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CampaignDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CampaignName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FullAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ListingType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LogoFilePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
-
-                    b.Property<decimal?>("Payment")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("PaymentDetailsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Province")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("SelectedJobId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SelectedListingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SelectedTrainingId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalClicks")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool?>("isPaid")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("PaymentDetailsId");
-
-                    b.HasIndex("SelectedJobId");
-
-                    b.HasIndex("SelectedTrainingId");
-
-                    b.ToTable("Campaign");
-                });
 
             modelBuilder.Entity("burbodek.Models.Email", b =>
                 {
@@ -335,47 +250,6 @@ namespace burbodek.Migrations
                         .IsUnique();
 
                     b.ToTable("EmployerDetails");
-                });
-
-            modelBuilder.Entity("burbodek.Models.Faq", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("isActive")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Faq");
-                });
-
-            modelBuilder.Entity("burbodek.Models.FaqTitle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FaqTitle");
                 });
 
             modelBuilder.Entity("burbodek.Models.Files", b =>
@@ -1092,35 +966,6 @@ namespace burbodek.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("burbodek.Models.Campaign", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("burbodek.Models.PaymentDetails", "PaymentDetails")
-                        .WithMany()
-                        .HasForeignKey("PaymentDetailsId");
-
-                    b.HasOne("burbodek.Models.Jobs", "SelectedJob")
-                        .WithMany()
-                        .HasForeignKey("SelectedJobId");
-
-                    b.HasOne("burbodek.Models.Training", "SelectedTraining")
-                        .WithMany()
-                        .HasForeignKey("SelectedTrainingId");
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("PaymentDetails");
-
-                    b.Navigation("SelectedJob");
-
-                    b.Navigation("SelectedTraining");
-                });
-
             modelBuilder.Entity("burbodek.Models.Email", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Sender")
@@ -1173,7 +1018,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.EmailTemplate", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("EmailTemplate")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1453,8 +1298,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.Users", b =>
                 {
-                    b.Navigation("EmailTemplate");
-
                     b.Navigation("EmployerDetails");
 
                     b.Navigation("Files");

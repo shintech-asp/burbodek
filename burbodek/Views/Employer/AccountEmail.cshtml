@@ -1,0 +1,385 @@
+﻿@{
+    ViewData["Title"] = "Email Automation";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model Users;
+<!--begin::Navbar-->
+<div class="card mb-5 mb-xl-10">
+    <div class="card-body pt-9 pb-0">
+        <!--begin::Details-->
+        <div class="d-flex flex-wrap flex-sm-nowrap">
+            <!--begin: Pic-->
+            <div class="me-7 mb-4">
+                <div class="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative">
+                    <img src="~/assets/media/avatars/300-1.jpg" alt="image">
+                    <div class="position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border border-4 border-body h-20px w-20px"></div>
+                </div>
+            </div>
+            <!--end::Pic-->
+            <!--begin::Info-->
+            <div class="flex-grow-1">
+                <!--begin::Title-->
+                <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+                    <!--begin::User-->
+                    <div class="d-flex flex-column">
+                        <!--begin::Name-->
+                        <div class="d-flex align-items-center mb-2">
+                            <a href="#" class="text-gray-900 text-hover-primary fs-2 fw-bold me-1">@Model.Username</a>
+                            <a href="#"><i class="ki-duotone ki-verify fs-1 text-primary"><span class="path1"></span><span class="path2"></span></i></a>
+                        </div>
+                        <!--end::Name-->
+                        <!--begin::Info-->
+                        <div class="d-flex flex-wrap fw-semibold fs-6 mb-4 pe-2">
+                            <a href="#" class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2">
+                                <i class="ki-duotone ki-geolocation fs-4 me-1"><span class="path1"></span><span class="path2"></span></i>                                @Model.EmployerDetails.Address
+                            </a>
+                            <a href="#" class="d-flex align-items-center text-gray-500 text-hover-primary mb-2">
+                                <i class="ki-duotone ki-sms fs-4"><span class="path1"></span><span class="path2"></span></i>                                @Model.Email
+                            </a>
+                        </div>
+                        <!--end::Info-->
+                    </div>
+                    <!--end::User-->
+                </div>
+                <!--end::Title-->
+                <!--begin::Stats-->
+                <div class="d-flex flex-wrap flex-stack">
+                    <!--begin::Wrapper-->
+                    <div class="d-flex flex-column flex-grow-1 pe-8">
+                        <!--begin::Stats-->
+                        <div class="d-flex flex-wrap">
+                            <!--begin::Stat-->
+                            <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                                <!--begin::Number-->
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-arrow-up fs-3 text-success me-2"><span class="path1"></span><span class="path2"></span></i>                                    <div class="fs-2 fw-bold counted" data-kt-countup="true" data-kt-countup-value="4500" data-kt-countup-prefix="$" data-kt-initialized="1">₱ @ViewBag.TotalCash </div>
+                                </div>
+                                <!--end::Number-->
+                                <!--begin::Label-->
+                                <div class="fw-semibold fs-6 text-gray-500">Earnings</div>
+                                <!--end::Label-->
+                            </div>
+                            <!--end::Stat-->
+                            <!--begin::Stat-->
+                            <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                                <!--begin::Number-->
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-arrow-down fs-3 text-danger me-2"><span class="path1"></span><span class="path2"></span></i>                                    <div class="fs-2 fw-bold counted" data-kt-countup="true" data-kt-countup-value="80" data-kt-initialized="1">@(Model.Jobs.Count > 0 || Model.Training.Count > 0 ? Model.Jobs.Count + Model.Training.Count : 0)</div>
+                                </div>
+                                <!--end::Number-->
+                                <!--begin::Label-->
+                                <div class="fw-semibold fs-6 text-gray-500">Jobs/Training</div>
+                                <!--end::Label-->
+                            </div>
+                            <!--end::Stat-->
+                            <!--begin::Stat-->
+                            <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                                <!--begin::Number-->
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-arrow-up fs-3 text-success me-2"><span class="path1"></span><span class="path2"></span></i>                                    <div class="fs-2 fw-bold counted" data-kt-countup="true" data-kt-countup-value="60" data-kt-countup-prefix="%" data-kt-initialized="1">@ViewBag.TotalHired</div>
+                                </div>
+                                <!--end::Number-->
+                                <!--begin::Label-->
+                                <div class="fw-semibold fs-6 text-gray-500">Success Rate</div>
+                                <!--end::Label-->
+                            </div>
+                            <!--end::Stat-->
+                        </div>
+                        <!--end::Stats-->
+                    </div>
+                    <!--end::Wrapper-->
+                    <!--begin::Progress-->
+                    <div class="d-flex align-items-center w-200px w-sm-300px flex-column mt-3">
+                        <div class="d-flex justify-content-between w-100 mt-auto mb-2">
+                            <span class="fw-semibold fs-6 text-gray-500">Profile Compleation</span>
+                            <span class="fw-bold fs-6">50%</span>
+                        </div>
+
+                        <div class="h-5px mx-3 w-100 bg-light mb-3">
+                            <div class="bg-success rounded h-5px" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <!--end::Progress-->
+                </div>
+                <!--end::Stats-->
+            </div>
+            <!--end::Info-->
+        </div>
+        <!--end::Details-->
+        <!--begin::Navs-->
+        <ul class="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold">
+            <!--begin::Nav item-->
+            <li class="nav-item mt-2">
+                <a class="nav-link text-active-primary ms-0 me-10 py-5 " asp-controller="Employer" asp-action="AccountOverview">
+                    Overview
+                </a>
+            </li>
+            <!--end::Nav item-->
+            <!--begin::Nav item-->
+            <li class="nav-item mt-2">
+                <a class="nav-link text-active-primary ms-0 me-10 py-5 " asp-controller="Employer" asp-action="AccountSettings">
+                    Settings
+                </a>
+            </li>
+            <!--end::Nav item-->
+            <!--begin::Nav item-->
+            <li class="nav-item mt-2">
+                <a class="nav-link text-active-primary ms-0 me-10 py-5 active" asp-controller="Employer" asp-action="AccountEmail">
+                    Email Automation
+                </a>
+            </li>
+            <!--end::Nav item-->
+        </ul>
+        <!--begin::Navs-->
+    </div>
+</div>
+<!--end::Navbar-->
+<!--begin::Billing Summary-->
+<div class="card  mb-5 mb-xl-10">
+    <!--begin::Card body-->
+    <div class="card-body">
+        <!--begin::Row-->
+        <!-- Replace the dropdown section in your view with this -->
+        <div class="row">
+            <div class="col text-start">
+                <h5>Email Automation</h5>
+            </div>
+            <div class="col text-end">
+                <select class="form-select" name="TypeOfEmail">
+    @foreach (var data in Model.EmailTemplate)
+    {
+        <option value="@data.Id">@data.TypeOfEmail</option>
+    }
+</select>
+            </div>
+        </div>
+        <!--end::Row-->
+        <div class="row mt-4">
+            <div class="card-body p-0">
+                <!--begin::Body-->
+                <div class="d-block">
+                    <!--begin::Subject-->
+                    <div class="border-bottom">
+                        <input class="form-control form-control-transparent border-0 px-8 min-h-45px" name="Subject" placeholder="Subject">
+                    </div>
+                    <!--end::Subject-->
+                    <!--begin::Message-->
+                    <div id="kt_inbox_form_editor" class="bg-transparent border-0 h-350px px-3 ql-container ql-snow">
+                        <div class="ql-editor ql-blank" contenteditable="true" data-placeholder="Type your message here..."></div>
+                    </div>
+                    <textarea hidden name="Body" id="Body"></textarea>
+                    <!--end::Message-->
+                </div>
+                <!--end::Body-->
+                <!--begin::Footer-->
+                <div class="d-flex flex-stack flex-wrap gap-2 py-5 ps-8 pe-5 border-top">
+                    <div class="d-flex align-items-center me-3">
+                        <div class="btn-group me-4">
+                            <button type="submit" class="btn btn-primary fs-bold px-6" id="btnSend">
+                                <span class="indicator-label">Save</span>
+                                <span class="indicator-progress">
+                                    Please wait...
+                                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <span class="btn btn-icon btn-sm btn-clean btn-active-light-primary me-2 dz-clickable" id="btnAttachment">
+                            <i class="ki-duotone ki-paper-clip fs-2 m-0"></i>
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Card body-->
+</div>
+@section Scripts {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        $(document).ready(function () {
+    /* -------------------------------------------------
+       1. Initialize Quill
+    ------------------------------------------------- */
+    var quill = new Quill('#kt_inbox_form_editor', {
+        theme: 'snow',
+        placeholder: 'Type your message here...',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ color: [] }, { background: [] }],
+                [{ align: [] }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+
+    /* -------------------------------------------------
+       2. Create template lookup object from Razor (using JSON.parse to avoid escaping issues)
+    ------------------------------------------------- */
+    var templates = @Html.Raw(Json.Serialize(
+        Model.EmailTemplate.Select(t => new {
+            id = t.Id,
+            typeOfEmail = t.TypeOfEmail,
+            subject = t.Subject ?? "",
+            body = t.Body ?? ""
+        }).ToDictionary(x => x.id, x => new { x.typeOfEmail, x.subject, x.body })
+    ));
+
+    // Convert to expected format
+    var templatesObj = {};
+    Object.keys(templates).forEach(function(key) {
+        var t = templates[key];
+        templatesObj[key] = {
+            id: parseInt(key),
+            typeOfEmail: t.typeOfEmail,
+            subject: t.subject,
+            body: t.body
+        };
+    });
+    templates = templatesObj;
+
+    console.log('Templates loaded:', templates);
+
+    /* -------------------------------------------------
+       3. Strip style tags and render body
+    ------------------------------------------------- */
+    function stripStyleTags(html) {
+        // Remove <style> tags but keep the HTML
+        return html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    }
+
+    /* -------------------------------------------------
+       4. Load template by ID
+    ------------------------------------------------- */
+    function loadTemplate(templateId) {
+        var template = templates[templateId];
+        
+        if (template) {
+            console.log('Loading template:', template.typeOfEmail);
+            
+            // Set subject
+            $('input[name="Subject"]').val(template.subject);
+            
+            // Strip style tags from body
+            var cleanBody = stripStyleTags(template.body);
+            console.log('Cleaned body:', cleanBody.substring(0, 200));
+            
+            // Clear quill first
+            quill.setText('');
+            
+            // Set body HTML using dangerouslyPasteHTML
+            quill.clipboard.dangerouslyPasteHTML(cleanBody || '<p><br></p>');
+            quill.history.clear();
+            
+            // Update hidden textarea with original body (for saving)
+            $('#Body').val(template.body);
+        } else {
+            console.warn('Template not found for ID:', templateId);
+        }
+    }
+
+    /* -------------------------------------------------
+       4. Load initial template on page load
+    ------------------------------------------------- */
+    var initialId = $('select[name="TypeOfEmail"]').val();
+    if (initialId) {
+        setTimeout(function () {
+            loadTemplate(initialId);
+        }, 100);
+    }
+
+    /* -------------------------------------------------
+       5. Load template on dropdown change
+    ------------------------------------------------- */
+    $('select[name="TypeOfEmail"]').on('change', function () {
+        var selectedId = $(this).val();
+        console.log('Dropdown changed to ID:', selectedId);
+        loadTemplate(selectedId);
+    });
+
+    /* -------------------------------------------------
+       6. Keep hidden textarea in sync with Quill
+    ------------------------------------------------- */
+    quill.on('text-change', function () {
+        $('#Body').val(quill.root.innerHTML);
+    });
+
+    /* -------------------------------------------------
+       7. Save button handler
+    ------------------------------------------------- */
+    $('#btnSend').on('click', function (e) {
+        e.preventDefault();
+
+        var subject = $('input[name="Subject"]').val().trim();
+        var body = quill.root.innerHTML;
+        var templateId = $('select[name="TypeOfEmail"]').val();
+
+        // Validate
+        if (!subject) {
+            Swal.fire('Warning', 'Subject is required.', 'warning');
+            return;
+        }
+
+        if (!body || body === '<p><br></p>') {
+            Swal.fire('Warning', 'Email body cannot be empty.', 'warning');
+            return;
+        }
+
+        // Confirmation
+        Swal.fire({
+            title: 'Save template?',
+            text: 'This will update the selected email template.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, save it',
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            var $btn = $('#btnSend');
+            $btn.prop('disabled', true);
+            $btn.find('.indicator-label').hide();
+            $btn.find('.indicator-progress').show();
+
+            $.ajax({
+                url: '@Url.Action("SaveEmailTemplate", "Employer")',
+                type: 'POST',
+                data: {
+                    TemplateId: templateId,
+                    Subject: subject,
+                    Body: body
+                },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire('Success!', 'Email template saved successfully!', 'success');
+                        
+                        // Update in-memory template
+                        if (templates[templateId]) {
+                            templates[templateId].subject = subject;
+                            templates[templateId].body = body;
+                        }
+                    } else {
+                        Swal.fire('Error', response.message || 'Failed to save template.', 'error');
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+                    console.error('Error:', xhr.responseText);
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                    $btn.find('.indicator-label').show();
+                    $btn.find('.indicator-progress').hide();
+                }
+            });
+        });
+    });
+});
+    </script>
+}

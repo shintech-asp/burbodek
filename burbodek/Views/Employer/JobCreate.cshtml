@@ -20,11 +20,11 @@
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Minimum Salary</label>
-                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" required />
+                    <input type="number" class="form-control" name="SalaryMin" placeholder="e.g. 2000" required min="0" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Maximum Salary</label>
-                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" required />
+                    <input type="number" class="form-control" name="SalaryMax" placeholder="e.g. 4000" required min="0" />
                 </div>
             </div>
 
@@ -32,7 +32,7 @@
             <div class="row mb-5">
                 <div class="col">
                     <label class="form-label fw-bold">Expiration Date</label>
-                    <input type="date" class="form-control" name="ExpirationDate" required />
+                    <input type="date" class="form-control" name="ExpirationDate" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col">
                     <label class="form-label fw-bold">Job Type</label>
@@ -202,6 +202,35 @@
             reader.readAsDataURL(file);
           });
         });
+         document.querySelector("form").addEventListener("submit", function(e) {
+            const minSalary = parseFloat(document.querySelector("input[name='SalaryMin']").value);
+            const maxSalary = parseFloat(document.querySelector("input[name='SalaryMax']").value);
+            const expDate = new Date(document.querySelector("input[name='ExpirationDate']").value);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let errors = [];
+
+            // Salary check
+            if (minSalary > maxSalary) {
+                errors.push("Minimum salary cannot be greater than maximum salary.");
+            }
+
+            // Expiration date check
+            if (expDate < today) {
+                errors.push("Expiration date cannot be in the past.");
+            }
+
+            if(errors.length > 0) {
+                e.preventDefault(); // prevent form submission
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: errors.join("<br/>")
+                });
+            }
+        });
+
     </script>
 }
 

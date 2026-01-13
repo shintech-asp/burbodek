@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110154859_CreateCampaingDb")]
+    partial class CreateCampaingDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,23 +72,17 @@ namespace burbodek.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("float");
 
-                    b.Property<decimal?>("Payment")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("PaymentDetailsId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Province")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SelectedJobId")
+                    b.Property<int>("SelectedJobId")
                         .HasColumnType("int");
 
                     b.Property<int?>("SelectedListingId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SelectedTrainingId")
+                    b.Property<int>("SelectedTrainingId")
                         .HasColumnType("int");
 
                     b.Property<int>("TotalClicks")
@@ -94,14 +91,9 @@ namespace burbodek.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool?>("isPaid")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("PaymentDetailsId");
 
                     b.HasIndex("SelectedJobId");
 
@@ -335,47 +327,6 @@ namespace burbodek.Migrations
                         .IsUnique();
 
                     b.ToTable("EmployerDetails");
-                });
-
-            modelBuilder.Entity("burbodek.Models.Faq", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("isActive")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Faq");
-                });
-
-            modelBuilder.Entity("burbodek.Models.FaqTitle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FaqTitle");
                 });
 
             modelBuilder.Entity("burbodek.Models.Files", b =>
@@ -1100,21 +1051,19 @@ namespace burbodek.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("burbodek.Models.PaymentDetails", "PaymentDetails")
-                        .WithMany()
-                        .HasForeignKey("PaymentDetailsId");
-
                     b.HasOne("burbodek.Models.Jobs", "SelectedJob")
                         .WithMany()
-                        .HasForeignKey("SelectedJobId");
+                        .HasForeignKey("SelectedJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("burbodek.Models.Training", "SelectedTraining")
                         .WithMany()
-                        .HasForeignKey("SelectedTrainingId");
+                        .HasForeignKey("SelectedTrainingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("PaymentDetails");
 
                     b.Navigation("SelectedJob");
 
