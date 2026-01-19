@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115064353_AddJobApplicantUpload")]
+    partial class AddJobApplicantUpload
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,16 +42,11 @@ namespace burbodek.Migrations
                     b.Property<string>("Upload")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UsersId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("JobApplicationId");
 
                     b.HasIndex("JobUploadsId");
-
-                    b.HasIndex("UsersId");
 
                     b.ToTable("ApplicantJobUpload");
                 });
@@ -70,16 +68,11 @@ namespace burbodek.Migrations
                     b.Property<string>("Upload")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UsersId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TrainingApplicationId");
 
                     b.HasIndex("TrainingUploadsId");
-
-                    b.HasIndex("UsersId");
 
                     b.ToTable("ApplicantTrainingUpload");
                 });
@@ -1214,18 +1207,12 @@ namespace burbodek.Migrations
                         .HasForeignKey("JobApplicationId");
 
                     b.HasOne("burbodek.Models.JobUploads", "JobUploads")
-                        .WithMany("ApplicantJobUpload")
+                        .WithMany()
                         .HasForeignKey("JobUploadsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId");
-
                     b.Navigation("JobUploads");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("burbodek.Models.ApplicantTrainingUpload", b =>
@@ -1235,18 +1222,12 @@ namespace burbodek.Migrations
                         .HasForeignKey("TrainingApplicationId");
 
                     b.HasOne("burbodek.Models.TrainingUploads", "TrainingUploads")
-                        .WithMany("ApplicantTrainingUpload")
+                        .WithMany()
                         .HasForeignKey("TrainingUploadsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId");
-
                     b.Navigation("TrainingUploads");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("burbodek.Models.Campaign", b =>
@@ -1604,11 +1585,6 @@ namespace burbodek.Migrations
                     b.Navigation("Uploads");
                 });
 
-            modelBuilder.Entity("burbodek.Models.JobUploads", b =>
-                {
-                    b.Navigation("ApplicantJobUpload");
-                });
-
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
                 {
                     b.Navigation("JobApplication");
@@ -1644,11 +1620,6 @@ namespace burbodek.Migrations
                     b.Navigation("TrainingPayments");
 
                     b.Navigation("Uploads");
-                });
-
-            modelBuilder.Entity("burbodek.Models.TrainingUploads", b =>
-                {
-                    b.Navigation("ApplicantTrainingUpload");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>

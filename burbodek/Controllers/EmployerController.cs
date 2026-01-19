@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.Data;
+using System.Diagnostics;
 using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -1811,6 +1812,8 @@ namespace burbodek.Controllers
                        .Include(u => u.JobRequirements)
                        .Include(u => u.JobRole)
                        .Include(u => u.JobMedia)
+                       .Include(u => u.JobUploads.Where(u => u.isActive))
+                           .ThenInclude(u => u.ApplicantJobUpload.Where(u => u.UsersId == ApplicantId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
 
@@ -2014,6 +2017,11 @@ namespace burbodek.Controllers
         [HttpPost]
         public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit)
         {
+
+            ModelState.Keys
+            .Where(k => k.StartsWith("Uploads"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
             if (!ModelState.IsValid)
             {
                 TempData["error"] = "Please fill up all the details.";
@@ -2029,17 +2037,29 @@ namespace burbodek.Controllers
                 SalaryMax = model.SalaryMax,
                 ExpirationDate = model.ExpirationDate,
                 JobDescription = model.JobDescription,
-                Diploma = model.Diploma,
-                Resume = model.Resume,
-                Tor = model.Tor,
-                Coe = model.Coe,
-                SeamansBook = model.SeamansBook,
-                PassportId = model.PassportId
+                Diploma = false,
+                Resume = false,
+                Tor = false,
+                Coe = false,
+                SeamansBook = false,
+                PassportId = false
             };
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
 
+            foreach (var data in model.Uploads)
+            {
+                var jobUploads = new JobUploads
+                {
+                    JobsId = job.Id,
+                    Name = data.Name,
+                    isActive = data.isActive
+                };
+
+                _context.JobUploads.Add(jobUploads);
+                await _context.SaveChangesAsync();
+            }
             // Requirements (many)
             foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
             {

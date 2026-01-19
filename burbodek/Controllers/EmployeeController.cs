@@ -1639,6 +1639,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobApplication.Where(a => a.AppliedBy == userId))
+                        .Include(u => u.JobUploads.Where(a => a.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
 
@@ -1744,6 +1745,7 @@ namespace burbodek.Controllers
                 var uploads = new ApplicantTrainingUpload
                 {
                     TrainingUploadsId = data.TrainingUploadsId,
+                    UsersId = model.AppliedBy,
                     Upload = await SaveFile(data.File)
                 };
                 _context.ApplicantTrainingUpload.Add(uploads);
@@ -1931,20 +1933,21 @@ namespace burbodek.Controllers
         public async Task<IActionResult> JobApply(JobApplication model, int Id, IFormFile? ResumeFile, IFormFile? CoeFile, IFormFile? TorFile, IFormFile? SeamansBookFile, IFormFile? PassportIdFile, IFormFile? DiplomaFile)
         {
             // Remove unrelated properties from ModelState
+
+            ModelState.Keys
+            .Where(k => k.EndsWith("JobUploads"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.EndsWith("Upload"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
             ModelState.Remove("Jobs");
             ModelState.Remove("AppliedBy");
             ModelState.Remove("CV");
 
             model.JobsId = Id;
             model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
-
-            // Debug: Log all received files
-            Console.WriteLine($"ResumeFile: {(ResumeFile != null ? ResumeFile.FileName : "null")}");
-            Console.WriteLine($"CoeFile: {(CoeFile != null ? CoeFile.FileName : "null")}");
-            Console.WriteLine($"TorFile: {(TorFile != null ? TorFile.FileName : "null")}");
-            Console.WriteLine($"SeamansBookFile: {(SeamansBookFile != null ? SeamansBookFile.FileName : "null")}");
-            Console.WriteLine($"PassportIdFile: {(PassportIdFile != null ? PassportIdFile.FileName : "null")}");
-            Console.WriteLine($"DiplomaFile: {(DiplomaFile != null ? DiplomaFile.FileName : "null")}");
 
             if (!ModelState.IsValid)
             {
@@ -1988,18 +1991,24 @@ namespace burbodek.Controllers
                 ExpectedSalary = model.ExpectedSalary,
                 StartDate = model.StartDate,
                 Experience = model.Experience,
-                ApplicationLetter = model.ApplicationLetter,
-                Resume = await SaveFile(ResumeFile),
-                Diploma = await SaveFile(DiplomaFile),
-                PassportId = await SaveFile(PassportIdFile),
-                Tor = await SaveFile(TorFile),
-                Coe = await SaveFile(CoeFile),
-                SeamansBook = await SaveFile(SeamansBookFile)
+                ApplicationLetter = model.ApplicationLetter
             };
 
             _context.JobApplication.Add(jobApplication);
             await _context.SaveChangesAsync();
 
+
+            foreach (var data in model.Uploads)
+            {
+                var uploads = new ApplicantJobUpload
+                {
+                    JobUploadsId = data.JobUploadsId,
+                    UsersId = model.AppliedBy,
+                    Upload = await SaveFile(data.File)
+                };
+                _context.ApplicantJobUpload.Add(uploads);
+                await _context.SaveChangesAsync();
+            }
             var job = await _context.Jobs
            .Include(j => j.Users)
             .ThenInclude(j => j.EmployerDetails)

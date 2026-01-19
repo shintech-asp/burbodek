@@ -2,15 +2,15 @@
 
 namespace burbodek.Models
 {
-    public class ApplicantTrainingUpload
+    public class ApplicantJobUpload
     {
         public int Id { get; set; }
-        public int TrainingUploadsId { get; set; }
-        public TrainingUploads TrainingUploads { get; set; }
-        public string? Upload { get; set; }
-
+        public int JobUploadsId { get; set; }
+        public JobUploads JobUploads { get; set; }
         public int? UsersId { get; set; }
         public Users? Users { get; set; }
+        public string? Upload { get; set; }
+
         [NotMapped]
         public IFormFile? File { get; set; }
     }
