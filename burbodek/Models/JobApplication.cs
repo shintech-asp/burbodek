@@ -23,5 +23,6 @@
         public string? Coe { get; set; }
         public string Status { get; set; } = "Applied";
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public List<ApplicantJobUpload> Uploads { get; set; } = new();
     }
 }

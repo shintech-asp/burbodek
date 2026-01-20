@@ -12,8 +12,8 @@
         public List<string> JobRequirements { get; set; } = new();
         public List<string> JobBenefits { get; set; } = new();
         public List<string> JobRole { get; set; } = new();
-
         public List<IFormFile> JobMedia { get; set; } = new();
+        public List<JobUploads> Uploads { get; set; } = new();
         public bool Diploma { get; set; }
         public bool Resume { get; set; }
         public bool PassportId { get; set; }

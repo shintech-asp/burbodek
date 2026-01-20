@@ -195,83 +195,25 @@
 						</div>
 						<!--end::Input group-->
 						<!-- Upload Media -->
-						@if (Model.Jobs.Coe)
+						@if (Model.Jobs.JobUploads != null)
 						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Certificate of Employment</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Coe" />
+							var uploadsList = Model.Jobs.JobUploads.ToList();
+							@for (int i = 0; i < uploadsList.Count; i++)
+							{
+								var data = uploadsList[i];
+
+								<div class="mb-5">
+									<label class="form-label fw-bold required">@data.Name</label>
+
+									<div class="card">
+										<div class="card-body">
+											<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
+											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
+										</div>
 									</div>
 								</div>
-							</div>
-						}
-						@if (Model.Jobs.Tor)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Transcript of Records</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Tor" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Diploma)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Diploma</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Diploma" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.PassportId)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Passport Id</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.PassportId" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Resume)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Resume</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.Resume" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.SeamansBook)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Seaman's Book</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" data-default-file="@Model.UserInfo.SeamansBook" />
-									</div>
-								</div>
-							</div>
+							}
+
 						}
 					}
 					else

@@ -7,5 +7,6 @@
         public Training Training { get; set; }
         public string Name { get; set; }
         public bool isActive { get; set; }
+        public ICollection<ApplicantTrainingUpload> ApplicantTrainingUpload { get; set; } = new List<ApplicantTrainingUpload>();
     }
 }
