@@ -671,6 +671,7 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingBenefits)
                 .Include(u => u.TrainingRequirements)
                 .Include(u => u.TrainingMedia)
+                .Include(u => u.TrainingBadge)
                 .Include(u => u.TrainingApplication)
                     .ThenInclude(u => u.TrainingPayments)
                 .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
@@ -2135,6 +2136,14 @@ namespace burbodek.Controllers
             .Where(k => k.StartsWith("Uploads"))
             .ToList()
             .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.Equals("Badge.Training"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.Equals("Badge.TrainingId"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
             if (model.PaymentOption == "Full")
             {
                 ModelState.Remove("DownPayment");
@@ -2182,6 +2191,16 @@ namespace burbodek.Controllers
                 _context.TrainingUploads.Add(trainUploads);
                 await _context.SaveChangesAsync();
             }
+            var badge = new TrainingBadge
+            {
+                TrainingId = train.Id,
+                Badge = model.Badge.Badge,
+                Description = model.Badge.Description,
+                Validity = model.Badge.Validity
+            };
+
+            _context.TrainingBadge.Add(badge);
+            await _context.SaveChangesAsync();
             // Requirements (many)
             foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
             {

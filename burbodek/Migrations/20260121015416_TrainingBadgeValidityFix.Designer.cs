@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121015416_TrainingBadgeValidityFix")]
+    partial class TrainingBadgeValidityFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1031,8 +1034,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TrainingId")
-                        .IsUnique();
+                    b.HasIndex("TrainingId");
 
                     b.ToTable("TrainingBadge");
                 });
@@ -1545,8 +1547,8 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.TrainingBadge", b =>
                 {
                     b.HasOne("burbodek.Models.Training", "Training")
-                        .WithOne("TrainingBadge")
-                        .HasForeignKey("burbodek.Models.TrainingBadge", "TrainingId")
+                        .WithMany("TrainingBadge")
+                        .HasForeignKey("TrainingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1668,8 +1670,7 @@ namespace burbodek.Migrations
                 {
                     b.Navigation("TrainingApplication");
 
-                    b.Navigation("TrainingBadge")
-                        .IsRequired();
+                    b.Navigation("TrainingBadge");
 
                     b.Navigation("TrainingBenefits");
 

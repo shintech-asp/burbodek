@@ -190,17 +190,20 @@
             <div class="row mb-3">
                 <div class="col">
                     <label class="form-label fw-bold">Badge name</label>
-                    <input type="text" class="form-control" name="Badge" placeholder="NC2 Certified"/>
+                    <input type="text" class="form-control" name="Badge.Badge" placeholder="NC2 Certified"/>
                 </div>
                 <div class="col">
                     <label class="form-label fw-bold">Badge Validity Duration</label>
-                    <input type="date" class="form-control" name="Validity"/>
+                    <div class="input-group input-group-solid mb-5">
+                        <input type="text" class="form-control" name="Badge.Validity" placeholder="30" min="1" max="30" aria-describedby="basic-addon2">
+                        <span class="input-group-text" id="basic-addon2">/days</span>
+                    </div>
                 </div>
             </div>
             <div class="row mb-5">
                 <div class="col">
                     <label class="form-label fw-bold">Badge Description</label>
-                    <textarea class="form-control" name="Description" rows="3"></textarea>
+                    <textarea class="form-control" name="Badge.Description" rows="3"></textarea>
                 </div>
             </div>
             <div class="text-end">

@@ -7,6 +7,6 @@
         public Training Training { get; set; }
         public string Badge { get; set; }
         public string? Description { get; set; }
-        public DateTime Validity { get; set; }
+        public int Validity { get; set; }
     }
 }
