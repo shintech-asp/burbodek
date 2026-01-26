@@ -254,7 +254,14 @@
 					}
 					else
 					{
-						<a asp-controller="Employee" asp-action="JobApply" asp-route-Id="@Model.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
+						<a asp-controller="Employee"
+						   asp-action="JobApply"
+						   asp-route-Id="@Model.Id"
+						   id="applyBtn"
+						   class="btn btn-sm btn-primary mt-5">
+							Apply Now
+						</a>
+
 					}
 					<!--end::Apply-->
 				</div>
@@ -277,6 +284,50 @@
 							<!--end::Text-->
 						</div>
 						<!--end::Top-->
+						@if (Model.JobRequiredBadge.Count > 0)
+						{
+							<!--begin::Item-->
+							<div class="mb-8">
+								<!--begin::Title-->
+								<h4 class="text-gray-700 w-bolder mb-0">Badge requirements</h4>
+								<!--end::Title-->
+								<!--begin::Section-->
+								<div class="my-2">
+									<!--begin::Row-->
+									<div class="d-flex align-items-center mb-3">
+										<!--begin::Bullet-->
+										<span class="bullet me-3"></span>
+										<!--end::Bullet-->
+										<!--begin::Label-->
+										<div class="text-gray-600 fw-semibold fs-6">
+											@{
+												var userBadges = Model.Users.UserBadge
+												.Select(b => b.Badge)
+												.ToHashSet();
+											}
+
+											<div id="requiredBadgeSection">
+												@foreach (var required in Model.JobRequiredBadge)
+												{
+													bool hasBadge = userBadges.Contains(required.Badge);
+
+													<span class="badge badge-status @(hasBadge ? "badge-success" : "badge-danger")"
+														  data-has-badge="@hasBadge">
+														<i class="ki-duotone @(hasBadge ? "ki-check-circle" : "ki-cross-circle") me-1"></i>
+														@required.Badge
+													</span>
+												}
+											</div>
+
+										</div>
+
+										<!--end::Label-->
+									</div>
+								</div>
+								<!--end::Section-->
+							</div>
+							<!--end::Item-->
+						}
 						<!--begin::Item-->
 						<div class="mb-8">
 							<!--begin::Title-->
@@ -502,5 +553,25 @@
 
 		// Run on page load
 		window.addEventListener('load', handleVideoPlayback);
+				document.getElementById("applyBtn").addEventListener("click", function (e) {
+
+			const badges = document.querySelectorAll("[data-has-badge]");
+			const hasMissing = Array.from(badges)
+				.some(b => b.dataset.hasBadge === "False");
+
+			if (hasMissing) {
+				e.preventDefault(); // stop navigation
+
+				Swal.fire({
+					icon: 'error',
+					title: 'Required badge not met',
+					text: 'You must complete the required training to earn all badges before applying.',
+					confirmButtonText: 'Close'
+				}).then(() => {
+					document.getElementById("requiredBadgeSection")
+						.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+			}
+		});
 	</script>
 }

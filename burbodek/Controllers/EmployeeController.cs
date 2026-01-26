@@ -64,6 +64,7 @@ namespace burbodek.Controllers
                     SalaryMin = j.SalaryMin,
                     SalaryMax = j.SalaryMax,
                     CreatedAt = j.CreatedAt,
+                    JobRequiredBadge = j.JobRequiredBadge.ToList(),
                     AlreadyApplied = j.JobApplication.Any(a => a.AppliedBy == userId)
                 })
                 .AsNoTracking()
@@ -99,6 +100,7 @@ namespace burbodek.Controllers
                     ModeOfPayment = t.ModeOfPayment,
                     PaymentOption = t.PaymentOption,
                     CreatedAt = t.CreatedAt,
+                    TrainingBadge = t.TrainingBadge.Badge,
                     AlreadyApplied = t.TrainingApplication.Any(a => a.AppliedBy == userId)
                 })
                 .AsNoTracking()
@@ -396,10 +398,13 @@ namespace burbodek.Controllers
             var data = _context.Jobs
                         .Include(u => u.Users)
                             .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.UserBadge)
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobRole)
+                        .Include(u => u.JobRequiredBadge)
                         .Include(u => u.JobApplication.Where(ap => ap.AppliedBy == userId))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();

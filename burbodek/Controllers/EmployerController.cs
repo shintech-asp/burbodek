@@ -650,6 +650,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
+                        .Include(u => u.JobRequiredBadge)
                         .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
             if (data == null)
@@ -1923,6 +1924,7 @@ namespace burbodek.Controllers
                        .Include(u => u.JobBenefits)
                        .Include(u => u.JobApplication)
                        .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRequiredBadge)
                        .Include(u => u.JobRole)
                        .Include(u => u.JobMedia)
                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
@@ -2023,10 +2025,17 @@ namespace burbodek.Controllers
         }
         public IActionResult JobCreate()
         {
-            return View();
+            var badges = _context.TrainingBadge
+                    .Where(t => t.Training.Expiration >= DateTime.Now)
+                    .Distinct()
+                    .ToList();
+
+            return View(badges);
+
         }
+
         [HttpPost]
-        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit)
+        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit, List<string> Badge)
         {
 
             ModelState.Keys
@@ -2058,7 +2067,15 @@ namespace burbodek.Controllers
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
-
+            foreach (var badge in Badge ?? Enumerable.Empty<string>())
+            {
+                var jobBadge = new JobRequiredBadge
+                {
+                    JobsId = job.Id,
+                    Badge = badge
+                };
+                _context.JobRequiredBadge.Add(jobBadge);
+            }
             foreach (var data in model.Uploads)
             {
                 var jobUploads = new JobUploads

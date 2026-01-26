@@ -57,7 +57,7 @@
             <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Requirements</label>
-                <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select roles...">
+                <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select requirements...">
                     @foreach (var data in Model.JobRequirements)
                     {
                         <option value="@data.Requirement" selected>@data.Requirement</option>
@@ -78,7 +78,7 @@
             <!-- Requirements -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Benefits</label>
-                <select id="benefitSelect" name="Benefit[]" multiple placeholder="Add or select roles...">
+                <select id="benefitSelect" name="Benefit[]" multiple placeholder="Add or select benefits...">
                     @foreach (var data in Model.JobBenefits)
                     {
                         <option value="@data.Benefit" selected>@data.Benefit</option>
@@ -86,6 +86,15 @@
                 </select>
             </div>
 
+            <div class="mb-5">
+                <label class="form-label fw-bold">Badge</label>
+                <select id="badgeSelect" name="Badge[]" multiple placeholder="Add or select badge...">
+                    @foreach (var data in Model.JobRequiredBadge)
+                    {
+                        <option value="@data.Badge" selected>@data.Badge</option>
+                    }
+                </select>
+            </div>
             <!-- Upload Media -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Upload Media (Max 10)</label>
@@ -124,7 +133,41 @@
           delimiter: ',',
           placeholder: 'Select or add benefits...'
         });
+         const existingBadges = Array.from(
+            document.querySelectorAll("#badgeSelect option")
+        ).map(o => o.value.toLowerCase());
 
+        const badgeSelect = new TomSelect("#badgeSelect", {
+            plugins: ['remove_button'],
+            persist: false,
+            create: function (input, callback) {
+
+                // If badge already exists → allow immediately
+                if (existingBadges.includes(input.toLowerCase())) {
+                    callback({ value: input, text: input });
+                    return;
+                }
+
+                // Otherwise show confirmation
+                Swal.fire({
+                    title: 'Create new badge?',
+                    text: `The badge "${input}" does not exist in Training available. Do you want to create it?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, create it',
+                    cancelButtonText: 'Cancel'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        existingBadges.push(input.toLowerCase()); // prevent future warnings
+                        callback({ value: input, text: input });
+                    } else {
+                        callback(); // cancel creation
+                    }
+                });
+            },
+            delimiter: ',',
+            placeholder: 'Select or add badge...'
+        });
 
         // Media Upload Preview (limit 10)
         document.getElementById("mediaInput").addEventListener("change", function () {

@@ -50,7 +50,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ApplicantJobUpload");
+                    b.ToTable("ApplicantJobUpload", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.ApplicantTrainingUpload", b =>
@@ -81,7 +81,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ApplicantTrainingUpload");
+                    b.ToTable("ApplicantTrainingUpload", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Campaign", b =>
@@ -169,7 +169,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("SelectedTrainingId");
 
-                    b.ToTable("Campaign");
+                    b.ToTable("Campaign", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Email", b =>
@@ -211,7 +211,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("ThreadID");
 
-                    b.ToTable("Emails");
+                    b.ToTable("Emails", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.EmailAttachment", b =>
@@ -240,7 +240,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("EmailID");
 
-                    b.ToTable("EmailAttachments");
+                    b.ToTable("EmailAttachments", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.EmailRecipient", b =>
@@ -275,7 +275,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("RecipientID");
 
-                    b.ToTable("EmailRecipients");
+                    b.ToTable("EmailRecipients", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.EmailTemplate", b =>
@@ -316,7 +316,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("EmailTemplate");
+                    b.ToTable("EmailTemplate", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.EmailThread", b =>
@@ -347,7 +347,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("EmailThreads");
+                    b.ToTable("EmailThreads", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
@@ -396,7 +396,7 @@ namespace burbodek.Migrations
                     b.HasIndex("UsersId")
                         .IsUnique();
 
-                    b.ToTable("EmployerDetails");
+                    b.ToTable("EmployerDetails", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Faq", b =>
@@ -420,7 +420,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Faq");
+                    b.ToTable("Faq", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.FaqTitle", b =>
@@ -437,7 +437,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FaqTitle");
+                    b.ToTable("FaqTitle", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Files", b =>
@@ -474,7 +474,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobApplication", b =>
@@ -558,7 +558,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("JobApplication");
+                    b.ToTable("JobApplication", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobBenefits", b =>
@@ -580,7 +580,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobBenefits");
+                    b.ToTable("JobBenefits", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobMedia", b =>
@@ -606,7 +606,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobMedia");
+                    b.ToTable("JobMedia", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobRequiredBadge", b =>
@@ -628,7 +628,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobRequiredBadge");
+                    b.ToTable("JobRequiredBadge", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobRequirements", b =>
@@ -650,7 +650,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobRequirements");
+                    b.ToTable("JobRequirements", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobRole", b =>
@@ -672,7 +672,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobRole");
+                    b.ToTable("JobRole", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.JobUploads", b =>
@@ -697,7 +697,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("JobsId");
 
-                    b.ToTable("JobUploads");
+                    b.ToTable("JobUploads", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Jobs", b =>
@@ -762,7 +762,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.PaymentDetails", b =>
@@ -788,7 +788,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("PaymentDetails");
+                    b.ToTable("PaymentDetails", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Payments", b =>
@@ -820,7 +820,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Plans", b =>
@@ -850,7 +850,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plans");
+                    b.ToTable("Plans", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Subscription", b =>
@@ -882,7 +882,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Subscription");
+                    b.ToTable("Subscription", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Training", b =>
@@ -962,7 +962,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Training");
+                    b.ToTable("Training", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
@@ -1027,7 +1027,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingId");
 
-                    b.ToTable("TrainingApplication");
+                    b.ToTable("TrainingApplication", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingBadge", b =>
@@ -1056,7 +1056,7 @@ namespace burbodek.Migrations
                     b.HasIndex("TrainingId")
                         .IsUnique();
 
-                    b.ToTable("TrainingBadge");
+                    b.ToTable("TrainingBadge", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingBenefits", b =>
@@ -1078,7 +1078,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingId");
 
-                    b.ToTable("TrainingBenefits");
+                    b.ToTable("TrainingBenefits", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingCertificate", b =>
@@ -1104,7 +1104,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingApplicationId");
 
-                    b.ToTable("TrainingCertificate");
+                    b.ToTable("TrainingCertificate", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingMedia", b =>
@@ -1130,7 +1130,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingId");
 
-                    b.ToTable("TrainingMedia");
+                    b.ToTable("TrainingMedia", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingPayments", b =>
@@ -1170,7 +1170,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("TrainingPayments");
+                    b.ToTable("TrainingPayments", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingRequirements", b =>
@@ -1192,7 +1192,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingId");
 
-                    b.ToTable("TrainingRequirements");
+                    b.ToTable("TrainingRequirements", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingUploads", b =>
@@ -1217,7 +1217,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("TrainingId");
 
-                    b.ToTable("TrainingUploads");
+                    b.ToTable("TrainingUploads", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.UserBadge", b =>
@@ -1242,7 +1242,7 @@ namespace burbodek.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("UserBadge");
+                    b.ToTable("UserBadge", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>
@@ -1280,7 +1280,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("burbodek.Models.ApplicantJobUpload", b =>
