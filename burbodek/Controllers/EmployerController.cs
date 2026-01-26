@@ -401,14 +401,15 @@ namespace burbodek.Controllers
                 };
                 _context.TrainingCertificate.Add(trainingCertificate);
                 await _context.SaveChangesAsync();
-
                 // ========== SEND EMAIL NOTIFICATION ==========
                 try
                 {
                     var trainingApplication = await _context.TrainingApplication
                         .Include(ta => ta.Training)
-                        .ThenInclude(t => t.Users)
-                        .ThenInclude(u => u.EmployerDetails)
+                            .ThenInclude(u => u.TrainingBadge)
+                        .Include(ta => ta.Training)
+                            .ThenInclude(t => t.Users)
+                                .ThenInclude(u => u.EmployerDetails)
                         .FirstOrDefaultAsync(ta => ta.Id == trainingApplicationId);
 
                     if (trainingApplication != null)
@@ -417,6 +418,15 @@ namespace burbodek.Controllers
 
                         if (applicant != null)
                         {
+
+                            var userBadge = new UserBadge
+                            {
+                                UsersId = applicant.Id,
+                                Badge = trainingApplication.Training.TrainingBadge.Badge,
+                                ValidUntil = DateTime.Now.AddDays(trainingApplication.Training.TrainingBadge.Validity)
+                            };
+                            _context.UserBadge.Add(userBadge);
+                            await _context.SaveChangesAsync();
                             // Create email thread
                             var sendEmail = new EmailThread
                             {

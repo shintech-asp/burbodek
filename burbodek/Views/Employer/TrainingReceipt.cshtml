@@ -180,8 +180,19 @@
                     <!--begin::Labels-->
                     <div class="mb-8">
                         <span class="badge badge-light-success me-2">Approved</span>
-
-                        <span class="badge badge-light-success">Paid</span>
+                        @{
+                            string badge;
+                            @if (Model.PaymentStatus == "Paid")
+                            {
+                                badge = "badge-light-success";
+                            }
+                            else
+                            {
+                                badge = "badge-light-warning";
+                            }
+                        }
+                        
+                        <span class="badge @badge">@Model.PaymentStatus</span>
                     </div>
                     <!--end::Labels-->
                     <!--begin::Title-->
@@ -244,7 +255,10 @@
                     {
                         <button id="setAsPaid" class="btn btn-sm btn-success">Set as paid</button>
                     }
-
+                    @if (Model.Training.PaymentOption == "Full" && Model.Training.ModeOfPayment == "Cash" && Model.PaymentStatus == "Unpaid")
+                    {
+                        <button id="setAsPaid" class="btn btn-sm btn-success">Set as paid</button>
+                    }
                     @if (payment != null && payment.Paid == payment.Price && certificate == null)
                     {
                         <button id="addCertification" data-bs-toggle="modal" data-bs-target="#fileUploadModal" class="btn btn-sm btn-info">

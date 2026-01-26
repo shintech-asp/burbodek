@@ -443,6 +443,7 @@ namespace burbodek.Controllers
                             .ThenInclude(u => u.EmployerDetails)
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
+                        .Include(u => u.TrainingBadge)
                         .Include(u => u.TrainingBenefits)
                         .Include(u => u.TrainingApplication.Where(ap => ap.AppliedBy == userId))
                         .Include(u => u.TrainingUploads.Where(ap => ap.isActive))
@@ -1664,6 +1665,7 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
+                        .Include(u => u.TrainingBadge)
                         .Include(u => u.TrainingUploads.Where(u => u.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();

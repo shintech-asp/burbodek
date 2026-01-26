@@ -233,6 +233,36 @@
 						<!--begin::Item-->
 						<div class="mb-8">
 							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Badge</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									@if (Model.TrainingBadge == null)
+									{
+
+										<div class="fw-semibold fs-6"><span class="badge badge-primary">Nothing</span></div>
+									}
+									else
+									{
+
+										<div class="fw-semibold fs-6"><span class="badge badge-primary">@Model.TrainingBadge.Badge</span></div>
+									}
+
+									<!--end::Label-->
+								</div>
+							</div>
+							<!--end::Section-->
+						</div>
+						<!--end::Item-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
 							<h4 class="text-gray-700 w-bolder mb-0">Price</h4>
 							<!--end::Title-->
 							<!--begin::Section-->

@@ -30,6 +30,7 @@ namespace burbodek.Models
         public List<JobApplication>? JobApplication { get; set; }
         public List<Files>? Files { get; set; }
         public List<PaymentDetails>? PaymentDetails { get; set; }
+        public List<UserBadge>? UserBadge { get; set; }
         public List<Payments>? Payments { get; set; }
         public List<Training>? Training { get; set; }
         public List<Jobs>? Jobs { get; set; }
