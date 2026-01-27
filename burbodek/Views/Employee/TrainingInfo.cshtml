@@ -1,10 +1,11 @@
 ﻿@using Humanizer
 @using System.Globalization
+@using burbodek.Models.ViewModels
 @{
 	ViewData["Title"] = "Training Information";
 	Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
 }
-@model Training
+@model TrainingInfoViewModel
 <div class="card">
 	<!--begin::Body-->
 	<div class="card-body p-lg-17">
@@ -20,15 +21,22 @@
 				object-fit: cover; /* crop & center */
 				border-radius: 12px;
 			}
+
+			.line-clamp-3 {
+				display: -webkit-box;
+				-webkit-line-clamp: 3;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
 		</style>
 
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">
-					@if (Model.TrainingMedia != null && Model.TrainingMedia.Any())
+					@if (Model.Training.TrainingMedia != null && Model.Training.TrainingMedia.Any())
 					{
 						var index = 0;
-						foreach (var media in Model.TrainingMedia)
+						foreach (var media in Model.Training.TrainingMedia)
 						{
 							var isActive = index == 0 ? "active" : "";
 							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
@@ -77,8 +85,8 @@
 
 			<!-- Business Info -->
 			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
-				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Name</h3>
-				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
+				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Training.Name</h3>
+				<div class="fs-5 fw-semibold">@Model.Training.Users.EmployerDetails?.BusinessDescription</div>
 			</div>
 		</div>
 		<!--begin::Layout-->
@@ -90,7 +98,7 @@
 					<!--begin::Description-->
 					<div class="m-0">
 						<!--begin::Title-->
-						<h4 class="fs-1 text-gray-800 w-bolder mb-6">@Model.Name</h4>
+						<h4 class="fs-1 text-gray-800 w-bolder mb-6">@Model.Training.Name</h4>
 						<!--end::Title-->
 						<!--begin::Text-->
 						<p class="fw-semibold fs-4 text-gray-600 mb-2">Come work with us!</p>
@@ -122,7 +130,7 @@
 						<!--end::Heading-->
 						<!--begin::Body-->
 						<div id="kt_job_1_1" class="collapse show fs-6 ms-1">
-							@foreach (var data in Model.TrainingRequirements)
+							@foreach (var data in Model.Training.TrainingRequirements)
 							{
 								<!--begin::Item-->
 								<div class="mb-4">
@@ -170,7 +178,7 @@
 						<!--end::Heading-->
 						<!--begin::Body-->
 						<div id="kt_job_1_3" class="collapse fs-6 ms-1">
-							@foreach (var data in Model.TrainingBenefits)
+							@foreach (var data in Model.Training.TrainingBenefits)
 							{
 								<!--begin::Item-->
 								<div class="mb-4">
@@ -196,7 +204,7 @@
 					<!--end::Section-->
 					<!--end::Accordion-->
 					<!--begin::Apply-->
-					@if (Model.TrainingApplication.Any())
+					@if (Model.Training.TrainingApplication.Any())
 					{
 						<button class="btn btn-sm btn-light-success mt-5" disabled>
 							Applied <i class="ki-duotone ki-double-check">
@@ -207,7 +215,7 @@
 					}
 					else
 					{
-						<a asp-controller="Employee" asp-action="TrainingApply" asp-route-Id="@Model.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
+						<a asp-controller="Employee" asp-action="TrainingApply" asp-route-Id="@Model.Training.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
 					}
 					<!--end::Apply-->
 				</div>
@@ -226,7 +234,7 @@
 							<h2 class="fs-1 text-gray-800 w-bolder mb-6">About Us</h2>
 							<!--end::Title-->
 							<!--begin::Text-->
-							<p class="fw-semibold fs-6 text-gray-600">@Model.Users.EmployerDetails.BusinessName</p>
+							<p class="fw-semibold fs-6 text-gray-600">@Model.Training.Users.EmployerDetails.BusinessName</p>
 							<!--end::Text-->
 						</div>
 						<!--end::Top-->
@@ -243,7 +251,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									@if (Model.TrainingBadge == null)
+									@if (Model.Training.TrainingBadge == null)
 									{
 
 										<div class="fw-semibold fs-6"><span class="badge badge-primary">Nothing</span></div>
@@ -251,7 +259,7 @@
 									else
 									{
 
-										<div class="fw-semibold fs-6"><span class="badge badge-primary">@Model.TrainingBadge.Badge</span></div>
+										<div class="fw-semibold fs-6"><span class="badge badge-primary">@Model.Training.TrainingBadge.Badge</span></div>
 									}
 
 									<!--end::Label-->
@@ -273,7 +281,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">₱@Model.Price.ToString("N0") / pesos</div>
+									<div class="text-gray-600 fw-semibold fs-6">₱@Model.Training.Price.ToString("N0") / pesos</div>
 
 									<!--end::Label-->
 								</div>
@@ -304,7 +312,7 @@
 									<!--begin::Label-->
 									@{
 										string paymentOption;
-										@if (Model.PaymentOption == "Down")
+										@if (Model.Training.PaymentOption == "Down")
 										{
 											paymentOption = "With down payment";
 										}
@@ -322,12 +330,12 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.ModeOfPayment</div>
+									<div class="text-gray-600 fw-semibold fs-6">@Model.Training.ModeOfPayment</div>
 									<!--end::Label-->
 								</div>
-								@if (Model.DownPayment != null)
+								@if (Model.Training.DownPayment != null)
 								{
-									@if(Model.Unit == "PHP" || Model.Unit == null)
+									@if (Model.Training.Unit == "PHP" || Model.Training.Unit == null)
 									{
 										<div class="d-flex align-items-center mb-3">
 											<!--begin::Bullet-->
@@ -335,10 +343,10 @@
 											<!--end::Bullet-->
 											<!--begin::Label-->
 
-											<div class=" fw-semibold fs-6 required text-danger fst-italic">It requires a minimum downpayment of ₱@Model.DownPayment</div>
+											<div class=" fw-semibold fs-6 required text-danger fst-italic">It requires a minimum downpayment of ₱@Model.Training.DownPayment</div>
 											<!--end::Label-->
 										</div>
-									}else if(Model.Unit == "Percentage")
+									}else if(Model.Training.Unit == "Percentage")
 									{
 										<div class="d-flex align-items-center mb-3">
 											<!--begin::Bullet-->
@@ -347,7 +355,7 @@
 											<!--begin::Label-->
 
 											<div class=" fw-semibold fs-6 required text-danger fst-italic">
-												It requires a minimum downpayment of ₱@(((Model.DownPayment ?? 0) / 100m * Model.Price).ToString("N2"))
+												It requires a minimum downpayment of ₱@(((Model.Training.DownPayment ?? 0) / 100m * Model.Training.Price).ToString("N2"))
 											</div>
 											<!--end::Label-->
 										</div>
@@ -378,7 +386,7 @@
 									<span class="bullet me-3"></span>
 									<!--end::Bullet-->
 									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.Expiration.Humanize()</div>
+									<div class="text-gray-600 fw-semibold fs-6">@Model.Training.Expiration.Humanize()</div>
 									<!--end::Label-->
 								</div>
 								<!--end::Row-->
@@ -399,140 +407,160 @@
 			<!--begin::Top-->
 			<div class="text-center mb-12">
 				<!--begin::Title-->
-				<h3 class="fs-2hx text-dark mb-5">More Jobs Related</h3>
+				<h3 class="fs-2hx text-dark mb-5">Job opportunities ahead!</h3>
 				<!--end::Title-->
-				<!--begin::Text-->
-				<div class="fs-5 text-muted fw-semibold">
-					More job recommendation
-					<br>to boost all of our customer’s chances on landing a job!
-				</div>
-				<!--end::Text-->
+				@if (Model.Jobs.Count > 0)
+				{
+					<!--begin::Text-->
+					<div class="fs-5 text-muted fw-semibold">
+						Job recommendation
+						<br>based on badge obtained after this training!
+					</div>
+					<!--end::Text-->
+				}
+				else
+				{
+
+					<!--begin::Text-->
+					<div class="fs-5 text-muted fw-semibold">
+						<div class="fs-5 text-muted fw-semibold mb-2">
+							No jobs related to this
+						</div>
+
+						<!-- SVG Frown -->
+						<svg xmlns="http://www.w3.org/2000/svg"
+							 width="70"
+							 height="70"
+							 viewBox="0 0 24 24"
+							 fill="none"
+							 stroke="currentColor"
+							 stroke-width="1.5"
+							 stroke-linecap="round"
+							 stroke-linejoin="round"
+							 class="text-muted">
+
+							<!-- Face -->
+							<circle cx="12" cy="12" r="10" />
+
+							<!-- Eyes -->
+							<line x1="9" y1="9" x2="9.01" y2="9" />
+							<line x1="15" y1="9" x2="15.01" y2="9" />
+
+							<!-- Frown -->
+							<path d="M8 15s1.5-2 4-2 4 2 4 2" />
+						</svg>
+					</div>
+					<!--end::Text-->
+				}
 			</div>
 			<!--end::Top-->
 			<!--begin::Row-->
-			<div class="row g-10">
-				<!--begin::Col-->
-				<div class="col-md-4">
-					<!--begin::Publications post-->
-					<div class="card-xl-stretch me-md-6">
-						<!--begin::Overlay-->
-						<a class="d-block overlay mb-4" data-fslightbox="lightbox-hot-sales" href="~/assets/media/stock/600x400/img-73.jpg">
-							<!--begin::Image-->
-							<div class="overlay-wrapper bgi-no-repeat bgi-position-center bgi-size-cover card-rounded min-h-175px" style="background-image:url('assets/media/stock/600x400/img-73.jpg')"></div>
-							<!--end::Image-->
-							<!--begin::Action-->
-							<div class="overlay-layer bg-dark card-rounded bg-opacity-25">
-								<i class="ki-duotone ki-eye fs-2x text-white"></i>
+			@if (Model.Jobs.Count > 0)
+			{
+				var count = Model.Jobs.Count;
+				var showEmpty = count < 3;
+
+				<div class="row g-10 justify-content-center">
+
+					@foreach (var data in Model.Jobs)
+					{
+						<div class="@(count == 1 ? "col-md-6" : "col-md-4")">
+							<div class="card-xl-stretch me-md-6 border-2 hover-elevate-up">
+
+								<!-- IMAGE -->
+								<a class="d-block overlay card-rounded-top"
+								   asp-controller="Employee"
+								   asp-action="JobInfo"
+								   asp-route-id="@data.Id">
+
+									<div class="overlay-wrapper bgi-no-repeat bgi-position-center bgi-size-cover card-rounded min-h-175px"
+										 style="background-image:url('@data.JobMedia.FirstOrDefault()?.FilePath')">
+									</div>
+
+									<div class="overlay-layer bg-dark bg-opacity-25 card-rounded">
+										<i class="ki-duotone ki-eye fs-2x text-white"></i>
+									</div>
+								</a>
+
+								<!-- BODY -->
+								<div class="card-body d-flex flex-column">
+
+									<!-- BADGE -->
+									@if (data.JobRequiredBadge != null)
+									{
+										@foreach(var badge in data.JobRequiredBadge)
+										{
+											<div class="mb-2">
+												<span class="badge badge-light-success fw-bold">
+													<i class="ki-duotone ki-shield-check me-1"></i>
+													@badge.Badge
+												</span>
+											</div>
+										}
+									}
+
+									<!-- TITLE -->
+									<span class="fs-4 fw-bold text-dark mb-2">
+										@data.JobTitle
+									</span>
+
+									<!-- DESCRIPTION -->
+									<div class="text-gray-600 fw-semibold mb-4 line-clamp-3">
+										@data.JobDescription
+									</div>
+
+									<!-- FOOTER -->
+									<div class="mt-auto d-flex justify-content-between align-items-center">
+										<span class="text-gray-700 fw-bold">@data.Users.Username</span>
+										<span class="text-muted fs-7">
+											Expires @data.ExpirationDate.Humanize()
+										</span>
+									</div>
+
+								</div>
 							</div>
-							<!--end::Action-->
-						</a>
-						<!--end::Overlay-->
-						<!--begin::Body-->
-						<div class="m-0">
-							<!--begin::Title-->
-							<a href="../../demo1/dist/pages/user-profile/overview.html" class="fs-4 text-dark fw-bold text-hover-primary text-dark lh-base">Admin Panel - How To Started the Dashboard Tutorial</a>
-							<!--end::Title-->
-							<!--begin::Text-->
-							<div class="fw-semibold fs-5 text-gray-600 text-dark mt-3 mb-5">We’ve been focused on making a the from also not been afraid to and step away been focused create eye</div>
-							<!--end::Text-->
-							<!--begin::Content-->
-							<div class="fs-6 fw-bold">
-								<!--begin::Author-->
-								<a href="../../demo1/dist/apps/projects/users.html" class="text-gray-700 text-hover-primary">Jane Miller</a>
-								<!--end::Author-->
-								<!--begin::Date-->
-								<span class="text-muted">on Mar 21 2021</span>
-								<!--end::Date-->
-							</div>
-							<!--end::Content-->
 						</div>
-						<!--end::Body-->
-					</div>
-					<!--end::Publications post-->
-				</div>
-				<!--end::Col-->
-				<!--begin::Col-->
-				<div class="col-md-4">
-					<!--begin::Publications post-->
-					<div class="card-xl-stretch mx-md-3">
-						<!--begin::Overlay-->
-						<a class="d-block overlay mb-4" data-fslightbox="lightbox-hot-sales" href="~/assets/media/stock/600x400/img-74.jpg">
-							<!--begin::Image-->
-							<div class="overlay-wrapper bgi-no-repeat bgi-position-center bgi-size-cover card-rounded min-h-175px" style="background-image:url('assets/media/stock/600x400/img-74.jpg')"></div>
-							<!--end::Image-->
-							<!--begin::Action-->
-							<div class="overlay-layer bg-dark card-rounded bg-opacity-25">
-								<i class="ki-duotone ki-eye fs-2x text-white"></i>
+					}
+
+					@* EMPTY STATE (ONLY ONCE) *@
+					@if (showEmpty)
+					{
+						<div class="col-md-4 d-flex align-items-center justify-content-center">
+							<div class="text-center">
+								<div class="fs-5 text-muted fw-semibold mb-2">
+									No more jobs related to the training
+								</div>
+
+								<!-- SVG Frown -->
+								<svg xmlns="http://www.w3.org/2000/svg"
+									 width="70"
+									 height="70"
+									 viewBox="0 0 24 24"
+									 fill="none"
+									 stroke="currentColor"
+									 stroke-width="1.5"
+									 stroke-linecap="round"
+									 stroke-linejoin="round"
+									 class="text-muted">
+
+									<!-- Face -->
+									<circle cx="12" cy="12" r="10" />
+
+									<!-- Eyes -->
+									<line x1="9" y1="9" x2="9.01" y2="9" />
+									<line x1="15" y1="9" x2="15.01" y2="9" />
+
+									<!-- Frown -->
+									<path d="M8 15s1.5-2 4-2 4 2 4 2" />
+								</svg>
 							</div>
-							<!--end::Action-->
-						</a>
-						<!--end::Overlay-->
-						<!--begin::Body-->
-						<div class="m-0">
-							<!--begin::Title-->
-							<a href="../../demo1/dist/pages/user-profile/overview.html" class="fs-4 text-dark fw-bold text-hover-primary text-dark lh-base">Admin Panel - How To Started the Dashboard Tutorial</a>
-							<!--end::Title-->
-							<!--begin::Text-->
-							<div class="fw-semibold fs-5 text-gray-600 text-dark mt-3 mb-5">We’ve been focused on making the from v4 to v5 but we have also not been afraid to step away been focused</div>
-							<!--end::Text-->
-							<!--begin::Content-->
-							<div class="fs-6 fw-bold">
-								<!--begin::Author-->
-								<a href="../../demo1/dist/apps/projects/users.html" class="text-gray-700 text-hover-primary">Cris Morgan</a>
-								<!--end::Author-->
-								<!--begin::Date-->
-								<span class="text-muted">on Apr 14 2021</span>
-								<!--end::Date-->
-							</div>
-							<!--end::Content-->
 						</div>
-						<!--end::Body-->
-					</div>
-					<!--end::Publications post-->
+
+					}
+
 				</div>
-				<!--end::Col-->
-				<!--begin::Col-->
-				<div class="col-md-4">
-					<!--begin::Publications post-->
-					<div class="card-xl-stretch ms-md-6">
-						<!--begin::Overlay-->
-						<a class="d-block overlay mb-4" data-fslightbox="lightbox-hot-sales" href="~/assets/media/stock/600x400/img-47.jpg">
-							<!--begin::Image-->
-							<div class="overlay-wrapper bgi-no-repeat bgi-position-center bgi-size-cover card-rounded min-h-175px" style="background-image:url('assets/media/stock/600x400/img-47.jpg')"></div>
-							<!--end::Image-->
-							<!--begin::Action-->
-							<div class="overlay-layer bg-dark card-rounded bg-opacity-25">
-								<i class="ki-duotone ki-eye fs-2x text-white"></i>
-							</div>
-							<!--end::Action-->
-						</a>
-						<!--end::Overlay-->
-						<!--begin::Body-->
-						<div class="m-0">
-							<!--begin::Title-->
-							<a href="../../demo1/dist/pages/user-profile/overview.html" class="fs-4 text-dark fw-bold text-hover-primary text-dark lh-base">Admin Panel - How To Started the Dashboard Tutorial</a>
-							<!--end::Title-->
-							<!--begin::Text-->
-							<div class="fw-semibold fs-5 text-gray-600 text-dark mt-3 mb-5">We’ve been focused on making the from v4 to v5 but we’ve also not been afraid to step away been focused</div>
-							<!--end::Text-->
-							<!--begin::Content-->
-							<div class="fs-6 fw-bold">
-								<!--begin::Author-->
-								<a href="../../demo1/dist/apps/projects/users.html" class="text-gray-700 text-hover-primary">Carles Nilson</a>
-								<!--end::Author-->
-								<!--begin::Date-->
-								<span class="text-muted">on May 14 2021</span>
-								<!--end::Date-->
-							</div>
-							<!--end::Content-->
-						</div>
-						<!--end::Body-->
-					</div>
-					<!--end::Publications post-->
-				</div>
-				<!--end::Col-->
-			</div>
-			<!--end::Row-->
+			}
+
 		</div>
 		<!--end::Section-->
 	</div>

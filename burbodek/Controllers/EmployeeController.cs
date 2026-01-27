@@ -398,8 +398,6 @@ namespace burbodek.Controllers
             var data = _context.Jobs
                         .Include(u => u.Users)
                             .ThenInclude(u => u.EmployerDetails)
-                        .Include(u => u.Users)
-                            .ThenInclude(u => u.UserBadge)
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobBenefits)
@@ -408,7 +406,29 @@ namespace burbodek.Controllers
                         .Include(u => u.JobApplication.Where(ap => ap.AppliedBy == userId))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
-            return View(data);
+            var requiredBadges = data.JobRequiredBadge
+                                .Select(b => b.Badge)
+                                .ToList();
+            var trainings = _context.Training
+                        .Include(t => t.TrainingBadge)
+                        .Include(t => t.TrainingApplication)
+                        .Include(t => t.Users)
+                        .Include(t => t.TrainingMedia)
+                        .Where(t =>
+                            requiredBadges.Contains(t.TrainingBadge.Badge) &&
+                            !t.TrainingApplication.Any(a => a.AppliedBy == userId)
+                        )
+                        .OrderBy(t => t.Expiration) // optional: prioritize soon-expiring
+                        .Take(3)
+                        .ToList();
+            var badge = _context.UserBadge.Where(u => u.UsersId == userId).ToList();
+            ViewBag.UserBadges = badge;
+            var jobInfo = new JobInfoViewModel
+            {
+                Jobs = data,
+                Training = trainings
+            };
+            return View(jobInfo);
         }
         public IActionResult TrainingViewCampaign(int Id, int CampaignId)
         {
@@ -442,20 +462,68 @@ namespace burbodek.Controllers
         }
         public IActionResult TrainingInfo(int Id)
         {
-            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var data = _context.Training
-                        .Include(u => u.Users)
-                            .ThenInclude(u => u.EmployerDetails)
-                        .Include(u => u.TrainingRequirements)
-                        .Include(u => u.TrainingMedia)
-                        .Include(u => u.TrainingBadge)
-                        .Include(u => u.TrainingBenefits)
-                        .Include(u => u.TrainingApplication.Where(ap => ap.AppliedBy == userId))
-                        .Include(u => u.TrainingUploads.Where(ap => ap.isActive))
-                        .Where(u => u.Id == Id && u.isArchived == null)
-                        .FirstOrDefault();
-            return View(data);
+            var userId = int.Parse(User.FindFirst("UsersId")!.Value);
+            var training = _context.Training
+                .Include(u => u.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                .Include(u => u.TrainingRequirements)
+                .Include(u => u.TrainingMedia)
+                .Include(u => u.TrainingBadge)
+                .Include(u => u.TrainingBenefits)
+                .Include(u => u.TrainingApplication.Where(ap => ap.AppliedBy == userId))
+                .Include(u => u.TrainingUploads.Where(ap => ap.isActive))
+                .Where(u => u.Id == Id && u.isArchived == null)
+                .FirstOrDefault();
+
+            if (training == null)
+                return NotFound();
+
+            // 🔹 Badge obtained from this training
+            var trainingBadge = training.TrainingBadge.Badge;
+
+            // 🔹 User's existing badges
+            var userBadges = _context.UserBadge
+                .Where(ub => ub.UsersId == userId)
+                .Select(ub => ub.Badge)
+                .ToList();
+
+            // 🔹 Combine badges: existing + training badge
+            var effectiveBadges = userBadges
+                .Append(trainingBadge)
+                .ToList();
+
+            // 🔥 RECOMMENDED JOBS
+            var recommendedJobs = _context.Jobs
+                .Include(j => j.JobRequiredBadge)
+                .Include(j => j.JobApplication)
+                .Include(j => j.Users)
+                    .ThenInclude(j => j.EmployerDetails)
+                .Include(j => j.JobMedia)
+                .Where(j =>
+                    // ❌ Not yet applied
+                    !j.JobApplication.Any(a => a.AppliedBy == userId)
+
+                    // ✅ ALL required badges must be satisfied
+                    && j.JobRequiredBadge.All(rb =>
+                        effectiveBadges.Contains(rb.Badge)
+                    )
+
+                    // ✅ Training must actually contribute
+                    && j.JobRequiredBadge.Any(rb =>
+                        rb.Badge == trainingBadge
+                    )
+                )
+                .OrderBy(j => j.ExpirationDate)
+                .Take(3)
+                .ToList();
+            var trainingInfo = new TrainingInfoViewModel
+            {
+                Training = training,
+                Jobs = recommendedJobs
+            };
+            return View(trainingInfo);
         }
+
         public IActionResult TrashedEmail()
         {
             int currentUserId = int.Parse(User.FindFirst("UsersId")?.Value);

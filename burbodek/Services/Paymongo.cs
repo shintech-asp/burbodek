@@ -43,8 +43,10 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessCampaignPayment",
-                        cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
+                        //success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessCampaignPayment",
+                        //cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
+                        success_url = "/Employer/SuccessCampaignPayment",
+                        cancel_url = "/Employer/CancelledPayment",
                         billing = new
                         {
                             name = name,
@@ -96,8 +98,10 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessPayment",
-                        cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
+                        //success_url = "https://techasp-001-site1.atempurl.com/Employer/SuccessPayment",
+                        //cancel_url = "https://techasp-001-site1.atempurl.com/Employer/CancelledPayment",
+                        success_url = "/Employer/SuccessPayment",
+                        cancel_url = "/Employer/CancelledPayment",
                         billing = new
                         {
                             name = name,
@@ -149,8 +153,10 @@ namespace burbodek.Services
                     }
                 },
                         payment_method_types = new[] { "gcash" },
-                        success_url = "https://techasp-001-site1.atempurl.com/Employee/SuccessPayment",
-                        cancel_url = "https://techasp-001-site1.atempurl.com/Employee/CancelledPayment",
+                        //success_url = "https://techasp-001-site1.atempurl.com/Employee/SuccessPayment",
+                        //cancel_url = "https://techasp-001-site1.atempurl.com/Employee/CancelledPayment",
+                        success_url = "https://localhost:7136/Employee/SuccessPayment",
+                        cancel_url = "https://localhost:7136/EmployeeEmployee/CancelledPayment",
                         billing = new
                         {
                             name = name,
