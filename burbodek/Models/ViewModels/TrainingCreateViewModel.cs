@@ -15,6 +15,7 @@ namespace burbodek.Models.ViewModels
 
         public List<IFormFile> TrainingMedia { get; set; } = new();
         public List<TrainingUploads> Uploads { get; set; } = new();
+        public TrainingBadge Badge { get; set; } = new();
         public bool Diploma { get; set; }
         public bool Resume { get; set; }
         public bool PassportId { get; set; }

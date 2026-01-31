@@ -1,11 +1,15 @@
-﻿namespace burbodek.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace burbodek.Models
 {
     public class TrainingApplication
     {
         public int Id { get; set; }
         public int TrainingId { get; set; }
         public Training Training { get; set; }
+        [ForeignKey(nameof(Users))]
         public int AppliedBy { get; set; }
+        public Users? Users { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string MobileNo { get; set; }

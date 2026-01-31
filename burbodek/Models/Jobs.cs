@@ -18,6 +18,7 @@ namespace burbodek.Models
         public ICollection<JobMedia> JobMedia { get; set; } = new List<JobMedia>();
         public ICollection<JobRole> JobRole { get; set; } = new List<JobRole>();
         public ICollection<JobUploads> JobUploads { get; set; } = new List<JobUploads>();
+        public ICollection<JobRequiredBadge> JobRequiredBadge { get; set; } = new List<JobRequiredBadge>();
         public List<JobApplication>? JobApplication { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? isArchived { get; set; }

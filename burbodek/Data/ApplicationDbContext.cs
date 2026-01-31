@@ -15,10 +15,14 @@ namespace burbodek.Data
         public DbSet<Payments> Payments { get; set; }
         public DbSet<Jobs> Jobs { get; set; }
         public DbSet<JobBenefits> JobBenefits { get; set; }
+        public DbSet<EmployeeDetails> EmployeeDetails { get; set; }
         public DbSet<JobRole> JobRole { get; set; }
         public DbSet<Training> Training { get; set; }
         public DbSet<TrainingBenefits> TrainingBenefits { get; set; }
         public DbSet<TrainingRequirements> TrainingRequirements { get; set; }
+        public DbSet<UserBadge> UserBadge { get; set; }
+        public DbSet<JobRequiredBadge> JobRequiredBadge { get; set; }
+        public DbSet<TrainingBadge> TrainingBadge { get; set; }
         public DbSet<TrainingMedia> TrainingMedia { get; set; }
         public DbSet<JobMedia> JobMedia { get; set; }
         public DbSet<JobApplication> JobApplication { get; set; }

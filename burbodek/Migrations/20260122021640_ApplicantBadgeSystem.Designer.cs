@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260122021640_ApplicantBadgeSystem")]
+    partial class ApplicantBadgeSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -350,48 +353,6 @@ namespace burbodek.Migrations
                     b.ToTable("EmailThreads");
                 });
 
-            modelBuilder.Entity("burbodek.Models.EmployeeDetails", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("Birthday")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Middlename")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MobileNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nationality")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsersId")
-                        .IsUnique();
-
-                    b.ToTable("EmployeeDetails");
-                });
-
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
                     b.Property<int>("Id")
@@ -591,11 +552,14 @@ namespace burbodek.Migrations
                     b.Property<string>("Tor")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("UsersId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("AppliedBy");
-
                     b.HasIndex("JobsId");
+
+                    b.HasIndex("UsersId");
 
                     b.ToTable("JobApplication");
                 });
@@ -1064,8 +1028,6 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppliedBy");
-
                     b.HasIndex("TrainingId");
 
                     b.ToTable("TrainingApplication");
@@ -1464,17 +1426,6 @@ namespace burbodek.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("burbodek.Models.EmployeeDetails", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithOne("EmployeeDetails")
-                        .HasForeignKey("burbodek.Models.EmployeeDetails", "UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
@@ -1499,21 +1450,17 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.JobApplication", b =>
                 {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("JobApplication")
-                        .HasForeignKey("AppliedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("burbodek.Models.Jobs", "Jobs")
                         .WithMany("JobApplication")
                         .HasForeignKey("JobsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Jobs");
+                    b.HasOne("burbodek.Models.Users", null)
+                        .WithMany("JobApplication")
+                        .HasForeignKey("UsersId");
 
-                    b.Navigation("Users");
+                    b.Navigation("Jobs");
                 });
 
             modelBuilder.Entity("burbodek.Models.JobBenefits", b =>
@@ -1541,7 +1488,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.JobRequiredBadge", b =>
                 {
                     b.HasOne("burbodek.Models.Jobs", "Jobs")
-                        .WithMany("JobRequiredBadge")
+                        .WithMany()
                         .HasForeignKey("JobsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1647,12 +1594,6 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.TrainingApplication", b =>
                 {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("TrainingApplication")
-                        .HasForeignKey("AppliedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("burbodek.Models.Training", "Training")
                         .WithMany("TrainingApplication")
                         .HasForeignKey("TrainingId")
@@ -1660,8 +1601,6 @@ namespace burbodek.Migrations
                         .IsRequired();
 
                     b.Navigation("Training");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("burbodek.Models.TrainingBadge", b =>
@@ -1752,7 +1691,7 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.UserBadge", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
-                        .WithMany("UserBadge")
+                        .WithMany()
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1789,8 +1728,6 @@ namespace burbodek.Migrations
                     b.Navigation("JobBenefits");
 
                     b.Navigation("JobMedia");
-
-                    b.Navigation("JobRequiredBadge");
 
                     b.Navigation("JobRequirements");
 
@@ -1833,8 +1770,6 @@ namespace burbodek.Migrations
                 {
                     b.Navigation("EmailTemplate");
 
-                    b.Navigation("EmployeeDetails");
-
                     b.Navigation("EmployerDetails");
 
                     b.Navigation("Files");
@@ -1850,10 +1785,6 @@ namespace burbodek.Migrations
                     b.Navigation("Subscription");
 
                     b.Navigation("Training");
-
-                    b.Navigation("TrainingApplication");
-
-                    b.Navigation("UserBadge");
                 });
 #pragma warning restore 612, 618
         }

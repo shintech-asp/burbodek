@@ -3,13 +3,13 @@
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
 <!-- Job Listing Form -->
-<div class="card mb-10">
-    <div class="card-header">
-        <h3 class="card-title">Create Training</h3>
-    </div>
+<form asp-controller="Employer" asp-action="TrainingCreate" method="POST" enctype="multipart/form-data">
+    <div class="card mb-10">
+        <div class="card-header">
+            <h3 class="card-title">Create Training</h3>
+        </div>
 
-    <div class="card-body">
-        <form asp-controller="Employer" asp-action="TrainingCreate" method="POST" enctype="multipart/form-data">
+        <div class="card-body">
             <!-- Job Title -->
             <div class="mb-5">
                 <label class="form-label fw-bold">Training Title</label>
@@ -180,12 +180,38 @@
             </div>
 
             <!-- Submit -->
+        </div>
+    </div>
+    <div class="card mb-10">
+        <div class="card-body">
+            <h5 class="card-title mb-5">
+                Badge settings
+            </h5>
+            <div class="row mb-3">
+                <div class="col">
+                    <label class="form-label fw-bold">Badge name</label>
+                    <input type="text" class="form-control" name="Badge.Badge" placeholder="NC2 Certified"/>
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold">Badge Validity Duration</label>
+                    <div class="input-group input-group-solid mb-5">
+                        <input type="text" class="form-control" name="Badge.Validity" placeholder="30" min="1" max="30" aria-describedby="basic-addon2">
+                        <span class="input-group-text" id="basic-addon2">/days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-5">
+                <div class="col">
+                    <label class="form-label fw-bold">Badge Description</label>
+                    <textarea class="form-control" name="Badge.Description" rows="3"></textarea>
+                </div>
+            </div>
             <div class="text-end">
                 <button type="submit" class="btn btn-primary">Create Training</button>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+</form>
 
 @section Scripts {
     <!-- FilePond CSS -->

@@ -401,14 +401,15 @@ namespace burbodek.Controllers
                 };
                 _context.TrainingCertificate.Add(trainingCertificate);
                 await _context.SaveChangesAsync();
-
                 // ========== SEND EMAIL NOTIFICATION ==========
                 try
                 {
                     var trainingApplication = await _context.TrainingApplication
                         .Include(ta => ta.Training)
-                        .ThenInclude(t => t.Users)
-                        .ThenInclude(u => u.EmployerDetails)
+                            .ThenInclude(u => u.TrainingBadge)
+                        .Include(ta => ta.Training)
+                            .ThenInclude(t => t.Users)
+                                .ThenInclude(u => u.EmployerDetails)
                         .FirstOrDefaultAsync(ta => ta.Id == trainingApplicationId);
 
                     if (trainingApplication != null)
@@ -417,6 +418,15 @@ namespace burbodek.Controllers
 
                         if (applicant != null)
                         {
+
+                            var userBadge = new UserBadge
+                            {
+                                UsersId = applicant.Id,
+                                Badge = trainingApplication.Training.TrainingBadge.Badge,
+                                ValidUntil = DateTime.Now.AddDays(trainingApplication.Training.TrainingBadge.Validity)
+                            };
+                            _context.UserBadge.Add(userBadge);
+                            await _context.SaveChangesAsync();
                             // Create email thread
                             var sendEmail = new EmailThread
                             {
@@ -640,6 +650,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobRequirements)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
+                        .Include(u => u.JobRequiredBadge)
                         .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
             if (data == null)
@@ -671,6 +682,7 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingBenefits)
                 .Include(u => u.TrainingRequirements)
                 .Include(u => u.TrainingMedia)
+                .Include(u => u.TrainingBadge)
                 .Include(u => u.TrainingApplication)
                     .ThenInclude(u => u.TrainingPayments)
                 .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
@@ -1912,6 +1924,7 @@ namespace burbodek.Controllers
                        .Include(u => u.JobBenefits)
                        .Include(u => u.JobApplication)
                        .Include(u => u.JobRequirements)
+                       .Include(u => u.JobRequiredBadge)
                        .Include(u => u.JobRole)
                        .Include(u => u.JobMedia)
                        .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
@@ -2012,10 +2025,17 @@ namespace burbodek.Controllers
         }
         public IActionResult JobCreate()
         {
-            return View();
+            var badges = _context.TrainingBadge
+                    .Where(t => t.Training.Expiration >= DateTime.Now)
+                    .Distinct()
+                    .ToList();
+
+            return View(badges);
+
         }
+
         [HttpPost]
-        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit)
+        public async Task<IActionResult> JobCreate(JobCreateViewModel model, List<string> Role, List<string> Requirement, List<string> Benefit, List<string> Badge)
         {
 
             ModelState.Keys
@@ -2047,7 +2067,15 @@ namespace burbodek.Controllers
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
-
+            foreach (var badge in Badge ?? Enumerable.Empty<string>())
+            {
+                var jobBadge = new JobRequiredBadge
+                {
+                    JobsId = job.Id,
+                    Badge = badge
+                };
+                _context.JobRequiredBadge.Add(jobBadge);
+            }
             foreach (var data in model.Uploads)
             {
                 var jobUploads = new JobUploads
@@ -2135,6 +2163,14 @@ namespace burbodek.Controllers
             .Where(k => k.StartsWith("Uploads"))
             .ToList()
             .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.Equals("Badge.Training"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
+            ModelState.Keys
+            .Where(k => k.Equals("Badge.TrainingId"))
+            .ToList()
+            .ForEach(k => ModelState.Remove(k));
             if (model.PaymentOption == "Full")
             {
                 ModelState.Remove("DownPayment");
@@ -2182,6 +2218,16 @@ namespace burbodek.Controllers
                 _context.TrainingUploads.Add(trainUploads);
                 await _context.SaveChangesAsync();
             }
+            var badge = new TrainingBadge
+            {
+                TrainingId = train.Id,
+                Badge = model.Badge.Badge,
+                Description = model.Badge.Description,
+                Validity = model.Badge.Validity
+            };
+
+            _context.TrainingBadge.Add(badge);
+            await _context.SaveChangesAsync();
             // Requirements (many)
             foreach (var requirement in Requirement ?? Enumerable.Empty<string>())
             {

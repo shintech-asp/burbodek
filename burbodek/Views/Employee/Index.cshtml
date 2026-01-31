@@ -3,7 +3,33 @@
     Layout = "~/Views/Shared/_LayoutEmployee.cshtml";
 }
 @model burbodek.Models.ViewModels.JobListViewModel;
+<style>
+    .required-badge {
+        background: linear-gradient(135deg, #e7f1ff, #f4f9ff);
+        color: #0d6efd;
+        border: 1px solid #cfe2ff;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(13,110,253,0.1);
+        transition: all .2s ease-in-out;
+    }
 
+        .required-badge:hover {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+            transform: translateY(-1px);
+        }
+
+        .required-badge i {
+            font-size: 0.8rem;
+        }
+
+</style>
 <div class="d-flex flex-column flex-root">
     <div class="page d-flex flex-row flex-column-fluid">
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
@@ -37,8 +63,26 @@
                             <div class="card mb-5 shadow-sm">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title fw-bold text-primary">@data.JobTitle</h5>
-                                    <p class="text-muted mb-2">@data.EmployerAddress</p>
+                                    <p class="text-muted">@data.EmployerAddress</p>
                                     <p>@data.JobDescription</p>
+                                    <div>
+                                        <div class="mb-5">
+                                            <small class="text-muted fw-bold d-block mb-1">Required Badges</small>
+
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach (var badge in data.JobRequiredBadge)
+                                                {
+                                                    <span class="badge required-badge">
+                                                        <i class="ki-duotone ki-shield-check me-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        @badge.Badge
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="d-flex justify-content-between mt-3">
                                         <span class="fw-bold">₱@data.SalaryMin.ToString("N0") - ₱@data.SalaryMax.ToString("N0") / month</span>
                                         @if (data.AlreadyApplied)
@@ -63,8 +107,25 @@
                             <div class="card mb-5 shadow-sm">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title fw-bold text-primary">@data.Name</h5>
-                                    <p class="text-muted mb-2">@data.EmployerAddress</p>
+                                    <p class="text-muted">@data.EmployerAddress</p>
                                     <p>@data.TrainingDescription</p>
+                                    @if(data.TrainingBadge != null)
+                                    {
+                                        <div class="mb-5">
+                                            <small class="text-muted fw-bold d-block mb-1">Badge Awarded:</small>
+
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <span class="badge required-badge">
+                                                    <i class="ki-duotone ki-shield-check me-1">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                    @data.TrainingBadge
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                    }
                                     <div class="d-flex justify-content-between mt-3">
                                         <span class="fw-bold">₱@data.Price.ToString("N0") / pesos only</span>
                                         @if (data.AlreadyApplied)

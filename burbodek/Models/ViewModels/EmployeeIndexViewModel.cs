@@ -9,6 +9,7 @@
         public int SalaryMin { get; set; }
         public int SalaryMax { get; set; }
         public bool AlreadyApplied { get; set; }
+        public List<JobRequiredBadge> JobRequiredBadge { get; set; } = new List<JobRequiredBadge>();
         public DateTime CreatedAt { get; set; }
     }
     public class TrainingItemViewModel
@@ -21,6 +22,7 @@
         public string ModeOfPayment { get; set; }
         public string PaymentOption { get; set; }
         public bool AlreadyApplied { get; set; }
+        public string TrainingBadge { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
