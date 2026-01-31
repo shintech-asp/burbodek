@@ -4,6 +4,7 @@ using burbodek.Models.DTO;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -2199,9 +2200,113 @@ namespace burbodek.Controllers
 
             return View(data);
         }
+        public IActionResult ChangeProfileDetails(string Firstname, string Middlename, string Lastname, string Nationality, DateOnly Birthday, string MobileNumber)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var user = _context.EmployeeDetails
+                        .FirstOrDefault(u => u.UsersId == userId);
+
+            if (user == null)
+            {
+                var users = new EmployeeDetails
+                {
+                    Firstname = Firstname,
+                    Middlename = Middlename,
+                    Lastname = Lastname,
+                    Nationality = Nationality,
+                    Birthday = Birthday,
+                    MobileNumber = MobileNumber,
+                    UsersId = userId
+                };
+
+
+                _context.EmployeeDetails.Add(users);
+                _context.SaveChanges();
+            }
+            else
+            {
+                user.Firstname = Firstname;
+                user.Middlename = Middlename;
+                user.Lastname = Lastname;
+                user.Nationality = Nationality;
+                user.Birthday = Birthday;
+                user.MobileNumber = MobileNumber;
+
+                _context.EmployeeDetails.Update(user);
+                _context.SaveChanges();
+
+            }
+
+                return Json(new { response = true });
+        }
+
+        public IActionResult ChangePassword(string CurrentPassword, string NewPassword, string ConfirmNewPassword)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return Json(new { response = false, message = "User not found." });
+
+            var passwordHasher = new PasswordHasher<Users>();
+            var result = passwordHasher.VerifyHashedPassword(user, user.Password, CurrentPassword);
+
+            if (result != PasswordVerificationResult.Success)
+                return Json(new { response = false, message = "Current password is incorrect." });
+
+            if (NewPassword != ConfirmNewPassword)
+                return Json(new { response = false, message = "Passwords do not match." });
+
+            user.Password = passwordHasher.HashPassword(user, NewPassword);
+            _context.Users.Update(user);
+            _context.SaveChanges();
+
+            return Json(new { response = true });
+        }
         public IActionResult AccountSettings()
         {
-            return View();
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            var userProfile = _context.Users
+                .Include(u => u.TrainingApplication.Where(u => u.AppliedBy == userId))
+                .Include(u => u.JobApplication.Where(u => u.AppliedBy == userId))
+                .Include(u => u.EmployeeDetails)
+                .Include(u => u.UserBadge)
+                .Where(u => u.Id == userId).FirstOrDefault();
+
+            var interviewCount = _context.JobApplication
+                .Count(u => u.AppliedBy == userId && (u.Status == "For Interview" || u.Status == "Interview"));
+
+            var totalCount = _context.JobApplication
+                .Count(u => u.AppliedBy == userId);
+
+            decimal percent = totalCount == 0
+                ? 0
+                : (decimal)interviewCount / totalCount * 100;
+            var today = DateTime.Today;
+
+            // New job applications today
+            var newJobsToday = _context.JobApplication
+                .Count(j => j.AppliedBy == userId && j.CreatedAt.Date == today);
+
+            // New training applications today
+            var newTrainingsToday = _context.TrainingApplication
+                .Count(t => t.AppliedBy == userId && t.CreatedAt.Date == today);
+
+            // New interviews today
+            var interviewsToday = _context.JobApplication
+                .Count(j => j.AppliedBy == userId
+                         && (j.Status == "For Interview" || j.Status == "Interview")
+                         && j.CreatedAt.Date == today);
+
+            // Flags
+            ViewBag.HasNewJobs = newJobsToday > 0;
+            ViewBag.HasNewTrainings = newTrainingsToday > 0;
+            ViewBag.HasNewInterviews = interviewsToday > 0;
+            ViewBag.InterviewPercentage = percent.ToString("N0");
+
+            return View(userProfile);
         }
+
     }
 }

@@ -26,11 +26,13 @@ namespace burbodek.Models
         [NotMapped]
         public IFormFile? CapturedIdFile { get; set; }
         public EmployerDetails? EmployerDetails { get; set; }
+        public EmployeeDetails? EmployeeDetails { get; set; }
         public List<Subscription>? Subscription { get; set; }
         public List<JobApplication>? JobApplication { get; set; }
         public List<Files>? Files { get; set; }
         public List<PaymentDetails>? PaymentDetails { get; set; }
         public List<UserBadge>? UserBadge { get; set; }
+        public List<TrainingApplication>? TrainingApplication { get; set; }
         public List<Payments>? Payments { get; set; }
         public List<Training>? Training { get; set; }
         public List<Jobs>? Jobs { get; set; }

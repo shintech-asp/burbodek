@@ -15,6 +15,7 @@ namespace burbodek.Data
         public DbSet<Payments> Payments { get; set; }
         public DbSet<Jobs> Jobs { get; set; }
         public DbSet<JobBenefits> JobBenefits { get; set; }
+        public DbSet<EmployeeDetails> EmployeeDetails { get; set; }
         public DbSet<JobRole> JobRole { get; set; }
         public DbSet<Training> Training { get; set; }
         public DbSet<TrainingBenefits> TrainingBenefits { get; set; }

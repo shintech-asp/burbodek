@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260131053857_addFkinTrainignApplicationAndJob")]
+    partial class addFkinTrainignApplicationAndJob
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,48 +351,6 @@ namespace burbodek.Migrations
                     b.HasIndex("CreatorId");
 
                     b.ToTable("EmailThreads");
-                });
-
-            modelBuilder.Entity("burbodek.Models.EmployeeDetails", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("Birthday")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Middlename")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MobileNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nationality")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsersId")
-                        .IsUnique();
-
-                    b.ToTable("EmployeeDetails");
                 });
 
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
@@ -1464,17 +1425,6 @@ namespace burbodek.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("burbodek.Models.EmployeeDetails", b =>
-                {
-                    b.HasOne("burbodek.Models.Users", "Users")
-                        .WithOne("EmployeeDetails")
-                        .HasForeignKey("burbodek.Models.EmployeeDetails", "UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("burbodek.Models.EmployerDetails", b =>
                 {
                     b.HasOne("burbodek.Models.Users", "Users")
@@ -1832,8 +1782,6 @@ namespace burbodek.Migrations
             modelBuilder.Entity("burbodek.Models.Users", b =>
                 {
                     b.Navigation("EmailTemplate");
-
-                    b.Navigation("EmployeeDetails");
 
                     b.Navigation("EmployerDetails");
 
