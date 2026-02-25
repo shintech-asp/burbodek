@@ -217,7 +217,95 @@
 					{
 						<a asp-controller="Employee" asp-action="TrainingApply" asp-route-Id="@Model.Training.Id" class="btn btn-sm btn-primary mt-5">Apply Now</a>
 					}
+					<button class="btn btn-sm btn-light-danger mt-5"
+							data-bs-toggle="modal"
+							data-bs-target="#reportModal">
+						<i class="bi bi-exclamation-triangle-fill me-1"></i>
+						Report this Training
+					</button>
 					<!--end::Apply-->
+					<div class="modal fade" id="reportModal" tabindex="-1">
+						<div class="modal-dialog">
+							<div class="modal-content">
+
+								<div class="modal-header bg-light-danger">
+									<h5 class="modal-title text-danger">
+										<i class="bi bi-exclamation-triangle-fill me-1"></i>
+										Report Job / Training Post
+									</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+								</div>
+
+								<form method="post" asp-controller="Employee" asp-action="SubmitReport">
+									<div class="modal-body">
+
+										<p class="text-muted small">
+											Please select the reason why you are reporting this job/training post.
+										</p>
+
+										<!-- Radio Options -->
+										<div class="form-check mb-2">
+											<input class="form-check-input" type="radio" name="Reason" value="Not related to Sea Jobs" required>
+											<label class="form-check-label">
+												This job/training is NOT related to Sea Jobs / Maritime Industry
+											</label>
+										</div>
+
+										<div class="form-check mb-2">
+											<input class="form-check-input" type="radio" name="Reason" value="Fake or Scam Post">
+											<label class="form-check-label">
+												Fake or Scam Job/Training Posting
+											</label>
+										</div>
+
+										<div class="form-check mb-2">
+											<input class="form-check-input" type="radio" name="Reason" value="Misleading Information">
+											<label class="form-check-label">
+												Misleading or Incorrect Information
+											</label>
+										</div>
+
+										<div class="form-check mb-2">
+											<input class="form-check-input" type="radio" name="Reason" value="Duplicate Post">
+											<label class="form-check-label">
+												Duplicate Posting
+											</label>
+										</div>
+
+										<div class="form-check mb-3">
+											<input class="form-check-input" type="radio" name="Reason" value="Other">
+											<label class="form-check-label">
+												Other (Please specify below)
+											</label>
+										</div>
+
+										<!-- Additional Details -->
+										<div class="mb-3">
+											<label class="form-label">Additional Details</label>
+											<textarea class="form-control"
+													  name="Description"
+													  rows="3"
+													  placeholder="Provide more details if necessary..."></textarea>
+										</div>
+
+										<!-- Hidden ID (if needed) -->
+										<input type="hidden" name="TrainingId" value="@Model.Training.Id" />
+
+									</div>
+
+									<div class="modal-footer">
+										<button type="button" class="btn btn-light" data-bs-dismiss="modal">
+											Cancel
+										</button>
+										<button type="submit" class="btn btn-danger">
+											Submit Report
+										</button>
+									</div>
+								</form>
+
+							</div>
+						</div>
+					</div>
 				</div>
 				<!--end::Job-->
 			</div>

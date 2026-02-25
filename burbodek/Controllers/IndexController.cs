@@ -191,15 +191,20 @@ namespace burbodek.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult SignUpClient(Users user)
+        public IActionResult SignUpClient(SignUpClientViewModel user)
         {
             // Remove Role from validation if it's not set by the form
-            ModelState.Remove("Role");
+            ModelState.Remove("Users.Role");
+            ModelState.Remove("UserProfile.Users");
 
             // ✅ Basic null/empty checks
-            if (string.IsNullOrWhiteSpace(user.Username) ||
-                string.IsNullOrWhiteSpace(user.Email) ||
-                string.IsNullOrWhiteSpace(user.Password))
+            if (string.IsNullOrWhiteSpace(user.Users.Username) ||
+                string.IsNullOrWhiteSpace(user.Users.Email) ||
+                string.IsNullOrWhiteSpace(user.UserProfile.FirstName) ||
+                string.IsNullOrWhiteSpace(user.Users.Password) ||
+                string.IsNullOrWhiteSpace(user.UserProfile.LastName) ||
+                string.IsNullOrWhiteSpace(user.UserProfile.MobileNo) ||
+                string.IsNullOrWhiteSpace(user.UserProfile.City)) 
             {
                 ModelState.AddModelError("", "All fields are required.");
                 return View(user);
@@ -207,25 +212,41 @@ namespace burbodek.Controllers
 
             if (ModelState.IsValid)
             {
-                if (_context.Users.Any(u => u.Email == user.Email))
+                if (_context.Users.Any(u => u.Email == user.Users.Email))
                 {
                     ModelState.AddModelError("Email", "Email is already registered.");
                     return View(user);
                 }
 
                 // Assign default role
-                user.Role = "Client";
-                user.DateCreated = DateTime.Now;
+                user.Users.Role = "Client";
+                user.Users.DateCreated = DateTime.Now;
 
                 // ✅ Hash the password
                 var passwordHasher = new PasswordHasher<Users>();
-                user.Password = passwordHasher.HashPassword(user, user.Password);
+                user.Users.Password = passwordHasher.HashPassword(user.Users, user.Users.Password);
 
                 // ✅ Save user to DB
-                _context.Users.Add(user);
+                _context.Users.Add(user.Users);
                 _context.SaveChanges();
-
-                return RedirectToAction("SignIn", "Index");
+                var userProfile = _context.UserProfile.FirstOrDefault(u => u.UsersId == user.Users.Id);
+                if(userProfile != null)
+                {
+                    userProfile.FirstName = user.UserProfile.FirstName;
+                    userProfile.LastName = user.UserProfile.LastName;
+                    userProfile.MobileNo = user.UserProfile.MobileNo;
+                    userProfile.Birthdate = user.UserProfile.Birthdate;
+                    userProfile.City = user.UserProfile.City;
+                    _context.UserProfile.Update(userProfile);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    user.UserProfile.UsersId = user.Users.Id;
+                    _context.UserProfile.Add(user.UserProfile);
+                    _context.SaveChanges();
+                }
+                    return RedirectToAction("SignIn", "Index");
             }
 
             return View(user);

@@ -1721,14 +1721,52 @@ namespace burbodek.Controllers
             var userInfo = _context.JobApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefault();
 
+            var userProfile = _context.UserProfile.Where(a => a.UsersId == userId)
+                        .FirstOrDefault();
             var viewModel = new JobApplyViewModel
             {
                 Jobs = data,
-                UserInfo = userInfo
+                UserInfo = userInfo,
+                UserProfile = userProfile
             };
             return View(viewModel);
         }
 
+        public IActionResult SubmitReport(int? TrainingId, int? JobsId, string Reason, string Description)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var alreadyReported = _context.PostReport
+                                    .Any(u => u.UsersId == userId &&
+                                             ((TrainingId != null && u.TrainingId == TrainingId) ||
+                                              (JobsId != null && u.JobsId == JobsId)));
+            if(Reason != null && Description != null)
+            {
+                if (alreadyReported)
+                {
+                    TempData["Error"] = "Report already submitted";
+                }
+                else
+                {
+                    var report = new PostReport
+                    {
+                        UsersId = userId,
+                        TrainingId = TrainingId,
+                        JobsId = JobsId,
+                        Reason = Reason,
+                        Description = Description
+                    };
+                    _context.PostReport.Add(report);
+                    _context.SaveChanges();
+                    TempData["Success"] = "Report submitted successfully!";
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Fill up all the details!";
+            }
+
+                return RedirectToAction("TrainingInfo", new { Id = TrainingId });
+        }
         public IActionResult TrainingApply(int Id)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -1736,6 +1774,8 @@ namespace burbodek.Controllers
             var data = _context.Training
                         .Include(u => u.Users)
                             .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.UserProfile)
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
@@ -1743,13 +1783,13 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingUploads.Where(u => u.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
-            var userInfo = _context.TrainingApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
+            var userProfile = _context.UserProfile.Where(a => a.UsersId == userId)
                         .FirstOrDefault();
 
             var viewModel = new TrainingApplyViewModel
             {
                 Training = data,
-                UserInfo = userInfo
+                UserProfile = userProfile
             };
             return View(viewModel);
         }

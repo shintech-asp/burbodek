@@ -750,7 +750,14 @@ namespace burbodek.Controllers
 
         public IActionResult Reports()
         {
-            return View();
+            var data = _context.PostReport
+                    .Include(u => u.Users)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.Users)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.Users)
+                    .Where(u => u.isDeleted == null && u.isRetained == null).OrderByDescending(u => u.DateReported).ToList();
+            return View(data);
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

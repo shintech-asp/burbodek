@@ -90,7 +90,7 @@
 				<form asp-controller="Employee" asp-action="TrainingApply" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" enctype="multipart/form-data">
 					<input id="redirect" name="redirect" hidden/>
 					<!--begin::Input group-->
-					@if(Model.UserInfo != null)
+					@if(Model.UserProfile != null)
 					{
 						<div class="row mb-5">
 							<!--begin::Col-->
@@ -99,7 +99,7 @@
 								<label class="required fs-5 fw-semibold mb-2">First Name</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserInfo.FirstName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserProfile?.FirstName">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -110,7 +110,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserInfo.LastName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserProfile?.LastName">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -125,7 +125,7 @@
 								<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserInfo.MobileNo">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@(Model.UserProfile?.MobileNo)">
 								<!--end::Input-->
 							</div>
 							<!--end::Col-->
@@ -139,7 +139,24 @@
 								<label class="required fs-5 fw-semibold mb-2">Age</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.UserInfo.Age">
+								@{
+									int? age = null;
+
+									if (Model.UserProfile.Birthdate.HasValue)
+									{
+										var birthdate = Model.UserProfile.Birthdate.Value;
+										var today = DateOnly.FromDateTime(DateTime.Today);
+
+										age = today.Year - birthdate.Year;
+
+										if (today < birthdate.AddYears(age.Value))
+										{
+											age--;
+										}
+									}
+								}
+
+								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@(age.HasValue? age: "")">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -150,7 +167,7 @@
 								<label class="required fs-5 fw-semibold mb-2">City</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserInfo.City">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>

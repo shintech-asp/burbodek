@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225145313_PostReportForreportedContents")]
+    partial class PostReportForreportedContents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -910,20 +913,13 @@ namespace burbodek.Migrations
                     b.Property<int?>("JobsId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("TrainingId")
                         .HasColumnType("int");
 
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("isDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("isRetained")
+                    b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");

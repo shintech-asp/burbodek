@@ -20,6 +20,7 @@ namespace burbodek.Models
         public ICollection<JobUploads> JobUploads { get; set; } = new List<JobUploads>();
         public ICollection<JobRequiredBadge> JobRequiredBadge { get; set; } = new List<JobRequiredBadge>();
         public List<JobApplication>? JobApplication { get; set; }
+        public List<PostReport>? PostReport { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? isArchived { get; set; }
         public bool Diploma { get; set; }
