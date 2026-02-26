@@ -14,12 +14,59 @@
 		<div class="card-body pt-9 pb-0">
 			<!--begin::Details-->
 			<div class="d-flex flex-wrap flex-sm-nowrap">
-				<!--begin: Pic-->
+				<!--begin::Pic-->
 				<div class="me-7 mb-4">
 					<div class="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative">
-						<img src="~/assets/media/avatars/300-1.jpg" alt="image">
+
+						<!--begin::Avatar Image-->
+						<img id="profilePreview" src="@(Model.UserProfile?.Picture ?? "/assets/media/avatars/300-14.jpg")" alt="image" />
+						<!--end::Avatar Image-->
+						<!--begin::Online Indicator-->
 						<div class="position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border border-4 border-body h-20px w-20px"></div>
+						<!--end::Online Indicator-->
+						<!--begin::Upload Overlay-->
+						<div id="uploadOverlay"
+							 class="position-absolute top-0 start-0 w-100 h-100 rounded d-flex align-items-center justify-content-center"
+							 style="background: rgba(0,0,0,0.45); opacity:0; transition: opacity 0.2s; cursor:pointer; border-radius: inherit;"
+							 onclick="document.getElementById('profileImageInput').click()"
+							 onmouseenter="this.style.opacity='1'"
+							 onmouseleave="this.style.opacity='0'">
+							<i class="ki-duotone ki-pencil fs-2x text-white">
+								<span class="path1"></span><span class="path2"></span>
+							</i>
+						</div>
+						<!--end::Upload Overlay-->
+						<!--begin::Hidden File Input-->
+						<input type="file"
+							   id="profileImageInput"
+							   accept="image/*"
+							   class="d-none"
+							   onchange="previewProfileImage(event)" />
+						<!--end::Hidden File Input-->
 					</div>
+
+					<!--begin::Accept/Decline Buttons-->
+					<div id="profileActions" class="d-none d-flex justify-content-center gap-2 mt-3">
+						<button type="button"
+								class="btn btn-icon btn-sm btn-success"
+								onclick="confirmProfileImage()"
+								data-bs-toggle="tooltip"
+								title="Save">
+							<i class="ki-duotone ki-check fs-2">
+								<span class="path1"></span>
+							</i>
+						</button>
+						<button type="button"
+								class="btn btn-icon btn-sm btn-danger"
+								onclick="cancelProfileImage()"
+								data-bs-toggle="tooltip"
+								title="Cancel">
+							<i class="ki-duotone ki-cross fs-2">
+								<span class="path1"></span>
+							</i>
+						</button>
+					</div>
+					<!--end::Accept/Decline Buttons-->
 				</div>
 				<!--end::Pic-->
 				<!--begin::Info-->
@@ -411,7 +458,124 @@
 </div>
 @section Scripts {
 	<script>
+				let originalProfileSrc = null;
+		let selectedProfileFile = null;
 
+		function previewProfileImage(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			// Validate type
+			if (!file.type.startsWith('image/')) {
+				Swal.fire({
+					text: "Please select a valid image file.",
+					icon: "warning",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+				return;
+			}
+
+			// Validate size (max 5MB)
+			if (file.size > 5 * 1024 * 1024) {
+				Swal.fire({
+					text: "Image size must not exceed 5MB.",
+					icon: "warning",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.onload = function (e) {
+				// Store original src before replacing
+				const preview = document.getElementById('profilePreview');
+				if (!originalProfileSrc) {
+					originalProfileSrc = preview.src;
+				}
+
+				selectedProfileFile = file;
+				preview.src = e.target.result;
+				document.getElementById('profileActions').classList.remove('d-none');
+				document.getElementById('profileActions').classList.add('d-flex');
+			};
+			reader.readAsDataURL(file);
+		}
+
+		function confirmProfileImage() {
+			if (!selectedProfileFile) return;
+
+			const formData = new FormData();
+			formData.append('profileImage', selectedProfileFile);
+
+			// Add antiforgery token
+
+			Swal.fire({
+				text: "Uploading profile picture...",
+				icon: "info",
+				showConfirmButton: false,
+				allowOutsideClick: false,
+				didOpen: () => Swal.showLoading(),
+			});
+
+			fetch('/Employee/UpdateProfilePicture', {
+				method: 'POST',
+				body: formData
+			})
+			.then(res => {
+				if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+				return res.json();
+			})
+			.then(data => {
+				if (data.success) {
+					Swal.fire({
+						text: "Profile picture updated successfully.",
+						icon: "success",
+						buttonsStyling: false,
+						confirmButtonText: "OK",
+						customClass: { confirmButton: "btn btn-primary" }
+					});
+					// Update original src to new image
+					originalProfileSrc = document.getElementById('profilePreview').src;
+					resetProfileActions();
+				} else {
+					Swal.fire({
+						text: data.message ?? "Failed to update profile picture.",
+						icon: "error",
+						buttonsStyling: false,
+						confirmButtonText: "OK",
+						customClass: { confirmButton: "btn btn-primary" }
+					});
+				}
+			})
+			.catch(() => {
+				Swal.fire({
+					text: "A network error occurred. Please try again.",
+					icon: "error",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+			});
+		}
+
+		function cancelProfileImage() {
+			// Revert preview to original
+			if (originalProfileSrc) {
+				document.getElementById('profilePreview').src = originalProfileSrc;
+			}
+			resetProfileActions();
+		}
+
+		function resetProfileActions() {
+			selectedProfileFile = null;
+			document.getElementById('profileImageInput').value = '';
+			document.getElementById('profileActions').classList.add('d-none');
+			document.getElementById('profileActions').classList.remove('d-flex');
+		}
 		// Change Password button
 		$('#kt_signin_password_button button').click(function() {
 			// Hide the display div

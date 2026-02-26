@@ -747,15 +747,104 @@ namespace burbodek.Controllers
 
             return File(doc.File, doc.ContentType, doc.FileName);
         }
+        [HttpPost]
+        public async Task<IActionResult> Remove(int id)
+        {
+            try
+            {
+                var report = await _context.PostReport
+                    .Include(r => r.Jobs)
+                        .ThenInclude(j => j.JobMedia)
+                    .Include(r => r.Training)
+                        .ThenInclude(t => t.TrainingMedia)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId).ToListAsync();
+                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId).ToListAsync();
+                if (report == null)
+                    return Json(new { success = false, message = "Report not found." });
+                if (isJobs.Count > 0)
+                {
+                    foreach (var job in isJobs)
+                    {
+                        job.isDeleted = true;
+                    }
+                }
+                if (isTraining.Count > 0)
+                {
+                    foreach (var train in isTraining)
+                    {
+                        train.isDeleted = true;
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> Retain(int id)
+        {
+            try
+            {
+                var report = await _context.PostReport.FirstOrDefaultAsync(r => r.Id == id);
+                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId).ToListAsync();
+                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId).ToListAsync();
+
+                if (report == null)
+                    return Json(new { success = false, message = "Report not found." });
+                if (isJobs.Count > 0)
+                {
+                    foreach (var job in isJobs)
+                    {
+                        job.isRetained = true;
+                    }
+                }
+                if (isTraining.Count > 0)
+                {
+                    foreach (var train in isTraining)
+                    {
+                        train.isRetained = true;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         public IActionResult Reports()
         {
             var data = _context.PostReport
                     .Include(u => u.Users)
                     .Include(u => u.Jobs)
                         .ThenInclude(u => u.Users)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobBenefits)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRequirements)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobMedia)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRequiredBadge)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRole)
                     .Include(u => u.Training)
                         .ThenInclude(u => u.Users)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingRequirements)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingBadge)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingBenefits)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingMedia)
                     .Where(u => u.isDeleted == null && u.isRetained == null).OrderByDescending(u => u.DateReported).ToList();
             return View(data);
         }

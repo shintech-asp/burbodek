@@ -3,6 +3,7 @@ using burbodek.Models;
 using burbodek.Models.DTO;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,133 @@ namespace burbodek.Controllers
             _context = context;
             _paymongo = paymongo;
             _environment = environment;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile profileImage)
+        {
+            try
+            {
+                if (profileImage == null || profileImage.Length == 0)
+                    return Json(new { success = false, message = "No image provided." });
+
+                // Validate extension
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(profileImage.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                    return Json(new { success = false, message = "Invalid file type. Only JPG, PNG, and WEBP are allowed." });
+
+                // Validate size (5MB)
+                if (profileImage.Length > 5 * 1024 * 1024)
+                    return Json(new { success = false, message = "File size must not exceed 5MB." });
+
+                // Get current user
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var user = await _context.Users.Include(u=> u.UserProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                if(user.UserProfile != null)
+                {
+                    // Delete old profile picture if it's not the default
+                    if (!string.IsNullOrEmpty(user.UserProfile.Picture))
+                    {
+                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                            user.UserProfile.Picture.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    user.UserProfile.Picture = relativePath;
+
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+                else
+                {
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    var data = new UserProfile
+                    {
+                        Picture = relativePath,
+                        UsersId = userId
+                    };
+                    await _context.UserProfile.AddAsync(data);
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
         public IActionResult Index(string keyword, string location, int page = 1)
         {
@@ -480,7 +608,7 @@ namespace burbodek.Controllers
                 return NotFound();
 
             // 🔹 Badge obtained from this training
-            var trainingBadge = training.TrainingBadge.Badge;
+            var trainingBadge = training.TrainingBadge?.Badge;
 
             // 🔹 User's existing badges
             var userBadges = _context.UserBadge
@@ -1764,8 +1892,15 @@ namespace burbodek.Controllers
             {
                 TempData["Error"] = "Fill up all the details!";
             }
-
+            if(TrainingId != null)
+            {
                 return RedirectToAction("TrainingInfo", new { Id = TrainingId });
+            }
+            else
+            {
+                return RedirectToAction("JobInfo", new { Id = JobsId });
+            }
+               
         }
         public IActionResult TrainingApply(int Id)
         {
@@ -2311,6 +2446,7 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingApplication.Where(u => u.AppliedBy == userId))
                 .Include(u => u.JobApplication.Where(u => u.AppliedBy == userId))
                 .Include(u => u.EmployeeDetails)
+                .Include(u => u.UserProfile)
                 .Include(u => u.UserBadge)
                 .Where(u => u.Id == userId).FirstOrDefault();
 

@@ -63,36 +63,283 @@
                         {
                             @foreach (var data in Model)
                             {
-                                <div class="d-flex mb-10">
-                                    <i class="ki-duotone ki-file-added fs-2x me-5 ms-n1 mt-2 text-danger"><span class="path1"></span><span class="path2"></span></i>
+                                var isJob = data.JobsId.HasValue && data.Jobs != null;
+                                var isTraining = data.TrainingId.HasValue && data.Training != null;
 
-                                    <div class="d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <a href="#" class="text-gray-900 text-hover-primary fs-4 me-3 fw-semibold">
-                                                @(data.Jobs?.JobTitle ?? data.Training?.Name ?? "N/A")
+                                var title = isJob ? data.Jobs?.JobTitle : (isTraining ? data.Training?.Name : "N/A");
+                                var username = isJob ? data.Jobs?.Users?.Username : (isTraining ? data.Training?.Users?.Username : "N/A");
+                                var businessName = isJob ? data.Jobs?.Users?.EmployerDetails?.BusinessName : (isTraining ? data.Training?.Users?.EmployerDetails?.BusinessName : "N/A");
+                                var mediaPaths = isJob
+                                ? data.Jobs?.JobMedia?.Select(m => m.FilePath).ToList()
+                                : data.Training?.TrainingMedia?.Select(m => m.FilePath).ToList();
+                                var requirements = isJob ? data.Jobs?.JobRequirements?.Select(r => r.Requirement) : (isTraining ? data.Training?.TrainingRequirements?.Select(r => r.Requirement) : null);
+                                var roles = data.Jobs?.JobRole?.Select(r => r.Role);
+                                var benefits = isJob ? data.Jobs?.JobBenefits?.Select(b => b.Benefit) : (isTraining ? data.Training?.TrainingBenefits?.Select(b => b.Benefit) : null);
+
+                                <!--begin::Report Item-->
+                                <div class="d-flex align-items-start gap-4 p-4 mb-4 bg-light-danger rounded border border-danger border-opacity-25 hover-elevate-up">
+                                    <!--begin::Icon-->
+                                    <div class="symbol symbol-50px">
+                                        <div class="symbol-label bg-danger bg-opacity-10">
+                                            <i class="ki-duotone ki-flag fs-2x text-danger">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                    <!--end::Icon-->
+                                    <!--begin::Content-->
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                            <a href="#"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#detailsModal_@data.Id"
+                                               class="text-gray-900 text-hover-primary fs-5 fw-bold text-truncate">
+                                                @(title ?? "N/A")
                                             </a>
-                                            <span class="badge badge-light my-1">
-                                                @(data.Jobs?.Users?.Username ?? data.Training?.Users?.Username ?? "N/A")
+                                            <span class="badge badge-light-primary fw-semibold">@(username ?? "N/A")</span>
+                                            <span class="badge @(isJob ? "badge-light-success" : "badge-light-info") fw-semibold">
+                                                @(isJob ? "Job" : "Training")
                                             </span>
                                         </div>
+                                        <div class="d-flex flex-wrap gap-4 text-muted fs-7">
+                                            @if (!string.IsNullOrEmpty(data.Reason))
+                                            {
+                                                <span><i class="ki-duotone ki-information fs-6 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>@data.Reason</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(data.Description))
+                                            {
+                                                <span class="text-truncate" style="max-width:300px"><i class="ki-duotone ki-message-text fs-6 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>@data.Description</span>
+                                            }
+                                            <span><i class="ki-duotone ki-profile-circle fs-6 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>@(data.Users?.Username ?? "Unknown User")</span>
+                                        </div>
+                                    </div>
+                                    <!--end::Content-->
+                                    <!--begin::Action-->
+                                    <a href="#"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#detailsModal_@data.Id"
+                                       class="btn btn-sm btn-light-danger btn-active-danger flex-shrink-0">
+                                        View Details
+                                    </a>
+                                    <!--end::Action-->
+                                </div>
+                                <!--end::Report Item-->
+                                <!--begin::Details Modal-->
+                                <div class="modal fade" id="detailsModal_@data.Id" tabindex="-1">
+                                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <!--begin::Modal Header-->
+                                            <div class="modal-header bg-danger bg-opacity-10 border-bottom border-danger border-opacity-25">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="symbol symbol-40px">
+                                                        <div class="symbol-label bg-danger">
+                                                            <i class="ki-duotone ki-@(isJob ? "briefcase" : "book") fs-2 text-white">
+                                                                <span class="path1"></span><span class="path2"></span>
+                                                            </i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="modal-title fw-bold text-gray-900 mb-0">@(title ?? "N/A")</h5>
+                                                        <span class="text-muted fs-7">@businessName</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <!--end::Modal Header-->
+                                            <!--begin::Modal Body-->
+                                            <div class="modal-body p-0">
+                                                <div class="row g-0">
+                                                    <!--begin::Left – Media Carousel-->
+                                                    <div class="col-lg-6 bg-light">
+                                                        <div id="carousel_@data.Id" class="carousel slide h-100" data-bs-ride="false">
+                                                            <div class="carousel-inner h-100">
+                                                                @if (mediaPaths != null && mediaPaths.Any())
+                                                                {
+                                                                    var idx = 0;
+                                                                    foreach (var path in mediaPaths)
+                                                                    {
+                                                                        <div class="carousel-item @(idx == 0 ? "active" : "") h-100">
+                                                                            <img src="@Url.Content(path)"
+                                                                                 class="d-block w-100 object-fit-cover"
+                                                                                 style="min-height:320px;max-height:480px" />
+                                                                        </div>
+                                                                        idx++;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="carousel-item active h-100">
+                                                                        <div class="d-flex flex-column align-items-center justify-content-center text-muted bg-light" style="min-height:320px">
+                                                                            <i class="ki-duotone ki-picture fs-3x mb-3 text-gray-300"><span class="path1"></span><span class="path2"></span></i>
+                                                                            <span class="fs-6">No media available</span>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
 
-                                        <span class="text-muted fw-semibold fs-6">
-                                            Reason: @(data.Reason ?? "N/A")<br>
-                                            Description: @(data.Description ?? "N/A")<br><br>
-                                            Reported by: @(data.Users?.Username ?? "Unknown User")
-                                        </span>
+                                                            @if (mediaPaths != null && mediaPaths.Count > 1)
+                                                            {
+                                                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel_@data.Id" data-bs-slide="prev">
+                                                                    <span class="carousel-control-prev-icon"></span>
+                                                                </button>
+                                                                <button class="carousel-control-next" type="button" data-bs-target="#carousel_@data.Id" data-bs-slide="next">
+                                                                    <span class="carousel-control-next-icon"></span>
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <!--end::Left-->
+                                                    <!--begin::Right – Details-->
+                                                    <div class="col-lg-6 p-7 overflow-auto" style="max-height:480px">
+
+                                                        <!--begin::Report Info Card-->
+                                                        <div class="notice d-flex bg-light-danger rounded border border-danger border-dashed mb-6 p-4">
+                                                            <i class="ki-duotone ki-flag fs-2x text-danger me-3 mt-1"><span class="path1"></span><span class="path2"></span></i>
+                                                            <div class="d-flex flex-stack w-100">
+                                                                <div>
+                                                                    <div class="fw-bold text-danger fs-6">Report Details</div>
+                                                                    @if (!string.IsNullOrEmpty(data.Reason))
+                                                                    {
+                                                                        <div class="text-gray-700 fs-7"><strong>Reason:</strong> @data.Reason</div>
+                                                                    }
+                                                                    @if (!string.IsNullOrEmpty(data.Description))
+                                                                    {
+                                                                        <div class="text-gray-700 fs-7"><strong>Description:</strong> @data.Description</div>
+                                                                    }
+                                                                    <div class="text-gray-700 fs-7"><strong>Reported by:</strong> @(data.Users?.Username ?? "Unknown")</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!--end::Report Info Card-->
+                                                        <!--begin::Requirements-->
+                                                        @if (requirements != null && requirements.Any())
+                                                        {
+                                                            <div class="mb-5">
+                                                                <div class="d-flex align-items-center mb-3">
+                                                                    <div class="h-2px w-20px bg-primary me-2 rounded"></div>
+                                                                    <span class="text-uppercase text-primary fw-bold fs-8 ls-1">Requirements</span>
+                                                                </div>
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    @foreach (var req in requirements)
+                                                                    {
+                                                                        <span class="badge badge-light-primary fw-semibold fs-7">@req</span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        <!--end::Requirements-->
+                                                        <!--begin::Roles-->
+                                                        @if (roles != null && roles.Any())
+                                                        {
+                                                            <div class="mb-5">
+                                                                <div class="d-flex align-items-center mb-3">
+                                                                    <div class="h-2px w-20px bg-success me-2 rounded"></div>
+                                                                    <span class="text-uppercase text-success fw-bold fs-8 ls-1">Roles</span>
+                                                                </div>
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    @foreach (var role in roles)
+                                                                    {
+                                                                        <span class="badge badge-light-success fw-semibold fs-7">@role</span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        <!--end::Roles-->
+                                                        <!--begin::Benefits-->
+                                                        @if (benefits != null && benefits.Any())
+                                                        {
+                                                            <div class="mb-5">
+                                                                <div class="d-flex align-items-center mb-3">
+                                                                    <div class="h-2px w-20px bg-warning me-2 rounded"></div>
+                                                                    <span class="text-uppercase text-warning fw-bold fs-8 ls-1">Benefits</span>
+                                                                </div>
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    @foreach (var ben in benefits)
+                                                                    {
+                                                                        <span class="badge badge-light-warning fw-semibold fs-7">@ben</span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        <!--end::Benefits-->
+                                                        <!--begin::Training Dates (Training only)-->
+                                                        @if (!isJob && data.Training != null)
+                                                        {
+                                                            <div class="separator separator-dashed my-5"></div>
+                                                            <div class="row g-3">
+                                                                <div class="col-6">
+                                                                    <div class="bg-light-info rounded p-3 text-center">
+                                                                        <div class="text-muted fs-8 fw-semibold text-uppercase mb-1">Start Date</div>
+                                                                        <div class="text-gray-900 fw-bold fs-6">
+                                                                            @(data.Training.StartDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="bg-light-info rounded p-3 text-center">
+                                                                        <div class="text-muted fs-8 fw-semibold text-uppercase mb-1">End Date</div>
+                                                                        <div class="text-gray-900 fw-bold fs-6">
+                                                                            @(data.Training.EndDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        <!--end::Training Dates-->
+
+                                                    </div>
+                                                    <!--end::Right-->
+                                                </div>
+                                            </div>
+                                            <!--end::Modal Body-->
+                                            <!--begin::Modal Footer-->
+                                            <div class="modal-footer border-top justify-content-between">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                    <i class="ki-duotone ki-cross fs-3 me-1"><span class="path1"></span><span class="path2"></span></i>
+                                                    Close
+                                                </button>
+                                                <div class="d-flex gap-3">
+                                                    <!--begin::Retain Button-->
+                                                    <button type="button"
+                                                            class="btn btn-light-success btn-active-success"
+                                                            onclick="handleReport('@data.Id', 'Retain')">
+                                                        <i class="ki-duotone ki-shield-tick fs-3 me-1">
+                                                            <span class="path1"></span><span class="path2"></span>
+                                                        </i>
+                                                        Retain
+                                                    </button>
+                                                    <!--end::Retain Button-->
+                                                    <!--begin::Remove Button-->
+                                                    <button type="button"
+                                                            class="btn btn-danger"
+                                                            onclick="handleReport('@data.Id', 'Remove')">
+                                                        <i class="ki-duotone ki-trash fs-3 me-1">
+                                                            <span class="path1"></span><span class="path2"></span>
+                                                        </i>
+                                                        Remove Content
+                                                    </button>
+                                                    <!--end::Remove Button-->
+                                                </div>
+                                            </div>
+                                            <!--end::Modal Footer-->
+
+                                        </div>
                                     </div>
                                 </div>
+                                <!--end::Details Modal-->
                             }
                         }
                         else
                         {
-                            <span class="fst-italic">No content has been reported</span>
+                            <div class="d-flex flex-column align-items-center justify-content-center py-10 text-muted">
+                                <i class="ki-duotone ki-shield-tick fs-3x mb-3 text-success"><span class="path1"></span><span class="path2"></span></i>
+                                <span class="fs-5 fw-semibold">No reports found</span>
+                                <span class="fs-7 mt-1">Everything looks clean!</span>
+                            </div>
                         }
                     </div>
                 </div>
-                <!--end::Tickets-->
-
+               
 
             </div>
             <!--end::Content-->
@@ -210,3 +457,78 @@
     <!--end::Card body-->
 </div>
 <!--end::Card-->
+@section Scripts {
+    <script>
+        function handleReport(reportId, action) {
+            const isRemove = action === 'Remove';
+
+            Swal.fire({
+                text: isRemove
+                    ? "Are you sure you want to remove this content? This action cannot be undone."
+                    : "Are you sure you want to retain this content? The report will be dismissed.",
+                icon: isRemove ? "warning" : "question",
+                iconColor: isRemove ? "var(--bs-danger)" : "var(--bs-success)",
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: isRemove ? "Yes, Remove" : "Yes, Retain",
+                cancelButtonText: "Cancel",
+                customClass: {
+                    confirmButton: `btn ${isRemove ? "btn-danger" : "btn-success"} me-3`,
+                    cancelButton: "btn btn-light",
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        text: isRemove ? "Removing content..." : "Retaining content...",
+                        icon: "info",
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading(),
+                    });
+
+                    fetch(`/Home/${isRemove ? "Remove" : "Retain"}/${reportId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                text: isRemove
+                                    ? "Content has been removed successfully."
+                                    : "Content has been retained and the report dismissed.",
+                                icon: "success",
+                                buttonsStyling: false,
+                                confirmButtonText: "OK",
+                                customClass: { confirmButton: "btn btn-primary" },
+                            }).then(() => {
+                                bootstrap.Modal.getInstance(document.getElementById(`detailsModal_${reportId}`))?.hide();
+                                document.getElementById(`reportItem_${reportId}`)?.remove();
+                                location.reload()
+                            });
+                        } else {
+                            Swal.fire({
+                                text: data.message ?? "Something went wrong. Please try again.",
+                                icon: "error",
+                                buttonsStyling: false,
+                                confirmButtonText: "OK",
+                                customClass: { confirmButton: "btn btn-primary" },
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            text: "A network error occurred. Please try again.",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
+                            customClass: { confirmButton: "btn btn-primary" },
+                        });
+                    });
+                }
+            });
+        }
+    </script>
+}
