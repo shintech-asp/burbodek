@@ -114,7 +114,7 @@
 														<td>@data.FirstName, @data.LastName</td>
 														<td>@ViewBag.ModeOfPayment</td>
 														<td>
-															<span class="badge badge-primary">@ViewBag.PaymentStatus</span>
+															<span class="badge badge-primary">@(data.TrainingCertificate.Count > 0 ? "Certificate uploaded" : ViewBag.PaymentStatus == "Fully Paid" ? "Upload certificate" : ViewBag.PaymentStatus)</span>
 														</td>
 														<td class="text-center">
 															<a class="btn btn-sm btn-primary" asp-action="TrainingReceipt" asp-controller="Employer" asp-route-AppliedId="@data.AppliedBy" asp-route-Id="@data.Id">
@@ -248,8 +248,8 @@
 									@if(Model.StartDate == null)
 									{
 										<button class="btn btn-primary btn-sm" id="openStartDateModal">Add start date</button>
+										<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
 									}
-									<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
 									<!--end::Label-->
 								</div>
 								<!--end::Row-->
@@ -283,12 +283,111 @@
 		</div>
 	</div>
 </div>
+<div class="modal fade" id="adjustExpirationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Adjust Expiration</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<label class="form-label">Expiration date</label>
+				<input type="hidden" id="TrainingId" value="@Model.Id" />
+				<input type="datetime-local" class="form-control" id="expirationDateVal" name="Expiration"
+					   value="@Model.Expiration.ToString("yyyy-MM-ddTHH:mm")" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm")" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="saveExpirationBtn">
+					<i class="bi bi-save"></i> Save & Notify Applicants
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
 @section Scripts {
 	<script>
 				$("#openStartDateModal").on("click", function() {
 			$("#startDateModal").modal("show");
 		});
+		$("#expirationDate").on("click", function() {
+			$("#adjustExpirationModal").modal("show");
+		});
+		document.getElementById("saveExpirationBtn").addEventListener("click", function () {
+			const newExpiration = $("#expirationDateVal").val();
+			const trainingId = document.getElementById("TrainingId").value;
+			console.log(newExpiration)
+			console.log(trainingId)
 
+			if (!newExpiration) {
+				Swal.fire({
+					title: 'Missing Date',
+					text: 'Please select an expiration date before saving.',
+					icon: 'warning',
+					confirmButtonText: 'OK'
+				});
+				return;
+			}
+
+			Swal.fire({
+				title: 'Update Expiration Date?',
+				html: `The new expiration date will be set to:<br><br>
+					   <strong style="font-size:16px; color:#0066cc;">
+						   ${new Date(newExpiration).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+					   </strong><br><br>
+					   <span style="font-size:13px; color:#888;">All enrolled applicants will be notified via email.</span>`,
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Yes, Update & Notify',
+				cancelButtonText: 'Cancel',
+				confirmButtonColor: '#0066cc'
+			}).then((result) => {
+				if (result.isConfirmed) {
+
+					// Show loading
+					Swal.fire({
+						title: 'Updating...',
+						text: 'Please wait while we notify all applicants.',
+						allowOutsideClick: false,
+						didOpen: () => Swal.showLoading()
+					});
+
+					$.ajax({
+						url: '/Employer/UpdateTrainingExpiration',
+						type: 'POST',
+						data: {
+							newExpiration: newExpiration,
+							TrainingId: trainingId
+						},
+						success: function (res) {
+							if (res.response) {
+								Swal.fire({
+									title: 'Updated!',
+									text: res.message,
+									icon: 'success',
+									confirmButtonColor: '#0066cc'
+								}).then(() => {
+									location.reload();
+								});
+							} else {
+								Swal.fire({
+									title: 'Failed',
+									text: res.message,
+									icon: 'error'
+								});
+							}
+						},
+						error: function () {
+							Swal.fire({
+								title: 'Error',
+								text: 'Something went wrong. Please try again.',
+								icon: 'error'
+							});
+						}
+					});
+				}
+			});
+		});
 		$("#startDateSubmit").on("click", function() {
 			// Collect all application IDs from the table
 			var applicationIds = [];

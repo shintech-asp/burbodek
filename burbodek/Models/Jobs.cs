@@ -29,5 +29,7 @@ namespace burbodek.Models
         public bool SeamansBook { get; set; }
         public bool Tor { get; set; }
         public bool Coe { get; set; }
+        public bool? isDeleted { get; set; }
+        public string? Appeal { get; set; }
     }
 }

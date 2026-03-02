@@ -145,6 +145,11 @@ namespace burbodek.Controllers
                     TempData["Status"] = "Your account is still pending for admins approval.";
                     return View();
                 }
+                if (user.EmployerDetails.Status == "Decline")
+                {
+                    TempData["Status"] = "Your account is declined: <br><br>Reason for declined: <br><h5>" + user.EmployerDetails.RejectionReason + "</h5><br>You may apply for the next 3 months. Thank you!";
+                    return View();
+                }
             }
             var passwordHasher = new PasswordHasher<Users>();
             var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);

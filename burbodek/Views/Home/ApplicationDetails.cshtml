@@ -90,7 +90,7 @@
             </table>
         </div>
     </div>
-@if (Model.EmployerDetails.Status == "For Approval")
+@if (Model.EmployerDetails.Status == "For Approval" || Model.EmployerDetails.Status == "Pending")
     {
         <div class="card-footer">
             <div class="text-end">
@@ -110,26 +110,117 @@
 </div>
 @section Scripts {
     <script>
-        function confirmAction(action) {
-            let msg = action === "approve"
-                ? "Are you sure you want to approve this application?"
-                : "Are you sure you want to decline this application?";
+                function confirmAction(action) {
+            if (action === "decline") {
+                const reasons = [
+                    "Does not meet qualifications",
+                    "Position already filled",
+                    "Overqualified for the role",
+                    "Failed background check",
+                    "No show / Unresponsive",
+                    "Others"
+                ];
 
-            Swal.fire({
-                title: 'Confirmation',
-                text: msg,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, proceed',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // set hidden input value
-                    document.getElementById("ApprovalDetails").value = action;
-                    // submit the form
-                    document.getElementById("approvalForm").submit();
-                }
-            });
+                const radioOptions = reasons.map((reason, i) => `
+                    <div style="text-align:left; margin-bottom:8px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
+                            <input type="radio" name="declineReason" value="${reason}"
+                                style="accent-color:#e3342f; width:16px; height:16px;"
+                                onchange="handleDeclineReasonChange('${reason}')">
+                            ${reason}
+                        </label>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Reason for Declining',
+                    html: `
+                        <p style="font-size:14px; color:#666; margin-bottom:16px; text-align:left;">
+                            Please select a reason for declining this application:
+                        </p>
+                        <div id="declineReasons" style="margin-bottom:12px;">
+                            ${radioOptions}
+                        </div>
+                        <div id="othersDetailWrapper" style="display:none; margin-top:10px;">
+                            <textarea id="othersDetail"
+                                placeholder="Please provide more details..."
+                                rows="3"
+                                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;
+                                       font-size:13px; resize:vertical; box-sizing:border-box;
+                                       font-family: inherit;">
+                            </textarea>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Decline',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#e3342f',
+                    preConfirm: () => {
+                        const selected = document.querySelector('input[name="declineReason"]:checked');
+                        if (!selected) {
+                            Swal.showValidationMessage('Please select a reason for declining.');
+                            return false;
+                        }
+
+                        if (selected.value === "Others") {
+                            const details = document.getElementById("othersDetail").value.trim();
+                            if (!details) {
+                                Swal.showValidationMessage('Please provide details for "Others".');
+                                return false;
+                            }
+                            return { reason: "Others", details: details };
+                        }
+
+                        return { reason: selected.value, details: "" };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const { reason, details } = result.value;
+                        const finalReason = reason === "Others" ? `Others: ${details}` : reason;
+
+                        document.getElementById("ApprovalDetails").value = action;
+
+                        // Remove old hidden inputs if any
+                        document.querySelectorAll("input[name='DeclineReason']").forEach(e => e.remove());
+
+                        let reasonInput = document.createElement("input");
+                        reasonInput.type = "hidden";
+                        reasonInput.name = "DeclineReason";
+                        reasonInput.value = finalReason;
+                        document.getElementById("approvalForm").appendChild(reasonInput);
+
+                        document.getElementById("approvalForm").submit();
+                    }
+                });
+
+            } else {
+                Swal.fire({
+                    title: 'Confirmation',
+                    text: 'Are you sure you want to approve this application?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#28a745'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById("ApprovalDetails").value = action;
+                        document.getElementById("approvalForm").submit();
+                    }
+                });
+            }
+        }
+
+        function handleDeclineReasonChange(value) {
+            const wrapper = document.getElementById("othersDetailWrapper");
+            if (value === "Others") {
+                wrapper.style.display = "block";
+                document.getElementById("othersDetail").focus();
+            } else {
+                wrapper.style.display = "none";
+                document.getElementById("othersDetail").value = "";
+            }
         }
     </script>
 }

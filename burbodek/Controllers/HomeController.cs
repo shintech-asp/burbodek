@@ -800,14 +800,18 @@ namespace burbodek.Controllers
                 {
                     foreach (var job in isJobs)
                     {
+                        var jobUpdated = _context.Jobs.Where(u => u.Id == report.JobsId).FirstOrDefault();
                         job.isDeleted = true;
+                        jobUpdated.isDeleted = true;
                     }
                 }
                 if (isTraining.Count > 0)
                 {
                     foreach (var train in isTraining)
                     {
+                        var trainUpdated = _context.Training.Where(u => u.Id == report.TrainingId).FirstOrDefault();
                         train.isDeleted = true;
+                        trainUpdated.isDeleted = true;
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -897,13 +901,13 @@ namespace burbodek.Controllers
             return System.IO.File.ReadAllText(path);
         }
         [HttpPost]
-        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails)
+        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails, string? DeclineReason)
         {
             try
             {
                 var employer = _context.EmployerDetails.Include(u => u.Users).Where(u => u.UsersId == Id).FirstOrDefault();
 
-                if (ApprovalDetails == "decline")
+                if (ApprovalDetails == "decline" && DeclineReason != null)
                 {
                     var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
 
@@ -914,8 +918,9 @@ namespace burbodek.Controllers
                     await _email.SendEmailAsync(employer.Users.Email, "Application Declined", emailBody);
                     data.Expiration = DateTime.Now;
                     data.Status = "Expired";
+                    
                     _context.Subscription.Update(data);
-
+                    employer.RejectionReason = DeclineReason;
                     employer.Status = "Decline";
                     _context.EmployerDetails.Update(employer);
 

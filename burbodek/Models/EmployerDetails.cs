@@ -10,6 +10,7 @@
         public string BusinessName { get; set; }
         public string BusinessDescription { get; set; }
         public string Status { get; set; } = "For Approval";
+        public string? RejectionReason { get; set; }
         public string Address { get; set; }
         public string Latitude { get; set; }
         public string Longitude { get; set; }

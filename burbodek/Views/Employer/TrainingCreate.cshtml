@@ -20,7 +20,7 @@
             <div class="row mb-5">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Price</label>
-                    <input type="number" class="form-control" name="Price" placeholder="e.g. 2000" min="0" required />
+                    <input type="number" class="form-control" name="Price" placeholder="e.g. 2000" id="Price" min="0" required />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Expiration Date</label>
@@ -248,32 +248,82 @@
             $("#dynamicSwitchContainer").append(html);
             index++;
         });
-            $("#PaymentOption").on('change', function(){
-                if($(this).val() == "Down"){
-                    $("#PaymentForm").append(`
-                    <div class="row" id="DPForm">
-                        <div class="col">
-                            <label class="form-label">Down payment</label>
-                            <div class="input-group input-group-solid mb-5">
-                                <input type="text"
-                                        class="form-control"
-                                        name="DownPayment"
-                                        placeholder="5000">
-
-                                <select class="form-select input-group-text"
-                                        name="Unit"
-                                        style="max-width:120px">
-                                    <option value="PHP" selected>₱ PHP</option>
-                                    <option value="Percentage">% PERCENT</option>
-                                </select>
-                            </div>
-
+        $("#PaymentOption").on('change', function () {
+            if ($(this).val() == "Down") {
+                $("#PaymentForm").append(`
+                <div class="row" id="DPForm">
+                    <div class="col">
+                        <label class="form-label">Down Payment</label>
+                        <div class="input-group input-group-solid mb-2">
+                            <input type="number"
+                                   class="form-control"
+                                   name="DownPayment"
+                                   id="DownPayment"
+                                   placeholder="Enter amount"
+                                   min="0">
+                            <select class="form-select input-group-text"
+                                    name="Unit"
+                                    id="DPUnit"
+                                    style="max-width:140px">
+                                <option value="PHP" selected>₱ PHP</option>
+                                <option value="Percentage">% PERCENT</option>
+                            </select>
                         </div>
-                    </div>`)
-                }else{
-                    $("#DPForm").remove()
+                        <div id="DPError" style="color: #dc3545; font-size: 13px; display:none; margin-bottom: 10px;"></div>
+                    </div>
+                </div>`);
+
+                // Validate on input change
+                $(document).on("input", "#DownPayment", validateDownPayment);
+                $(document).on("change", "#DPUnit", validateDownPayment);
+
+            } else {
+                $("#DPForm").remove();
+                $(document).off("input", "#DownPayment", validateDownPayment);
+                $(document).off("change", "#DPUnit", validateDownPayment);
+            }
+        });
+
+        function validateDownPayment() {
+            const value = parseFloat($("#DownPayment").val());
+            const unit = $("#DPUnit").val();
+            const price = parseFloat($("#Price").val());
+            const errorBox = $("#DPError");
+
+            if (isNaN(value) || value < 0) {
+                showDPError("Please enter a valid amount.");
+                return;
+            }
+
+            if (unit === "Percentage") {
+                if (value > 100) {
+                    showDPError("Percentage cannot exceed 100%.");
+                    $("#DownPayment").val(100);
+                } else {
+                    clearDPError();
                 }
-            })
+            } else if (unit === "PHP") {
+                if (!price || isNaN(price)) {
+                    showDPError("Please set a Price first before entering a down payment.");
+                    $("#DownPayment").val("");
+                } else if (value > price) {
+                    showDPError(`Down payment cannot exceed the price of ₱${price.toLocaleString()}.`);
+                    $("#DownPayment").val(price);
+                } else {
+                    clearDPError();
+                }
+            }
+        }
+
+        function showDPError(msg) {
+            $("#DPError").text(msg).show();
+            $("#DownPayment").css("border-color", "#dc3545");
+        }
+
+        function clearDPError() {
+            $("#DPError").hide().text("");
+            $("#DownPayment").css("border-color", "");
+        }
             // ✅ Register FilePond plugins
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,

@@ -163,7 +163,7 @@ namespace burbodek.Controllers
                 .Include(j => j.Users)
                     .ThenInclude(u => u.EmployerDetails)
                 .Include(j => j.JobApplication)
-                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null);
+                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null);
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -204,7 +204,7 @@ namespace burbodek.Controllers
                 .Include(t => t.Users)
                     .ThenInclude(u => u.EmployerDetails)
                 .Include(t => t.TrainingApplication)
-                .Where(t => t.isArchived == null);
+                .Where(t => t.isArchived == null && t.Expiration >= DateTime.Now && t.isDeleted == null);
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -2196,6 +2196,7 @@ namespace burbodek.Controllers
             ModelState.Remove("Jobs");
             ModelState.Remove("AppliedBy");
             ModelState.Remove("CV");
+            ModelState.Remove("Experience");
 
             model.JobsId = Id;
             model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -2207,7 +2208,7 @@ namespace burbodek.Controllers
                     Console.WriteLine($"Key: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
                 }
                 TempData["error"] = "Please fill all the required fields!";
-                return View(model);
+                return View(Id);
             }
 
             // File upload logic (refactored for reuse)
@@ -2241,7 +2242,7 @@ namespace burbodek.Controllers
                 City = model.City,
                 ExpectedSalary = model.ExpectedSalary,
                 StartDate = model.StartDate,
-                Experience = model.Experience,
+                Experience = model.Experience ?? "",
                 ApplicationLetter = model.ApplicationLetter
             };
 

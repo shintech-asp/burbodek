@@ -20,7 +20,12 @@
 				border-radius: 12px;
 			}
 		</style>
-
+		@if (Model.isDeleted == true)
+		{
+			<div class="alert alert-danger">
+				<p><span class="fw-bold">Note: </span> This job is deleted</p>
+			</div>
+		}
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">

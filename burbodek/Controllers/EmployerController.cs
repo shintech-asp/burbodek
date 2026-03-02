@@ -29,6 +29,38 @@ namespace burbodek.Controllers
             _environment = environment;
         }
 
+        public IActionResult SubmitTrainingAppeal(int TrainingId, string Description)
+        {
+            if(Description != null)
+            {
+                var data = _context.Training.Where(u => u.Id == TrainingId).FirstOrDefault();
+
+                data.Appeal = Description;
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = true, message = "Fill up the appeal description" });
+            }
+            
+        }
+        public IActionResult SubmitJobAppeal(int JobId, string Description)
+        {
+            if(Description != null)
+            {
+                var data = _context.Jobs.Where(u => u.Id == JobId).FirstOrDefault();
+
+                data.Appeal = Description;
+                _context.SaveChanges(); 
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = true, message = "Fill up the appeal description" });
+            }
+            
+        }
         [HttpPost]
         public async Task<IActionResult> UpdateProfilePicture(IFormFile profileImage)
         {
@@ -775,6 +807,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobApplication)
                         .Include(u => u.JobRequirements)
+                        .Include(u => u.PostReport)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobRequiredBadge)
@@ -809,9 +842,12 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingBenefits)
                 .Include(u => u.TrainingRequirements)
                 .Include(u => u.TrainingMedia)
+                .Include(u => u.PostReport)
                 .Include(u => u.TrainingBadge)
                 .Include(u => u.TrainingApplication)
                     .ThenInclude(u => u.TrainingPayments)
+                .Include(u => u.TrainingApplication)
+                    .ThenInclude(u => u.TrainingCertificate)
                 .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
             if (data == null)
@@ -1017,6 +1053,235 @@ namespace burbodek.Controllers
                 .ToList();
 
             return Json(new { response = jobs });
+        }
+        public async Task<IActionResult> UpdateTrainingExpiration(DateTime newExpiration, int TrainingId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+                var training = _context.Training
+                    .Include(t => t.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                    .Where(j => j.UsersId == userId && j.Id == TrainingId)
+                    .FirstOrDefault();
+
+                if (training == null)
+                    return Json(new { response = false, message = "Training not found." });
+
+                var oldExpiration = training.Expiration;
+
+                // Get all applicants for this training
+                var applicationIdList = _context.TrainingApplication
+                    .Where(ta => ta.TrainingId == TrainingId)
+                    .Select(ta => ta.AppliedBy)
+                    .ToList();
+                if(applicationIdList.Count > 0)
+                {
+                    foreach (var applicantId in applicationIdList)
+                    {
+                        try
+                        {
+                            var applicantInfo = _context.Users.FirstOrDefault(u => u.Id == applicantId);
+                            if (applicantInfo == null) continue;
+
+                            var sendEmail = new EmailThread
+                            {
+                                Subject = "Training Expiration Date Updated - " + training.Name,
+                                CreatedBy = training.UsersId,
+                                CreatedAt = DateTime.Now
+                            };
+                            _context.EmailThreads.Add(sendEmail);
+                            await _context.SaveChangesAsync();
+
+                            var email = new Email
+                            {
+                                Thread = sendEmail,
+                                SenderID = training.UsersId,
+                                Body = @"
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <style>
+                                body {
+                                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                                    line-height: 1.6;
+                                    color: #333;
+                                    margin: 0;
+                                    padding: 0;
+                                    background-color: #f5f5f5;
+                                }
+                                .container {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    background-color: #ffffff;
+                                    border-radius: 8px;
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                    overflow: hidden;
+                                }
+                                .header {
+                                    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+                                    color: white;
+                                    padding: 40px 20px;
+                                    text-align: center;
+                                }
+                                .header h1 {
+                                    margin: 0;
+                                    font-size: 28px;
+                                    font-weight: 600;
+                                }
+                                .content {
+                                    padding: 40px;
+                                }
+                                .greeting {
+                                    font-size: 16px;
+                                    margin-bottom: 20px;
+                                    color: #333;
+                                }
+                                .body-text {
+                                    font-size: 15px;
+                                    line-height: 1.7;
+                                    color: #555;
+                                    margin-bottom: 20px;
+                                }
+                                .highlight-box {
+                                    background-color: #e8f4f8;
+                                    border-left: 4px solid #0066cc;
+                                    padding: 20px;
+                                    margin: 25px 0;
+                                    border-radius: 4px;
+                                }
+                                .date-box {
+                                    background-color: #fff3e0;
+                                    border-left: 4px solid #ff9800;
+                                    padding: 15px;
+                                    margin: 15px 0;
+                                    border-radius: 4px;
+                                }
+                                .date-item {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 10px 0;
+                                    border-bottom: 1px solid #ffe0b2;
+                                    font-size: 14px;
+                                }
+                                .date-item:last-child {
+                                    border-bottom: none;
+                                }
+                                .date-item strong {
+                                    color: #ff9800;
+                                }
+                                .badge-old {
+                                    background-color: #f8d7da;
+                                    color: #842029;
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
+                                    font-size: 13px;
+                                    text-decoration: line-through;
+                                }
+                                .badge-new {
+                                    background-color: #d1e7dd;
+                                    color: #0f5132;
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
+                                    font-size: 13px;
+                                    font-weight: 600;
+                                }
+                                .footer {
+                                    background-color: #f9f9f9;
+                                    padding: 20px;
+                                    border-top: 1px solid #e0e0e0;
+                                    text-align: center;
+                                    font-size: 12px;
+                                    color: #888;
+                                }
+                                .divider {
+                                    height: 1px;
+                                    background-color: #e0e0e0;
+                                    margin: 30px 0;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='container'>
+                                <div class='header'>
+                                    <h1>🔔 Training Expiration Updated</h1>
+                                </div>
+                                <div class='content'>
+                                    <p class='greeting'>Dear " + applicantInfo.Username + @",</p>
+                                    <p class='body-text'>We would like to inform you that the expiration date for the following training program has been updated. Please take note of the new deadline.</p>
+
+                                    <div class='highlight-box'>
+                                        <p style='margin: 0; font-size: 12px; font-weight: 600; color: #0066cc; text-transform: uppercase; letter-spacing: 0.5px;'>Training Program</p>
+                                        <p style='margin: 5px 0 0 0; font-size: 18px; font-weight: 600; color: #333;'>" + training.Name + @"</p>
+                                        <p style='margin-top: 10px; margin-bottom: 0; font-size: 13px; color: #666;'>
+                                            <strong>Provider:</strong> " + training.Users?.EmployerDetails?.BusinessName + @"
+                                        </p>
+                                    </div>
+
+                                    <div class='date-box'>
+                                        <div class='date-item'>
+                                            <strong>📅 Previous Expiration:</strong>
+                                            <span class='badge-old'>" + oldExpiration.ToString("MMMM dd, yyyy") + @"</span>
+                                        </div>
+                                        <div class='date-item'>
+                                            <strong>📅 New Expiration:</strong>
+                                            <span class='badge-new'>" + newExpiration.ToString("MMMM dd, yyyy") + @"</span>
+                                        </div>
+                                    </div>
+
+                                    <p class='body-text'>Please ensure you complete all required tasks or submissions before the new expiration date. If you have any concerns, feel free to reach out to us.</p>
+
+                                    <div class='divider'></div>
+                                    <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+                                </div>
+                                <div class='footer'>
+                                    <p>This is an automated message from " + training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>",
+                                SentAt = DateTime.Now,
+                                IsDraft = false,
+                                IsTrashed = false,
+                                IsRead = false,
+                                IsStarred = false
+                            };
+                            _context.Emails.Add(email);
+                            await _context.SaveChangesAsync();
+
+                            var emailRecipient = new EmailRecipient
+                            {
+                                EmailID = email.Id,
+                                RecipientID = applicantId,
+                                RecipientType = RecipientType.TO,
+                                IsRead = false,
+                                IsTrashed = false,
+                                IsStarred = false
+                            };
+                            _context.EmailRecipients.Add(emailRecipient);
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error sending email to applicant {applicantId}: {ex.Message}");
+                        }
+                    }
+
+                }
+                training.Expiration = newExpiration;
+                _context.Training.Update(training);
+                await _context.SaveChangesAsync();
+
+                return Json(new { response = true, message = $"Expiration updated and {applicationIdList.Count} applicants notified!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { response = false, message = ex.Message });
+            }
         }
         public async Task<IActionResult> AddStartDateTraining(DateTime startDate, int TrainingId, string applicationIds = "")
         {
@@ -1956,16 +2221,29 @@ namespace burbodek.Controllers
                            .ThenInclude(u => u.ApplicantJobUpload.Where(u => u.UsersId == ApplicantId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
-
+            var templates = _context.EmailTemplate
+                    .Select(x => new EmailTemplateDTO
+                    {
+                        TypeOfEmail = x.TypeOfEmail,
+                        Subject = x.Subject,
+                        Body = x.Body
+                    })
+                    .ToList();
             if (data == null)
             {
                 return NotFound(); // or redirect to an error page
             }
 
-            return View(data);
+            var applicant = new ApplicantInfoViewModel
+            {
+                Jobs = data,
+                EmailTemplate = templates
+            };
+
+            return View(applicant);
         }
         [HttpPost]
-        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id)
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             // Get the applicant for this job
@@ -1976,18 +2254,21 @@ namespace burbodek.Controllers
                 .FirstOrDefault(u => u.Id == userId);
             var getJob = _context.Jobs
                 .Find(Id);
+
+            var templates = _context.EmailTemplate
+                    .Select(x => new EmailTemplateDTO
+                    {
+                        TypeOfEmail = x.TypeOfEmail,
+                        Subject = x.Subject,
+                        Body = x.Body
+                    })
+                    .ToList();
             if (getStatus == null)
             {
                 TempData["error"] = "Applicant not found.";
                 return RedirectToAction("JobDetails", new { Id });
             }
-            var emailTemplate = _context.EmailTemplate
-                                .Where(u => u.UsersId == userId && u.TypeOfEmail == Status && u.isActive == true)
-                                .FirstOrDefault();
-            var emailContent = emailTemplate.Body
-                                .Replace("{{ApplicantName}}", getStatus.FirstName)
-                                .Replace("{{CompanyName}}", getUser.EmployerDetails.BusinessName)
-                                .Replace("{{JobTitle}}", getStatus.Jobs.JobTitle);
+            var emailContent = EmailBody;
             
             var data = _context.Jobs
                        .Include(u => u.Users)
@@ -2011,7 +2292,7 @@ namespace burbodek.Controllers
                 TempData["success"] = "Applicant status updated successfully.";
                 var sendEmail = new EmailThread
                 {
-                    Subject = emailTemplate.Subject,
+                    Subject = EmailSubject,
                     CreatedBy = userId,
                     IsTrashed = false
                 };
@@ -2020,7 +2301,7 @@ namespace burbodek.Controllers
                 var sendEmailContent = new Email
                 {
                     ThreadID = sendEmail.Id,
-                    Body = emailContent,
+                    Body = EmailBody,
                     SenderID = userId,
                     IsDraft = false,
                     IsTrashed = false,
@@ -2041,7 +2322,13 @@ namespace burbodek.Controllers
                 _context.SaveChanges();
             }
 
-            return View(data);
+
+            var applicant = new ApplicantInfoViewModel
+            {
+                Jobs = data,
+                EmailTemplate = templates
+            };
+            return View(applicant);
         }
 
         public IActionResult JobEdit(int Id)

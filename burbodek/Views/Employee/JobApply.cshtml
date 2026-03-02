@@ -163,7 +163,7 @@
 							<!--begin::Col-->
 							<div class="col-md-6 fv-row fv-plugins-icon-container">
 								<!--end::Label-->
-								<label class="required fs-5 fw-semibold mb-2">City</label>
+								<label class="required fs-5 fw-semibold mb-2">Nationality</label>
 								<!--end::Label-->
 								<!--end::Input-->
 								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City">
@@ -340,7 +340,7 @@
 								<div class="card">
 									<div class="card-body">
 										<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
-										<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
+										<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" required/>
 									</div>
 								</div>
 							</div>
