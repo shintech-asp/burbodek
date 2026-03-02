@@ -88,7 +88,7 @@
 			<div class="flex-lg-row-fluid me-0 me-lg-20">
 				<!--begin::Form-->
 				<form asp-controller="Employee" asp-action="JobApply" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" enctype="multipart/form-data">
-					@if(Model.UserProfile != null)
+					@if (Model.UserProfile != null)
 					{
 						<!--begin::Input group-->
 						<div class="row mb-5">
@@ -174,68 +174,6 @@
 						</div>
 						<!--end::Input group-->
 					}
-					@if(Model.UserInfo != null)
-					{
-						<!--begin::Input group-->
-						<div class="row mb-5">
-							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
-								<!--begin::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
-								<!--end::Label-->
-								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.UserInfo.ExpectedSalary">
-								<!--end::Input-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-							</div>
-							<!--end::Col-->
-							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
-								<!--end::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-								<!--end::Label-->
-								<!--end::Input-->
-								<input type="date" class="form-control" name="StartDate" />
-								<!--end::Input-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-							</div>
-							<!--end::Col-->
-						</div>
-						<!--end::Input group-->
-						<!--begin::Input group-->
-						<div class="d-flex flex-column mb-5">
-							<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
-							<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="">@Model.UserInfo.Experience</textarea>
-						</div>
-						<!--end::Input group-->
-						<!--begin::Input group-->
-						<div class="d-flex flex-column mb-8">
-							<label class="fs-6 fw-semibold mb-2 required">Application</label>
-							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="">@Model.UserInfo.ApplicationLetter</textarea>
-						</div>
-						<!--end::Input group-->
-						<!-- Upload Media -->
-						@if (Model.Jobs.JobUploads != null)
-						{
-							var uploadsList = Model.Jobs.JobUploads.ToList();
-							@for (int i = 0; i < uploadsList.Count; i++)
-							{
-								var data = uploadsList[i];
-
-								<div class="mb-5">
-									<label class="form-label fw-bold required">@data.Name</label>
-
-									<div class="card">
-										<div class="card-body">
-											<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
-											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
-										</div>
-									</div>
-								</div>
-							}
-
-						}
-					}
 					else
 					{
 						<!--begin::Input group-->
@@ -304,6 +242,50 @@
 							<!--end::Col-->
 						</div>
 						<!--end::Input group-->
+					}
+					@if(Model.UserInfo != null)
+					{
+						<!--begin::Input group-->
+						<div class="row mb-5">
+							<!--begin::Col-->
+							<div class="col-md-6 fv-row fv-plugins-icon-container">
+								<!--begin::Label-->
+								<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
+								<!--end::Label-->
+								<!--begin::Input-->
+								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.UserInfo.ExpectedSalary">
+								<!--end::Input-->
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+							</div>
+							<!--end::Col-->
+							<!--begin::Col-->
+							<div class="col-md-6 fv-row fv-plugins-icon-container">
+								<!--end::Label-->
+								<label class="required fs-5 fw-semibold mb-2">Start Date</label>
+								<!--end::Label-->
+								<!--end::Input-->
+								<input type="date" class="form-control" name="StartDate" />
+								<!--end::Input-->
+								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+							</div>
+							<!--end::Col-->
+						</div>
+						<!--end::Input group-->
+						<!--begin::Input group-->
+						<div class="d-flex flex-column mb-5">
+							<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
+							<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="">@Model.UserInfo.Experience</textarea>
+						</div>
+						<!--end::Input group-->
+						<!--begin::Input group-->
+						<div class="d-flex flex-column mb-8">
+							<label class="fs-6 fw-semibold mb-2 required">Application</label>
+							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="">@Model.UserInfo.ApplicationLetter</textarea>
+						</div>
+						<!--end::Input group-->
+					}
+					else
+					{
 						<!--begin::Input group-->
 						<div class="row mb-5">
 							<!--begin::Col-->
@@ -342,85 +324,28 @@
 							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder=""></textarea>
 						</div>
 						<!--end::Input group-->
-						<!-- Upload Media -->
-						@if (Model.Jobs.Coe)
+					}
+
+					<!-- Upload Media -->
+					@if (Model.Jobs.JobUploads != null)
+					{
+						var uploadsList = Model.Jobs.JobUploads.ToList();
+						@for (int i = 0; i < uploadsList.Count; i++)
 						{
+							var data = uploadsList[i];
+
 							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Certificate of Employment</label>
-								</div>
+								<label class="form-label fw-bold required">@data.Name</label>
+
 								<div class="card">
 									<div class="card-body">
-										<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf"/>
+										<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
+										<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
 									</div>
 								</div>
 							</div>
 						}
-						@if (Model.Jobs.Tor)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Transcript of Records</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Diploma)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Diploma</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.PassportId)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Passport Id</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Resume)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Resume</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.SeamansBook)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Seaman's Book</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" />
-									</div>
-								</div>
-							</div>
-						}
+
 					}
 					<!--begin::Separator-->
 					<div class="separator mb-8"></div>

@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Terms and Conditions";
+}
+@model Terms;
+
+<div class="card mb-12">
+    <!--begin::Hero body-->
+    <div class="card-body flex-column p-5">
+        <!--begin::Hero nav-->
+        <div class="card-rounded bg-light d-flex flex-stack flex-wrap p-5">
+            <!--begin::Nav-->
+            <ul class="nav flex-wrap border-transparent fw-bold">
+                <!--begin::Nav item-->
+                <li class="nav-item my-1">
+                    <a class="btn btn-color-gray-600 btn-active-secondary btn-active-color-primary fw-bolder fs-8 fs-lg-base nav-link px-3 px-lg-8 mx-1 text-uppercase
+                        " asp-controller="Home" asp-action="Reports">
+                        tickets
+                    </a>
+                </li>
+                <!--end::Nav item-->
+                <!--begin::Nav item-->
+                <li class="nav-item my-1">
+                    <a class="btn btn-color-gray-600 btn-active-secondary btn-active-color-primary fw-bolder fs-8 fs-lg-base nav-link px-3 px-lg-8 mx-1 text-uppercase
+                        " asp-controller="Home" asp-action="Faq">
+                        FAQ
+                    </a>
+                </li>
+                <!--begin::Nav item-->
+                <li class="nav-item my-1">
+                    <a class="btn btn-color-gray-600 btn-active-secondary btn-active-color-primary fw-bolder fs-8 fs-lg-base nav-link px-3 px-lg-8 mx-1 text-uppercase
+                        " asp-controller="Home" asp-action="Subscription">
+                        Subscription
+                    </a>
+                </li>
+                <!--begin::Nav item-->
+                <li class="nav-item my-1">
+                    <a class="btn btn-color-gray-600 btn-active-secondary btn-active-color-primary fw-bolder fs-8 fs-lg-base nav-link px-3 px-lg-8 mx-1 text-uppercase
+                        active" asp-controller="Home" asp-action="Terms">
+                        Terms And Condition
+                    </a>
+                </li>
+            </ul>
+            <!--end::Nav-->
+        </div>
+        <!--end::Hero nav-->
+    </div>
+    <!--end::Hero body-->
+</div>
+<!--end::Hero card-->
+<!--begin::FAQ card-->
+<div class="card">
+    <!--begin::Body-->
+    <div class="card-body p-10 p-lg-15">
+        <!--begin::Classic content-->
+        <div class="mb-13">
+            <!--begin::Intro-->
+            <div class="mb-15">
+                <!--begin::Title-->
+                <h4 class="fs-2x text-gray-800 w-bolder mb-6">
+                    Terms and Condition Configuration
+                </h4>
+                <!--end::Title-->
+                <!--begin::Text-->
+                <div class="fs-6 fw-semibold text-gray-600 mb-5">
+                    <p>
+                        Manage your terms and conditions here.
+                    </p>
+                </div>
+                <form method="post" asp-controller="Home" asp-action="Terms">
+                    <div class="row mb-5">
+                        <label class="form-label">
+                            Terms and Condition
+                        </label>
+                        <textarea class="form-control form-control-solid" name="Description" rows="10" placeholder="@Model?.Description"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Changes</button>
+                </form>
+            </div>
+            <!--end::Intro-->
+        </div>
+        <!--end::Classic content-->
+    </div>
+    <!--end::Body-->
+</div>
+<!--end::FAQ card-->

@@ -2375,39 +2375,37 @@ namespace burbodek.Controllers
 
             return View(data);
         }
-        public IActionResult ChangeProfileDetails(string Firstname, string Middlename, string Lastname, string Nationality, DateOnly Birthday, string MobileNumber)
+        public IActionResult ChangeProfileDetails(string Firstname, string Lastname, string Nationality, string Birthday, string MobileNumber)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var user = _context.EmployeeDetails
+            var user = _context.UserProfile
                         .FirstOrDefault(u => u.UsersId == userId);
-
+            DateOnly parsedBirthday = DateOnly.Parse(Birthday);
             if (user == null)
             {
-                var users = new EmployeeDetails
+                var users = new UserProfile
                 {
-                    Firstname = Firstname,
-                    Middlename = Middlename,
-                    Lastname = Lastname,
-                    Nationality = Nationality,
-                    Birthday = Birthday,
-                    MobileNumber = MobileNumber,
+                    FirstName = Firstname,
+                    LastName = Lastname,
+                    City = Nationality,
+                    Birthdate = parsedBirthday,
+                    MobileNo = MobileNumber,
                     UsersId = userId
                 };
 
 
-                _context.EmployeeDetails.Add(users);
+                _context.UserProfile.Add(users);
                 _context.SaveChanges();
             }
             else
             {
-                user.Firstname = Firstname;
-                user.Middlename = Middlename;
-                user.Lastname = Lastname;
-                user.Nationality = Nationality;
-                user.Birthday = Birthday;
-                user.MobileNumber = MobileNumber;
+                user.FirstName = Firstname;
+                user.LastName = Lastname;
+                user.City = Nationality;
+                user.Birthdate = parsedBirthday;
+                user.MobileNo = MobileNumber;
 
-                _context.EmployeeDetails.Update(user);
+                _context.UserProfile.Update(user);
                 _context.SaveChanges();
 
             }

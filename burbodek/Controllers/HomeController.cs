@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace burbodek.Controllers
@@ -36,9 +37,42 @@ namespace burbodek.Controllers
         {
             return View();
         }
+        public IActionResult Terms()
+        {
+            var terms =_context.Terms.Where(t => t.Id == 1).FirstOrDefault();
+            return View(terms);
+        }
+        [HttpPost]
+        public IActionResult Terms(string Description)
+        {
+            var data = _context.Terms.Where(t => t.Id == 1).FirstOrDefault();
+            if (Description != null)
+            {
+                if(data != null)
+                {
+                    data.Description = Description;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Terms added successfully!";
+                    return View();
+                }
+                else
+                {
+                    var terms = new Terms
+                    {
+                        Description = Description
+                    };
+                    _context.Terms.Add(terms);
+                    _context.SaveChanges();
+                    TempData["Success"] = "Terms added successfully!";
+                    return View();
+                }
+            }
+            return View();
+        }
         public IActionResult Users()
         {
-            return View();
+            var data = _context.Users.Include(u => u.UserProfile).Where(u => u.Role == "Client").ToList();
+            return View(data);
         }
         public IActionResult Faq()
         {

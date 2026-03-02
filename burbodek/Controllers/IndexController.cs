@@ -189,7 +189,12 @@ namespace burbodek.Controllers
         }
         public IActionResult SignUpClient() 
         {
-            return View();
+            var terms = _context.Terms.FirstOrDefault();
+            var signup = new SignUpClientViewModel
+            {
+                Terms = terms
+            };
+            return View(signup);
         }
         [HttpPost]
         public IActionResult SignUpClient(SignUpClientViewModel user)
@@ -197,6 +202,7 @@ namespace burbodek.Controllers
             // Remove Role from validation if it's not set by the form
             ModelState.Remove("Users.Role");
             ModelState.Remove("UserProfile.Users");
+            ModelState.Remove("Terms");
 
             // ✅ Basic null/empty checks
             if (string.IsNullOrWhiteSpace(user.Users.Username) ||
@@ -247,9 +253,10 @@ namespace burbodek.Controllers
                     _context.UserProfile.Add(user.UserProfile);
                     _context.SaveChanges();
                 }
+                TempData["Success"] = "User successfully created!";
                     return RedirectToAction("SignIn", "Index");
             }
-
+            ModelState.AddModelError("", "All fields are required.");
             return View(user);
         }
 

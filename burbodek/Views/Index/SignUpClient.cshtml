@@ -154,10 +154,48 @@
 									<input class="form-check-input" type="checkbox" name="toc" value="1" required>
 									<span class="form-check-label fw-semibold text-gray-700 fs-base ms-1">
 										I Accept the
-										<a href="#" class="ms-1 link-primary">Terms</a>
+										<a href="#" class="ms-1 link-primary"
+										   data-bs-toggle="modal"
+										   data-bs-target="#termsModal">
+											Terms
+										</a>
 									</span>
 								</label>
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+							</div>
+							<div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered modal-lg">
+									<div class="modal-content">
+
+										<div class="modal-header">
+											<h5 class="modal-title">Terms & Conditions</h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+										</div>
+
+										<div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+											<p>
+												Welcome to our Job & Training Application Platform.
+											</p>
+
+											<p>
+												By using this platform, you agree that:
+											</p>
+
+											<p>@Model.Terms.Description</p>
+
+											<p>
+												Violations may result in content removal or account suspension.
+											</p>
+										</div>
+
+										<div class="modal-footer">
+											<button type="button" class="btn btn-light" data-bs-dismiss="modal">
+												Close
+											</button>
+										</div>
+
+									</div>
+								</div>
 							</div>
 							<!--end::Accept-->
 							<!--begin::Submit button-->
