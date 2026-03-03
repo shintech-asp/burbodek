@@ -781,6 +781,74 @@ namespace burbodek.Controllers
 
             return File(doc.File, doc.ContentType, doc.FileName);
         }
+        public IActionResult Appeal()
+        {
+            var data = _context.PostReport
+                    .Include(u => u.Users)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.Users)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobBenefits)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRequirements)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobMedia)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRequiredBadge)
+                    .Include(u => u.Jobs)
+                        .ThenInclude(u => u.JobRole)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.Users)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingRequirements)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingBadge)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingBenefits)
+                    .Include(u => u.Training)
+                        .ThenInclude(u => u.TrainingMedia)
+                    .Where(u => (u.isDeleted == true) && (u.JobsId != null || u.TrainingId != null) && (u.Jobs.isFinal == null && u.Training.isFinal == null)).OrderByDescending(u => u.DateReported).Distinct().ToList();
+            return View(data);
+        }
+        [HttpPost]
+        public async Task<IActionResult> RemoveFinal(int id)
+        {
+            try
+            {
+                var report = await _context.PostReport
+                    .Include(r => r.Jobs)
+                        .ThenInclude(j => j.JobMedia)
+                    .Include(r => r.Training)
+                        .ThenInclude(t => t.TrainingMedia)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId && r.JobsId != null).ToListAsync();
+                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId && r.TrainingId != null).ToListAsync();
+                if (report == null)
+                    return Json(new { success = false, message = "Report not found." });
+                if (isJobs.Count > 0)
+                {
+                    foreach (var job in isJobs)
+                    {
+                        var jobUpdated = _context.Jobs.Where(u => u.Id == report.JobsId).FirstOrDefault();
+                        jobUpdated.isFinal = true;
+                    }
+                }
+                if (isTraining.Count > 0)
+                {
+                    foreach (var train in isTraining)
+                    {
+                        var trainUpdated = _context.Training.Where(u => u.Id == report.TrainingId).FirstOrDefault();
+                        trainUpdated.isFinal = true;
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> Remove(int id)
         {
@@ -838,14 +906,18 @@ namespace burbodek.Controllers
                 {
                     foreach (var job in isJobs)
                     {
+                        var jobUpdated = _context.Jobs.Where(u => u.Id == report.JobsId).FirstOrDefault();
                         job.isRetained = true;
+                        jobUpdated.isDeleted = null;
                     }
                 }
                 if (isTraining.Count > 0)
                 {
                     foreach (var train in isTraining)
                     {
+                        var trainUpdated = _context.Training.Where(u => u.Id == report.TrainingId).FirstOrDefault();
                         train.isRetained = true;
+                        trainUpdated.isDeleted = null;
                     }
                 }
 

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Reports"; 
+    ViewData["Title"] = "Reports";
 }
 @model List<PostReport>
 <div class="card mb-12 mt-5">
@@ -84,7 +84,7 @@
                                 var benefits = isJob ? data.Jobs?.JobBenefits?.Select(b => b.Benefit) : (isTraining ? data.Training?.TrainingBenefits?.Select(b => b.Benefit) : null);
 
                                 <!--begin::Report Item-->
-                                <div class="d-flex align-items-start gap-4 p-4 mb-4 bg-light-danger rounded border border-danger border-opacity-25 hover-elevate-up">
+                                <div class="d-flex align-items-start gap-4 p-4 mb-4 @(data.Jobs?.Appeal != null ? "bg-light-warning" : data.Training?.Appeal != null ? "bg-light-warning" : "bg-light-danger") rounded border border-danger border-opacity-25 hover-elevate-up">
                                     <!--begin::Icon-->
                                     <div class="symbol symbol-50px">
                                         <div class="symbol-label bg-danger bg-opacity-10">
@@ -125,8 +125,8 @@
                                     <a href="#"
                                        data-bs-toggle="modal"
                                        data-bs-target="#detailsModal_@data.Id"
-                                       class="btn btn-sm btn-light-danger btn-active-danger flex-shrink-0">
-                                        View Details
+                                       class="btn btn-sm @(data.Jobs?.Appeal != null ? "btn-light-warning btn-active-warning" : data.Training?.Appeal != null ? "btn-light-warning btn-active-warning" : "btn-light-danger btn-active-danger") flex-shrink-0">
+                                        @(data.Jobs?.Appeal != null ? "View appeal" : data.Training?.Appeal != null ? "View appeal" : "View Details")
                                     </a>
                                     <!--end::Action-->
                                 </div>
@@ -200,10 +200,10 @@
                                                     <div class="col-lg-6 p-7 overflow-auto" style="max-height:480px">
 
                                                         <!--begin::Report Info Card-->
-                                                        <div class="notice d-flex bg-light-danger rounded border border-danger border-dashed mb-6 p-4">
+                                                        <div class="notice d-flex @(data.Jobs?.Appeal != null ? "bg-light-warning" : data.Training?.Appeal != null ? "bg-light-warning" : "bg-light-danger") rounded border border-danger border-dashed mb-6 p-4">
                                                             <i class="ki-duotone ki-flag fs-2x text-danger me-3 mt-1"><span class="path1"></span><span class="path2"></span></i>
                                                             <div class="d-flex flex-stack w-100">
-                                                                <div>
+                                                                <div class="w-100">
                                                                     <div class="fw-bold text-danger fs-6">Report Details</div>
                                                                     @if (!string.IsNullOrEmpty(data.Reason))
                                                                     {
@@ -214,6 +214,14 @@
                                                                         <div class="text-gray-700 fs-7"><strong>Description:</strong> @data.Description</div>
                                                                     }
                                                                     <div class="text-gray-700 fs-7"><strong>Reported by:</strong> @(data.Users?.Username ?? "Unknown")</div>
+                                                                    <br />
+                                                                    <strong class="text-gray-700 fs-7">Appeal Description:</strong>
+                                                                    <div class="text-gray-700 fs-7"
+                                                                         style="word-break: break-word;
+                                                                            white-space: pre-wrap;
+                                                                            overflow-wrap: break-word;">
+                                                                        @(data.Jobs?.Appeal != null ? data.Jobs?.Appeal : data.Training?.Appeal != null ? data.Training?.Appeal : "No appeal yet.")
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -323,7 +331,7 @@
                                                         <i class="ki-duotone ki-trash fs-3 me-1">
                                                             <span class="path1"></span><span class="path2"></span>
                                                         </i>
-                                                        Remove Content
+                                                        Delete permanently
                                                     </button>
                                                     <!--end::Remove Button-->
                                                 </div>
@@ -340,55 +348,16 @@
                         {
                             <div class="d-flex flex-column align-items-center justify-content-center py-10 text-muted">
                                 <i class="ki-duotone ki-shield-tick fs-3x mb-3 text-success"><span class="path1"></span><span class="path2"></span></i>
-                                <span class="fs-5 fw-semibold">No reports found</span>
+                                <span class="fs-5 fw-semibold">No pending for appeal found</span>
                                 <span class="fs-7 mt-1">Everything looks clean!</span>
                             </div>
                         }
                     </div>
                 </div>
-               
+
 
             </div>
             <!--end::Content-->
-            <!--begin::Sidebar-->
-            <div class="flex-column flex-lg-row-auto w-100 mw-lg-300px mw-xxl-350px">
-
-
-
-
-                <!--begin::More channels-->
-                <div class="card-rounded bg-primary bg-opacity-5 p-10 mb-15">
-                    <!--begin::Title-->
-                    <h2 class="text-gray-900 fw-bold mb-11">More Info</h2>
-                    <!--end::Title-->
-                    <!--begin::Item-->
-                    <div class="d-flex align-items-center mb-10">
-                        <!--begin::Icon-->
-                        <i class="ki-duotone ki-calendar fs-1 text-primary me-5"><span class="path1"></span><span class="path2"></span></i>
-                        <!--end::Icon-->
-                        <!--begin::Info-->
-                        <div class="d-flex flex-column">
-                            <h5 class="text-gray-800 fw-bold">Report appeal</h5>
-
-                            <!--begin::Section-->
-                            <div class="fw-semibold">
-                                <!--begin::Desc-->
-                                <span class="text-muted">Go to</span>
-                                <!--end::Desc-->
-                                <!--begin::Link-->
-                                <a asp-controller="Home" asp-action="Appeal" class="link-primary">Appeals</a>
-                                <!--end::Link-->
-                            </div>
-                            <!--end::Section-->
-                        </div>
-                        <!--end::Info-->
-                    </div>
-                    <!--end::Item-->
-
-                </div>
-                <!--end::More channels-->
-            </div>
-            <!--end::Sidebar-->
         </div>
         <!--end::Layout-->
     </div>
@@ -424,7 +393,7 @@
                         didOpen: () => Swal.showLoading(),
                     });
 
-                    fetch(`/Home/${isRemove ? "Remove" : "Retain"}/${reportId}`, {
+                    fetch(`/Home/${isRemove ? "RemoveFinal" : "Retain"}/${reportId}`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"

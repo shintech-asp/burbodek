@@ -33,5 +33,6 @@
         public DateTime? EndDate { get; set; }
         public bool? isDeleted { get; set; }
         public string? Appeal { get; set; }
+        public bool? isFinal { get; set; }
     }
 }

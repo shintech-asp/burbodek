@@ -21,7 +21,7 @@
 			}
 		</style>
 
-		@if (Model.isDeleted == true)
+		@if (Model.isDeleted == true && (Model.isFinal == null || Model.isFinal == false))
 		{
 			<div class="alert alert-danger">
 				<p><span class="fw-bold">Note: </span> This job is deleted</p>
@@ -40,6 +40,12 @@
 					</button>
 					
 				}
+			</div>
+		}
+		@if(Model.isFinal == true)
+		{
+			<div class="alert alert-danger">
+				<p><span class="fw-bold">Note: </span> This job is permanently deleted by the admin</p>
 			</div>
 		}
 		<div class="position-relative mb-17">

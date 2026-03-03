@@ -153,7 +153,7 @@ namespace burbodek.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        public IActionResult Index(string keyword, string location, int page = 1)
+        public IActionResult Index(string keyword, string location, decimal? salaryMin, decimal? salaryMax, int page = 1)
         {
             int pageSize = 10;
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -176,6 +176,17 @@ namespace burbodek.Controllers
             if (!string.IsNullOrEmpty(location))
             {
                 jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
+            }
+
+            // ✅ Salary Range Filter
+            if (salaryMin.HasValue)
+            {
+                jobQuery = jobQuery.Where(j => j.SalaryMax >= salaryMin.Value);
+            }
+
+            if (salaryMax.HasValue)
+            {
+                jobQuery = jobQuery.Where(j => j.SalaryMin <= salaryMax.Value);
             }
 
             int totalJobs = jobQuery.Count();
@@ -243,7 +254,9 @@ namespace burbodek.Controllers
                 CurrentPage = page,
                 TotalPages = (int)Math.Ceiling(totalJobs / (double)pageSize),
                 Keyword = keyword,
-                Location = location
+                Location = location,
+                SalaryMin = salaryMin,
+                SalaryMax = salaryMax
             };
 
             return View(viewModel);

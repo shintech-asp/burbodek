@@ -29,169 +29,338 @@
             font-size: 0.8rem;
         }
 
+    .filter-card {
+        position: sticky;
+        top: 20px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+        .filter-card .card-header {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 14px 20px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+    .job-card {
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+        .job-card:hover {
+            box-shadow: 0 6px 20px rgba(13,110,253,0.1);
+            transform: translateY(-2px);
+        }
+
+    .salary-badge {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .training-badge-price {
+        background: #fff3e0;
+        color: #e65100;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .search-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        padding: 40px 0 30px;
+    }
+
+        .search-header h1 {
+            color: white;
+        }
 </style>
+
 <div class="d-flex flex-column flex-root">
     <div class="page d-flex flex-row flex-column-fluid">
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
 
             <!-- Header -->
-            <div id="kt_header" class="header align-items-stretch">
-                <div class="container-fluid d-flex flex-column align-items-center py-5">
-                    <h1 class="text-dark fw-bold mb-4">Cruise Ship Jobs</h1>
-                    <form asp-action="Index" method="get" class="d-flex w-75">
-                        <input type="text" name="keyword" value="@Model.Keyword" class="form-control form-control-lg me-2" placeholder="Job title, keyword..." />
-                        <input type="text" name="location" value="@Model.Location" class="form-control form-control-lg me-2" placeholder="Location" />
-                        <select class="form-select" name="filter">
-                            <option value="All">All</option>
-                            <option value="Jobs">Jobs</option>
-                            <option value="Trainings">Trainings</option>
-                        </select>
-                        <button type="submit" class="btn btn-lg btn-primary">Search</button>
+            <div class="search-header">
+                <div class="container">
+                    <h1 class="fw-bold mb-4 text-center">Cruise Ship Jobs</h1>
+                    <form asp-action="Index" method="get">
+                        <div class="d-flex gap-2 flex-wrap justify-content-center">
+                            <input type="text" name="keyword" value="@Model.Keyword"
+                                   class="form-control form-control-lg"
+                                   style="max-width:300px"
+                                   placeholder="Job title, keyword..." />
+                            <input type="text" name="location" value="@Model.Location"
+                                   class="form-control form-control-lg"
+                                   style="max-width:220px"
+                                   placeholder="Location" />
+                            <select class="form-select form-select-lg" name="filter" style="max-width:160px">
+                                <option value="All">All</option>
+                                <option value="Jobs">Jobs</option>
+                                <option value="Trainings">Trainings</option>
+                            </select>
+                            <button type="submit" class="btn btn-lg btn-light fw-bold px-5">
+                                <i class="ki-duotone ki-magnifier me-1"><span class="path1"></span><span class="path2"></span></i>
+                                Search
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Job Results -->
-            <div class="content d-flex flex-column flex-column-fluid py-5">
+            <!-- Content -->
+            <div class="content d-flex flex-column flex-column-fluid py-6">
                 <div class="container">
-                    <h4 class="mb-5">Search Results</h4>
+                    <div class="row g-5">
 
-                    @if ((Model.Jobs != null && Model.Jobs.Count > 0) || (Model.Trainings != null && Model.Trainings.Count > 0))
-                    {
-                        @foreach (var data in Model.Jobs)
-                        {
-                            <div class="card mb-5 shadow-sm">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title fw-bold text-primary">@data.JobTitle</h5>
-                                    <p class="text-muted">@data.EmployerAddress</p>
-                                    <p>@data.JobDescription</p>
-                                    <div>
-                                        <div class="mb-5">
-                                            <small class="text-muted fw-bold d-block mb-1">Required Badges</small>
+                        <!-- LEFT: Results -->
+                        <div class="col-lg-8">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold mb-0">
+                                    Search Results
+                                    <span class="text-muted fs-6 fw-normal ms-2">
+                                        (@((Model.Jobs?.Count ?? 0) + (Model.Trainings?.Count ?? 0)) found)
+                                    </span>
+                                </h5>
+                            </div>
 
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @foreach (var badge in data.JobRequiredBadge)
+                            @if ((Model.Jobs != null && Model.Jobs.Count > 0) || (Model.Trainings != null && Model.Trainings.Count > 0))
+                            {
+                                <!-- Jobs -->
+                                @foreach (var data in Model.Jobs)
+                                {
+                                    <div class="card job-card mb-4 shadow-sm">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h5 class="fw-bold text-primary mb-1">@data.JobTitle</h5>
+                                                    <p class="text-muted mb-0" style="font-size:13px;">
+                                                        <i class="ki-duotone ki-geolocation me-1"><span class="path1"></span><span class="path2"></span></i>
+                                                        @data.EmployerAddress
+                                                    </p>
+                                                </div>
+                                                <span class="badge bg-light-primary text-primary">Job</span>
+                                            </div>
+
+                                            <p class="text-gray-600 mt-3 mb-3" style="font-size:14px; line-height:1.6;">
+                                                @(data.JobDescription?.Length > 150 ? data.JobDescription.Substring(0, 150) + "..." : data.JobDescription)
+                                            </p>
+
+                                            @if (data.JobRequiredBadge?.Any() == true)
+                                            {
+                                                <div class="mb-3">
+                                                    <small class="text-muted fw-bold d-block mb-1">Required Badges</small>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        @foreach (var badge in data.JobRequiredBadge)
+                                                        {
+                                                            <span class="required-badge">
+                                                                <i class="ki-duotone ki-shield-check me-1">
+                                                                    <span class="path1"></span><span class="path2"></span>
+                                                                </i>
+                                                                @badge.Badge
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                                <span class="salary-badge">
+                                                    ₱@data.SalaryMin.ToString("N0") – ₱@data.SalaryMax.ToString("N0") / month
+                                                </span>
+                                                @if (data.AlreadyApplied)
                                                 {
-                                                    <span class="badge required-badge">
-                                                        <i class="ki-duotone ki-shield-check me-1">
-                                                            <span class="path1"></span>
-                                                            <span class="path2"></span>
-                                                        </i>
-                                                        @badge.Badge
-                                                    </span>
+                                                    <button class="btn btn-sm btn-light-success" disabled>
+                                                        Applied
+                                                        <i class="ki-duotone ki-double-check"><span class="path1"></span><span class="path2"></span></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <a class="btn btn-sm btn-primary" asp-controller="Employee" asp-action="JobInfo" asp-route-Id="@data.Id">
+                                                        Apply Now
+                                                    </a>
                                                 }
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between mt-3">
-                                        <span class="fw-bold">₱@data.SalaryMin.ToString("N0") - ₱@data.SalaryMax.ToString("N0") / month</span>
-                                        @if (data.AlreadyApplied)
-                                        {
-                                            <button class="btn btn-sm btn-light-success" disabled>
-                                                Applied <i class="ki-duotone ki-double-check">
-                                                    <span class="path1"></span>
-                                                    <span class="path2"></span>
-                                                </i>
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="JobInfo" asp-route-Id="@data.Id">Apply Now</a>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @foreach (var data in Model.Trainings)
-                        {
-                            <div class="card mb-5 shadow-sm">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title fw-bold text-primary">@data.Name</h5>
-                                    <p class="text-muted">@data.EmployerAddress</p>
-                                    <p>@data.TrainingDescription</p>
-                                    @if(data.TrainingBadge != null)
-                                    {
-                                        <div class="mb-5">
-                                            <small class="text-muted fw-bold d-block mb-1">Badge Awarded:</small>
+                                }
 
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <span class="badge required-badge">
-                                                    <i class="ki-duotone ki-shield-check me-1">
-                                                        <span class="path1"></span>
-                                                        <span class="path2"></span>
-                                                    </i>
-                                                    @data.TrainingBadge
+                                <!-- Trainings -->
+                                @foreach (var data in Model.Trainings)
+                                {
+                                    <div class="card job-card mb-4 shadow-sm">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h5 class="fw-bold text-primary mb-1">@data.Name</h5>
+                                                    <p class="text-muted mb-0" style="font-size:13px;">
+                                                        <i class="ki-duotone ki-geolocation me-1"><span class="path1"></span><span class="path2"></span></i>
+                                                        @data.EmployerAddress
+                                                    </p>
+                                                </div>
+                                                <span class="badge bg-light-warning text-warning">Training</span>
+                                            </div>
+
+                                            <p class="text-gray-600 mt-3 mb-3" style="font-size:14px; line-height:1.6;">
+                                                @(data.TrainingDescription?.Length > 150 ? data.TrainingDescription.Substring(0, 150) + "..." : data.TrainingDescription)
+                                            </p>
+
+                                            @if (data.TrainingBadge != null)
+                                            {
+                                                <div class="mb-3">
+                                                    <small class="text-muted fw-bold d-block mb-1">Badge Awarded</small>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="required-badge">
+                                                            <i class="ki-duotone ki-shield-check me-1">
+                                                                <span class="path1"></span><span class="path2"></span>
+                                                            </i>
+                                                            @data.TrainingBadge
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                                <span class="training-badge-price">
+                                                    ₱@data.Price.ToString("N0") one-time
                                                 </span>
+                                                @if (data.AlreadyApplied)
+                                                {
+                                                    <button class="btn btn-sm btn-light-success" disabled>
+                                                        Applied
+                                                        <i class="ki-duotone ki-double-check"><span class="path1"></span><span class="path2"></span></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <a class="btn btn-sm btn-primary" asp-controller="Employee" asp-action="TrainingInfo" asp-route-Id="@data.Id">
+                                                        Apply Now
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-10">
+                                    <i class="ki-duotone ki-search-list fs-5x text-muted mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                    <p class="fw-bold text-muted fs-5">No job or training posted yet.</p>
+                                </div>
+                            }
+
+                            <!-- Pagination -->
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (Model.CurrentPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@(Model.CurrentPage - 1)"
+                                               asp-route-keyword="@Model.Keyword"
+                                               asp-route-location="@Model.Location"
+                                               asp-route-salaryMin="@Model.SalaryMin"
+                                               asp-route-salaryMax="@Model.SalaryMax">Previous</a>
+                                        </li>
+                                    }
+                                    @for (int i = 1; i <= Model.TotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@i"
+                                               asp-route-keyword="@Model.Keyword"
+                                               asp-route-location="@Model.Location"
+                                               asp-route-salaryMin="@Model.SalaryMin"
+                                               asp-route-salaryMax="@Model.SalaryMax">@i</a>
+                                        </li>
+                                    }
+                                    @if (Model.CurrentPage < Model.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@(Model.CurrentPage + 1)"
+                                               asp-route-keyword="@Model.Keyword"
+                                               asp-route-location="@Model.Location"
+                                               asp-route-salaryMin="@Model.SalaryMin"
+                                               asp-route-salaryMax="@Model.SalaryMax">Next</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        </div>
+
+                        <!-- RIGHT: Filters -->
+                        <div class="col-lg-4">
+                            <div class="card filter-card">
+                                <div class="card-header">
+                                    <i class="ki-duotone ki-filter me-2"><span class="path1"></span><span class="path2"></span></i>
+                                    Filter Results
+                                </div>
+                                <div class="card-body p-4">
+                                    <form asp-action="Index" method="get">
+                                        <!-- Preserve keyword & location -->
+                                        <input type="hidden" name="keyword" value="@Model.Keyword" />
+                                        <input type="hidden" name="location" value="@Model.Location" />
+
+                                        <!-- Salary Range -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold text-gray-700">
+                                                <i class="ki-duotone ki-dollar me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                                Salary Range (₱)
+                                            </label>
+                                            <div class="mb-2">
+                                                <label class="text-muted" style="font-size:12px;">Minimum</label>
+                                                <input type="number"
+                                                       name="salaryMin"
+                                                       class="form-control"
+                                                       placeholder="e.g. 10,000"
+                                                       min="0"
+                                                       value="@Model.SalaryMin" />
+                                            </div>
+                                            <div>
+                                                <label class="text-muted" style="font-size:12px;">Maximum</label>
+                                                <input type="number"
+                                                       name="salaryMax"
+                                                       class="form-control"
+                                                       placeholder="e.g. 50,000"
+                                                       min="0"
+                                                       value="@Model.SalaryMax" />
                                             </div>
                                         </div>
 
-                                    }
-                                    <div class="d-flex justify-content-between mt-3">
-                                        <span class="fw-bold">₱@data.Price.ToString("N0") / pesos only</span>
-                                        @if (data.AlreadyApplied)
-                                        {
-                                            <button class="btn btn-sm btn-light-success" disabled>
-                                                Applied <i class="ki-duotone ki-double-check">
-                                                    <span class="path1"></span>
-                                                    <span class="path2"></span>
-                                                </i>
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary fw-bold">
+                                                <i class="ki-duotone ki-filter me-1"><span class="path1"></span><span class="path2"></span></i>
+                                                Apply Filter
                                             </button>
-                                        }
-                                        else
-                                        {
-                                            <a class="btn btn-sm btn-light-primary" asp-controller="Employee" asp-action="TrainingInfo" asp-route-Id="@data.Id">Apply Now</a>
-                                        }
-                                    </div>
+                                            <a asp-action="Index" class="btn btn-light fw-bold">
+                                                Clear Filters
+                                            </a>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="text-center fst-italic fw-bold">
-                            <p>No job/training posted yet</p>
                         </div>
-                    }
 
-                    <!-- Pagination -->
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            @if (Model.CurrentPage > 1)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       asp-action="Index"
-                                       asp-route-page="@(Model.CurrentPage - 1)"
-                                       asp-route-keyword="@Model.Keyword"
-                                       asp-route-location="@Model.Location">Previous</a>
-                                </li>
-                            }
-
-                            @for (int i = 1; i <= Model.TotalPages; i++)
-                            {
-                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                    <a class="page-link"
-                                       asp-action="Index"
-                                       asp-route-page="@i"
-                                       asp-route-keyword="@Model.Keyword"
-                                       asp-route-location="@Model.Location">@i</a>
-                                </li>
-                            }
-
-                            @if (Model.CurrentPage < Model.TotalPages)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       asp-action="Index"
-                                       asp-route-page="@(Model.CurrentPage + 1)"
-                                       asp-route-keyword="@Model.Keyword"
-                                       asp-route-location="@Model.Location">Next</a>
-                                </li>
-                            }
-                        </ul>
-                    </nav>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

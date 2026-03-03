@@ -38,6 +38,8 @@
         // For search persistence
         public string Keyword { get; set; }
         public string Location { get; set; }
+        public decimal? SalaryMin { get; set; }
+        public decimal? SalaryMax { get; set; }
     }
 
 
