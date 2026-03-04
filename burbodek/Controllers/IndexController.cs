@@ -42,7 +42,7 @@ namespace burbodek.Controllers
                 .Include(j => j.Users)
                     .ThenInclude(u => u.EmployerDetails)
                 .Include(j => j.JobApplication)
-                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null);
+                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted != null);
 
             if (!string.IsNullOrEmpty(keyword))
             {
