@@ -946,8 +946,8 @@ namespace burbodek.Controllers
                     .Include(r => r.Training)
                         .ThenInclude(t => t.TrainingMedia)
                     .FirstOrDefaultAsync(r => r.Id == id);
-                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId).ToListAsync();
-                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId).ToListAsync();
+                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId && r.JobsId != null).ToListAsync();
+                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId && r.TrainingId != null).ToListAsync();
                 if (report == null)
                     return Json(new { success = false, message = "Report not found." });
                 if (isJobs.Count > 0)
