@@ -27,10 +27,96 @@ namespace burbodek.Controllers
             _email = email;
             _env = env;
         }
-
         public IActionResult Index()
         {
-            return View();
+            var today = DateTime.Today;
+            var weekAgo = today.AddDays(-6);
+
+            // Daily revenue — sum Plans.Price per day
+            var dailyRevenue = _context.Subscription
+                .Include(s => s.Plans)
+                .Where(s => s.CreatedAt.Date >= weekAgo)
+                .AsEnumerable() // switch to client evaluation for nullable double->decimal
+                .GroupBy(s => s.CreatedAt.Date)
+                .Select(g => new DailyRevenueItem
+                {
+                    Date = g.Key,
+                    Total = g.Sum(s => (decimal)(s.Plans?.Price ?? 0))
+                })
+                .OrderBy(d => d.Date)
+                .ToList();
+
+            // Fill in missing days with 0
+            for (int i = 0; i <= 6; i++)
+            {
+                var day = weekAgo.AddDays(i);
+                if (!dailyRevenue.Any(d => d.Date == day))
+                    dailyRevenue.Add(new DailyRevenueItem { Date = day, Total = 0 });
+            }
+            dailyRevenue = dailyRevenue.OrderBy(d => d.Date).ToList();
+
+            var vm = new AdminDashboardViewModel
+            {
+                // Revenue
+                TodayRevenue = _context.Subscription
+                    .Include(s => s.Plans)
+                    .Where(s => s.CreatedAt.Date == today)
+                    .AsEnumerable()
+                    .Sum(s => (decimal)(s.Plans?.Price ?? 0)),
+
+                WeeklyRevenue = _context.Subscription
+                    .Include(s => s.Plans)
+                    .Where(s => s.CreatedAt.Date >= weekAgo)
+                    .AsEnumerable()
+                    .Sum(s => (decimal)(s.Plans?.Price ?? 0)),
+
+                // Subscriptions
+                ActiveSubscriptions = _context.Subscription
+                    .Count(s => s.Status == "Current" && s.Expiration >= DateTime.Now),
+
+                // New Users
+                NewUsersThisWeek = _context.Users
+                    .Count(u => u.DateCreated >= weekAgo),
+
+                NewUsers = _context.Users
+                    .Include(u => u.UserProfile)
+                    .Where(u => u.DateCreated >= weekAgo)
+                    .OrderByDescending(u => u.DateCreated)
+                    .ToList(),
+
+                // Latest Subscriptions
+                LatestSubscriptions = _context.Subscription
+                    .Include(s => s.Users)
+                        .ThenInclude(u => u.UserProfile)
+                    .Include(s => s.Plans)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Take(10)
+                    .ToList(),
+
+                // Daily Revenue
+                DailyRevenue = dailyRevenue,
+
+                // Campaigns
+                TotalCampaigns = _context.Campaign.Count(),
+
+                ActiveCampaigns = _context.Campaign
+                    .Count(c => c.IsActive && c.isPaid == true),
+
+                CampaignRevenue = _context.Campaign
+                    .Where(c => c.isPaid == true)
+                    .Sum(c => c.Payment ?? 0),
+
+                LatestCampaigns = _context.Campaign
+                    .Include(c => c.CreatedByUser)
+                        .ThenInclude(u => u.UserProfile)
+                    .Include(c => c.SelectedJob)
+                    .Include(c => c.SelectedTraining)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Take(5)
+                    .ToList()
+            };
+
+            return View(vm);
         }
 
         public IActionResult Privacy()

@@ -225,28 +225,39 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            let index = 6;
 
-                    $("#newSwitch").click(function (e) {
+               let index = 6;
+
+        $("#newSwitch").click(function (e) {
             e.preventDefault();
 
             let html = `
-            <div class="col-6">
+            <div class="col-6 dynamic-switch-item">
                 <div class="form-check form-switch mb-4">
                     <input class="form-check-input"
                            type="checkbox"
                            name="Uploads[${index}].IsActive"
                            value="true">
                     <input type="hidden" name="Uploads[${index}].IsActive" value="false">
-                    <input type="text"
-                           class="form-control mt-2"
-                           name="Uploads[${index}].Name"
-                           placeholder="Upload name" required>
+                    <div class="d-flex gap-2 mt-2">
+                        <input type="text"
+                               class="form-control"
+                               name="Uploads[${index}].Name"
+                               placeholder="Upload name" required>
+                        <button type="button" class="btn btn-danger btn-sm remove-switch">
+                            <i class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
                 </div>
             </div>`;
 
             $("#dynamicSwitchContainer").append(html);
             index++;
+        });
+
+        // Remove button handler
+        $(document).on("click", ".remove-switch", function () {
+            $(this).closest(".dynamic-switch-item").remove();
         });
         $("#PaymentOption").on('change', function () {
             if ($(this).val() == "Down") {

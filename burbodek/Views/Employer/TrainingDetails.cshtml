@@ -274,7 +274,7 @@
 			</div>
 			<div class="modal-body">
 				<label class="form-label">Start date of training</label>
-				<input type="datetime-local" class="form-control" id="startDateInput" />
+				<input type="datetime-local" class="form-control" id="startDateInput" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm")" />
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

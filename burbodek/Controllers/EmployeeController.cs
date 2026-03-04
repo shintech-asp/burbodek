@@ -2284,7 +2284,7 @@ namespace burbodek.Controllers
 
             // Get the "Applied" email template
             var emailTemplate = await _context.EmailTemplate
-                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied" && et.UsersId == job.UsersId);
+                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied");
 
             if (emailTemplate != null && applicant != null)
             {
@@ -2298,40 +2298,40 @@ namespace burbodek.Controllers
                     .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
                     .Replace("{{JobTitle}}", job.JobTitle)
                     .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var sendEmail = new EmailThread
+                {
+                    Subject = subject,
+                    CreatedBy = job.UsersId,
+                    CreatedAt = DateTime.Now
+                };
+                _context.EmailThreads.Add(sendEmail);
+                await _context.SaveChangesAsync();
+                var email = new Email
+                {
+                    Thread = sendEmail,
+                    SenderID = job.UsersId,
+                    Body = body,
+                    SentAt = DateTime.Now,
+                    IsDraft = false,
+                    IsTrashed = false,
+                    IsRead = false,
+                    IsStarred = false
+                };
+                _context.Emails.Add(email);
+                await _context.SaveChangesAsync();
+                var emailRecipient = new EmailRecipient
+                {
+                    EmailID = email.Id,
+                    RecipientID = userId,
+                    RecipientType = RecipientType.TO,
+                    IsRead = false,
+                    IsTrashed = false,
+                    IsStarred = false
+                };
+                _context.EmailRecipients.Add(emailRecipient);
+                await _context.SaveChangesAsync();
             }
-            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var sendEmail = new EmailThread
-            {
-                Subject = emailTemplate.Subject,
-                CreatedBy = job.UsersId,
-                CreatedAt = DateTime.Now
-            };
-            _context.EmailThreads.Add(sendEmail);
-            await _context.SaveChangesAsync();
-            var email = new Email
-            {
-                Thread = sendEmail,
-                SenderID = job.UsersId,
-                Body = emailTemplate.Body,
-                SentAt = DateTime.Now,
-                IsDraft = false,
-                IsTrashed = false,
-                IsRead = false,
-                IsStarred = false
-            };
-            _context.Emails.Add(email);
-            await _context.SaveChangesAsync();
-            var emailRecipient = new EmailRecipient
-            {
-                EmailID = email.Id,
-                RecipientID = userId,
-                RecipientType = RecipientType.TO,
-                IsRead = false,
-                IsTrashed = false,
-                IsStarred = false
-            };
-            _context.EmailRecipients.Add(emailRecipient);
-            await _context.SaveChangesAsync();
             TempData["success"] = "Application submitted successfully!";
             return RedirectToAction("Index");
         }
@@ -2358,6 +2358,8 @@ namespace burbodek.Controllers
                             .ThenInclude(u => u.TrainingCertificate)
                        .Include(u => u.TrainingRequirements)
                        .Include(u => u.TrainingMedia)
+                       .Include(u => u.TrainingUploads.Where(a => a.isActive))
+                           .ThenInclude(u => u.ApplicantTrainingUpload.Where(u => u.UsersId == userId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
 
@@ -2379,6 +2381,8 @@ namespace burbodek.Controllers
                        .Include(u => u.JobRequirements)
                        .Include(u => u.JobRole)
                        .Include(u => u.JobMedia)
+                       .Include(u => u.JobUploads.Where(a => a.isActive))
+                           .ThenInclude(u => u.ApplicantJobUpload.Where(u => u.UsersId == userId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
 

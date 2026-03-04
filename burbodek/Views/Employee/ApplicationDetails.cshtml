@@ -206,6 +206,26 @@
 				</div>
 				<!--end::Input group-->
 				<!-- Upload Media -->
+				@if (Model.JobUploads != null)
+				{
+					@foreach (var data in Model.JobUploads)
+					{
+						@if(data.ApplicantJobUpload.Count() > 0)
+						{
+							<div class="mb-5">
+								<div>
+									<label class="form-label fw-bold required">@data.Name</label>
+								</div>
+								<div class="card">
+									<div class="card-body">
+										<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf" data-default-file="@data.ApplicantJobUpload.FirstOrDefault().Upload" />
+									</div>
+								</div>
+							</div>
+						}
+						
+					}
+				}
 				@if (Model.Coe)
 				{
 					<div class="mb-5">

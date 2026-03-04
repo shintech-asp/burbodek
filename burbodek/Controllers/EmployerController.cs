@@ -2564,6 +2564,7 @@ namespace burbodek.Controllers
                 }
             }
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Job Created successfully";
             return RedirectToAction("Index");
         }
 

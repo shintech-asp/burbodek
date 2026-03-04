@@ -661,11 +661,13 @@
 </div>
 @section Scripts {
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
+				document.addEventListener('DOMContentLoaded', function () {
+
 			FilePond.registerPlugin(
 				FilePondPluginImagePreview,
 				FilePondPluginPdfPreview
 			);
+
 			FilePond.setOptions({
 				allowMultiple: false,
 				acceptedFileTypes: ['image/*', 'application/pdf'],
@@ -678,26 +680,97 @@
 				server: null,
 				instantUpload: false,
 				allowRevert: true,
-				storeAsFile: true, // ✅ very important!
-				// Add these options:
+				storeAsFile: true,
 				chunkUploads: false,
 				allowReplace: true,
 				allowReorder: false
 			});
 
-				const inputs = document.querySelectorAll('.filepond');
-				inputs.forEach(input => {
-					const pond = FilePond.create(input);
-					const defaultFile = input.dataset.defaultFile;
-					if (defaultFile) {
-						pond.addFile(defaultFile);
-					}
-					pond.on('addfile', (error, file) => {
-						if (error) {
-							alert('Invalid file: Only images and PDFs allowed.');
-						}
+			// ==============================
+			// ZOOM OVERLAY
+			// ==============================
+			const overlay = document.createElement('div');
+			overlay.style.cssText = `
+				display: none;
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.85);
+				z-index: 9999;
+				align-items: center;
+				justify-content: center;
+				cursor: zoom-out;
+			`;
+			overlay.innerHTML = `
+				<img id="zoomImg" src="" alt="Zoomed"
+					 style="max-width: 90vw; max-height: 90vh;
+							border-radius: 10px; object-fit: contain;
+							box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+			`;
+			document.body.appendChild(overlay);
+
+			overlay.addEventListener('click', () => {
+				overlay.style.display = 'none';
+				document.body.style.overflow = '';
+			});
+
+			document.addEventListener('keydown', e => {
+				if (e.key === 'Escape') {
+					overlay.style.display = 'none';
+					document.body.style.overflow = '';
+				}
+			});
+
+			function openZoom(src) {
+				document.getElementById('zoomImg').src = src;
+				overlay.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+			}
+
+			// ==============================
+			// FILEPOND INSTANCES
+			// ==============================
+			const inputs = document.querySelectorAll('.filepond');
+			inputs.forEach(input => {
+				const pond = FilePond.create(input);
+				const defaultFile = input.dataset.defaultFile;
+
+				if (defaultFile) {
+					pond.addFile(defaultFile).then(() => {
+						// Add zoom to default loaded image
+						setTimeout(() => attachZoom(pond, defaultFile), 500);
 					});
+				}
+
+				pond.on('addfile', (error, file) => {
+					if (error) {
+						alert('Invalid file: Only images and PDFs allowed.');
+						return;
+					}
+
+					// Add zoom for images
+					if (file.file.type.startsWith('image/')) {
+						setTimeout(() => {
+							attachZoom(pond, URL.createObjectURL(file.file));
+						}, 300);
+					}
 				});
+			});
+
+			function attachZoom(pond, src) {
+				const wrapper = pond.element.querySelector('.filepond--image-preview-wrapper');
+				if (wrapper) {
+					wrapper.style.cursor = 'zoom-in';
+					// Remove old listener to avoid duplicates
+					const newWrapper = wrapper.cloneNode(true);
+					wrapper.parentNode.replaceChild(newWrapper, wrapper);
+					newWrapper.addEventListener('click', (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						openZoom(src);
+					});
+				}
+			}
+
 		});
 	</script>
 }

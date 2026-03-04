@@ -37,34 +37,34 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-600 fw-semibold">
-                        @foreach(var data in Model)
+                        @foreach (var data in Model)
                         {
-                            <tr>
+                            <tr class="user-row"
+                                style="cursor:pointer;"
+                                data-username="@data.Username"
+                                data-email="@data.Email"
+                                data-pic="@(data.UserProfile?.Picture ?? "/assets/media/avatars/300-14.jpg")"
+                                data-role="@data.Role"
+                                data-status="@(data.DateArchived == null ? "Active" : "Inactive")"
+                                data-date="@data.DateCreated.ToString("MMMM dd, yyyy")">
                                 <td>
                                     <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="checkbox" value="1">
+                                        <input class="form-check-input" type="checkbox" value="1" onclick="event.stopPropagation()">
                                     </div>
                                 </td>
                                 <td class="d-flex align-items-center">
-                                    <!--begin:: Avatar -->
                                     <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
-                                        <a href="#">
-                                            <div class="symbol-label">
-                                                <img src="@(data.UserProfile?.Picture ?? "/assets/media/avatars/300-14.jpg")" alt="@data.Username" class="w-100">
-                                            </div>
-                                        </a>
+                                        <div class="symbol-label">
+                                            <img src="@(data.UserProfile?.Picture ?? "/assets/media/avatars/300-14.jpg")"
+                                                 alt="@data.Username" class="w-100">
+                                        </div>
                                     </div>
-                                    <!--end::Avatar-->
-                                    <!--begin::User details-->
                                     <div class="d-flex flex-column">
-                                        <a href="#" class="text-gray-800 text-hover-primary mb-1">@data.Username</a>
-                                        <span>@data.Email</span>
+                                        <span class="text-gray-800 fw-bold mb-1">@data.Username</span>
+                                        <span class="text-muted fs-7">@data.Email</span>
                                     </div>
-                                    <!--begin::User details-->
                                 </td>
-                                <td data-order="2025-02-21T11:30:00+08:00">
-                                    @data.DateCreated.ToString("MMMM dd, yyyy")
-                                </td>
+                                <td>@data.DateCreated.ToString("MMMM dd, yyyy")</td>
                             </tr>
                         }
                     </tbody>
@@ -75,3 +75,86 @@
     </div>
     <!--end::Card body-->
 </div>
+    <!-- User Detail Modal -->
+    <div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-0">
+
+                    <!-- Profile Header -->
+                    <div class="d-flex flex-column align-items-center text-center pb-5 border-bottom mb-5">
+                        <div class="symbol symbol-circle symbol-100px overflow-hidden mb-4">
+                            <img id="modalUserPic"
+                                 src="/assets/media/avatars/300-14.jpg"
+                                 alt="Profile Picture"
+                                 class="w-100 h-100"
+                                 style="object-fit: cover; border-radius: 50%; border: 3px solid #e9ecef;" />
+                        </div>
+                        <h4 class="fw-bold text-gray-800 mb-1" id="modalUsername">—</h4>
+                        <span class="text-muted fs-6" id="modalEmail">—</span>
+                    </div>
+
+                    <!-- Basic Details -->
+                    <div class="px-2">
+                        <div class="row g-4">
+                            <div class="col-6">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <div class="text-muted fs-8 fw-bold text-uppercase mb-1">Role</div>
+                                    <div class="fw-bold text-gray-700 fs-6" id="modalRole">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <div class="text-muted fs-8 fw-bold text-uppercase mb-1">Date Joined</div>
+                                    <div class="fw-bold text-gray-700 fs-6" id="modalDateCreated">—</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <div class="text-muted fs-8 fw-bold text-uppercase mb-1">Status</div>
+                                    <div id="modalStatus">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-0 pt-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script>
+            document.querySelectorAll('.user-row').forEach(row => {
+                row.addEventListener('click', function () {
+
+                    const username    = this.dataset.username;
+                    const email       = this.dataset.email;
+                    const pic         = this.dataset.pic;
+                    const role        = this.dataset.role;
+                    const status      = this.dataset.status;
+                    const date        = this.dataset.date;
+
+                    // Populate modal
+                    document.getElementById('modalUserPic').src        = pic;
+                    document.getElementById('modalUsername').innerText  = username;
+                    document.getElementById('modalEmail').innerText     = email;
+                    document.getElementById('modalRole').innerText      = role ?? '—';
+                    document.getElementById('modalDateCreated').innerText = date;
+
+                    // Status badge
+                    const isActive = status === 'Active';
+                    document.getElementById('modalStatus').innerHTML = isActive
+                        ? '<span class="badge badge-light-success fs-7 fw-bold">Active</span>'
+                        : '<span class="badge badge-light-danger fs-7 fw-bold">Inactive</span>';
+
+                    new bootstrap.Modal(document.getElementById('userDetailModal')).show();
+                });
+            });
+        </script>
+    }
