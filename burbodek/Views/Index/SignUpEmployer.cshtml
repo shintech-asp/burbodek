@@ -17,7 +17,11 @@
 	<link href="~/assets/css/style.bundle.css" rel="stylesheet" type="text/css">
 	<link href="~/assets/css/leaflet.css" rel="stylesheet"/>
 	<style>
-    #map { height: 500px; }
+		#map {
+			height: 400px;
+			width: 100%;
+			z-index: 0; /* prevents map from overlapping modals/dropdowns */
+		}
 	</style>
 </head>
 <!--end::Head-->
@@ -185,17 +189,6 @@
 						<!--end::Nav-->
 					</div>
 					<!--end::Body-->
-					<!--begin::Footer-->
-					<div class="d-flex flex-center flex-wrap px-5 py-10">
-						<!--begin::Links-->
-						<div class="d-flex fw-normal">
-							<a href="https://keenthemes.com" class="text-success px-5" target="_blank">Terms</a>
-							<a href="https://devs.keenthemes.com" class="text-success px-5" target="_blank">Plans</a>
-							<a href="https://1.envato.market/EA4JP" class="text-success px-5" target="_blank">Contact Us</a>
-						</div>
-						<!--end::Links-->
-					</div>
-					<!--end::Footer-->
 				</div>
 			</div>
 			<!--begin::Aside-->
@@ -647,8 +640,18 @@
 		// Default marker
 		let marker = L.marker(batangasPort).addTo(map)
 		  .bindPopup("📍 Batangas Port (Default)").openPopup();
-
+			  const stepper = document.getElementById('kt_create_account_stepper');
+		const nextButtons = document.querySelectorAll('[data-kt-stepper-action="next"]');
 		// 📌 Allow manual pinning by clicking map
+			nextButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				setTimeout(() => {
+					if (map) {
+						map.invalidateSize();
+					}
+				}, 150);  // give time for step transition animation
+			});
+		});
 		map.on('click', function(e) {
 		  const coords = e.latlng;
 

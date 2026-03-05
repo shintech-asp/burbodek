@@ -1232,6 +1232,18 @@ else
 		let map;
 		let marker;
 
+			  const stepper = document.getElementById('kt_create_account_stepper');
+		const nextButtons = document.querySelectorAll('[data-kt-stepper-action="next"]');
+		// 📌 Allow manual pinning by clicking map
+			nextButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				setTimeout(() => {
+					if (map) {
+						map.invalidateSize();
+					}
+				}, 150);  // give time for step transition animation
+			});
+		});
 				$(document).ready(function() {
 					$(document).on("click", ".view-campaign-btn", function () {
 						const id = $(this).data("id");
