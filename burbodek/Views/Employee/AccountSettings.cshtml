@@ -287,10 +287,10 @@
 					<div class="row mb-6">
 						<!--begin::Label-->
 						<label class="col-lg-4 col-form-label fw-semibold fs-6">
-							<span class="required">Nationality</span>
+							<span class="required">Province</span>
 							<span class="ms-1" data-bs-toggle="tooltip"
 								  aria-label="Select your nationality"
-								  data-bs-original-title="Select your nationality"
+								  data-bs-original-title="Select your province"
 								  data-kt-initialized="1">
 								<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
 									<span class="path1"></span>
@@ -305,51 +305,56 @@
 							<select name="Nationality"
 									class="form-select form-select-lg form-select-solid"
 									data-control="select2"
-									data-placeholder="Select nationality">
+									data-placeholder="Select province">
 
-								<option value="">Select nationality</option>
+								<option value="">Select Province</option>
 
-								<!-- Common -->
-								<option value="Filipino" selected="@(Model.UserProfile?.City == "Filipino")">Filipino</option>
-								<option value="American" selected="@(Model.UserProfile?.City == "American")">American</option>
-								<option value="British" selected="@(Model.UserProfile?.City == "British")">British</option>
-								<option value="Canadian" selected="@(Model.UserProfile?.City == "Canadian")">Canadian</option>
-								<option value="Australian" selected="@(Model.UserProfile?.City == "Australian")">Australian</option>
+								<!-- Luzon -->
+								<option value="Abra" selected="@(Model.UserProfile?.City == "Abra")">Abra</option>
+								<option value="Albay" selected="@(Model.UserProfile?.City == "Albay")">Albay</option>
+								<option value="Batangas" selected="@(Model.UserProfile?.City == "Batangas")">Batangas</option>
+								<option value="Benguet" selected="@(Model.UserProfile?.City == "Benguet")">Benguet</option>
+								<option value="Bulacan" selected="@(Model.UserProfile?.City == "Bulacan")">Bulacan</option>
+								<option value="Cagayan" selected="@(Model.UserProfile?.City == "Cagayan")">Cagayan</option>
+								<option value="Camarines Sur" selected="@(Model.UserProfile?.City == "Camarines Sur")">Camarines Sur</option>
+								<option value="Cavite" selected="@(Model.UserProfile?.City == "Cavite")">Cavite</option>
+								<option value="Ilocos Norte" selected="@(Model.UserProfile?.City == "Ilocos Norte")">Ilocos Norte</option>
+								<option value="Ilocos Sur" selected="@(Model.UserProfile?.City == "Ilocos Sur")">Ilocos Sur</option>
+								<option value="Isabela" selected="@(Model.UserProfile?.City == "Isabela")">Isabela</option>
+								<option value="La Union" selected="@(Model.UserProfile?.City == "La Union")">La Union</option>
+								<option value="Laguna" selected="@(Model.UserProfile?.City == "Laguna")">Laguna</option>
+								<option value="Nueva Ecija" selected="@(Model.UserProfile?.City == "Nueva Ecija")">Nueva Ecija</option>
+								<option value="Pampanga" selected="@(Model.UserProfile?.City == "Pampanga")">Pampanga</option>
+								<option value="Pangasinan" selected="@(Model.UserProfile?.City == "Pangasinan")">Pangasinan</option>
+								<option value="Quezon" selected="@(Model.UserProfile?.City == "Quezon")">Quezon</option>
+								<option value="Rizal" selected="@(Model.UserProfile?.City == "Rizal")">Rizal</option>
+								<option value="Tarlac" selected="@(Model.UserProfile?.City == "Tarlac")">Tarlac</option>
+								<option value="Zambales" selected="@(Model.UserProfile?.City == "Zambales")">Zambales</option>
 
-								<!-- Asia -->
-								<option value="Chinese" selected="@(Model.UserProfile?.City == "Chinese")">Chinese</option>
-								<option value="Japanese" selected="@(Model.UserProfile?.City == "Japanese")">Japanese</option>
-								<option value="Korean" selected="@(Model.UserProfile?.City == "Korean")">Korean</option>
-								<option value="Indian" selected="@(Model.UserProfile?.City == "Indian")">Indian</option>
-								<option value="Thai" selected="@(Model.UserProfile?.City == "Thai")">Thai</option>
-								<option value="Vietnamese" selected="@(Model.UserProfile?.City == "Vietnamese")">Vietnamese</option>
-								<option value="Indonesian" selected="@(Model.UserProfile?.City == "Indonesian")">Indonesian</option>
-								<option value="Malaysian" selected="@(Model.UserProfile?.City == "Malaysian")">Malaysian</option>
-								<option value="Singaporean" selected="@(Model.UserProfile?.City == "Singaporean")">Singaporean</option>
+								<!-- Visayas -->
+								<option value="Aklan" selected="@(Model.UserProfile?.City == "Aklan")">Aklan</option>
+								<option value="Antique" selected="@(Model.UserProfile?.City == "Antique")">Antique</option>
+								<option value="Bohol" selected="@(Model.UserProfile?.City == "Bohol")">Bohol</option>
+								<option value="Capiz" selected="@(Model.UserProfile?.City == "Capiz")">Capiz</option>
+								<option value="Cebu" selected="@(Model.UserProfile?.City == "Cebu")">Cebu</option>
+								<option value="Eastern Samar" selected="@(Model.UserProfile?.City == "Eastern Samar")">Eastern Samar</option>
+								<option value="Iloilo" selected="@(Model.UserProfile?.City == "Iloilo")">Iloilo</option>
+								<option value="Leyte" selected="@(Model.UserProfile?.City == "Leyte")">Leyte</option>
+								<option value="Negros Occidental" selected="@(Model.UserProfile?.City == "Negros Occidental")">Negros Occidental</option>
+								<option value="Negros Oriental" selected="@(Model.UserProfile?.City == "Negros Oriental")">Negros Oriental</option>
+								<option value="Samar" selected="@(Model.UserProfile?.City == "Samar")">Samar</option>
 
-								<!-- Middle East -->
-								<option value="Saudi Arabian" selected="@(Model.UserProfile?.City == "Saudi Arabian")">Saudi Arabian</option>
-								<option value="Emirati" selected="@(Model.UserProfile?.City == "Emirati")">Emirati</option>
-								<option value="Qatari" selected="@(Model.UserProfile?.City == "Qatari")">Qatari</option>
-								<option value="Kuwaiti" selected="@(Model.UserProfile?.City == "Kuwaiti")">Kuwaiti</option>
-
-								<!-- Europe -->
-								<option value="French" selected="@(Model.UserProfile?.City == "French")">French</option>
-								<option value="German" selected="@(Model.UserProfile?.City == "German")">German</option>
-								<option value="Italian" selected="@(Model.UserProfile?.City == "Italian")">Italian</option>
-								<option value="Spanish" selected="@(Model.UserProfile?.City == "Spanish")">Spanish</option>
-								<option value="Dutch" selected="@(Model.UserProfile?.City == "Dutch")">Dutch</option>
-								<option value="Russian" selected="@(Model.UserProfile?.City == "Russian")">Russian</option>
-
-								<!-- Africa -->
-								<option value="Nigerian" selected="@(Model.UserProfile?.City == "Nigerian")">Nigerian</option>
-								<option value="South African" selected="@(Model.UserProfile?.City == "South African")">South African</option>
-								<option value="Egyptian" selected="@(Model.UserProfile?.City == "Egyptian")">Egyptian</option>
-
-								<!-- Americas -->
-								<option value="Mexican" selected="@(Model.UserProfile?.City == "Mexican")">Mexican</option>
-								<option value="Brazilian" selected="@(Model.UserProfile?.City == "Brazilian")">Brazilian</option>
-								<option value="Argentinian" selected="@(Model.UserProfile?.City == "Argentinian")">Argentinian</option>
+								<!-- Mindanao -->
+								<option value="Agusan del Norte" selected="@(Model.UserProfile?.City == "Agusan del Norte")">Agusan del Norte</option>
+								<option value="Agusan del Sur" selected="@(Model.UserProfile?.City == "Agusan del Sur")">Agusan del Sur</option>
+								<option value="Bukidnon" selected="@(Model.UserProfile?.City == "Bukidnon")">Bukidnon</option>
+								<option value="Cotabato" selected="@(Model.UserProfile?.City == "Cotabato")">Cotabato</option>
+								<option value="Davao del Sur" selected="@(Model.UserProfile?.City == "Davao del Sur")">Davao del Sur</option>
+								<option value="Davao del Norte" selected="@(Model.UserProfile?.City == "Davao del Norte")">Davao del Norte</option>
+								<option value="Lanao del Norte" selected="@(Model.UserProfile?.City == "Lanao del Norte")">Lanao del Norte</option>
+								<option value="Misamis Oriental" selected="@(Model.UserProfile?.City == "Misamis Oriental")">Misamis Oriental</option>
+								<option value="South Cotabato" selected="@(Model.UserProfile?.City == "South Cotabato")">South Cotabato</option>
+								<option value="Zamboanga del Sur" selected="@(Model.UserProfile?.City == "Zamboanga del Sur")">Zamboanga del Sur</option>
 
 							</select>
 

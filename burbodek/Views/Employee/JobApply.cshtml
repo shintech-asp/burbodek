@@ -98,7 +98,7 @@
 								<label class="required fs-5 fw-semibold mb-2">First Name</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserProfile?.FirstName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserProfile?.FirstName" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -109,7 +109,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserProfile?.LastName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserProfile?.LastName" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -124,7 +124,7 @@
 								<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserProfile?.MobileNo">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserProfile?.MobileNo" readonly>
 								<!--end::Input-->
 							</div>
 							<!--end::Col-->
@@ -155,7 +155,7 @@
 									}
 								}
 
-								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@(age.HasValue? age: "")">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@(age.HasValue? age: "")" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -166,7 +166,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Nationality</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -264,7 +264,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Start Date</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="date" class="form-control" name="StartDate" />
+								<input type="date" class="form-control" name="StartDate" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" />
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>

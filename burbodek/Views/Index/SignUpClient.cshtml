@@ -83,14 +83,14 @@
 							<!--begin::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
 								<!--begin::Email-->
-								<input type="date" placeholder="Birth day" name="UserProfile.BirthDate" autocomplete="off" class="form-control bg-transparent">
+								<input type="date" placeholder="Birth date" name="UserProfile.BirthDate" autocomplete="off" class="form-control bg-transparent" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
 								<!--end::Email-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="UserProfile.Birthdate" class="text-danger"></span></div>
 							</div>
 							<!--begin::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
 								<!--begin::Email-->
-								<input type="text" placeholder="Address" name="UserProfile.City" autocomplete="off" class="form-control bg-transparent">
+								<input type="text" placeholder="Province" name="UserProfile.City" autocomplete="off" class="form-control bg-transparent">
 								<!--end::Email-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="UserProfile.City" class="text-danger"></span></div>
 							</div>

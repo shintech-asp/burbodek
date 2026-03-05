@@ -192,13 +192,13 @@
                     <label class="form-label fw-bold">Badge name</label>
                     <input type="text" class="form-control" name="Badge.Badge" placeholder="NC2 Certified"/>
                 </div>
-                <div class="col">
+                @* <div class="col">
                     <label class="form-label fw-bold">Badge Validity Duration</label>
                     <div class="input-group input-group-solid mb-5">
                         <input type="text" class="form-control" name="Badge.Validity" placeholder="30" min="1" max="30" aria-describedby="basic-addon2">
                         <span class="input-group-text" id="basic-addon2">/days</span>
                     </div>
-                </div>
+                </div> *@
             </div>
             <div class="row mb-5">
                 <div class="col">
@@ -307,9 +307,9 @@
             }
 
             if (unit === "Percentage") {
-                if (value > 100) {
-                    showDPError("Percentage cannot exceed 100%.");
-                    $("#DownPayment").val(100);
+                if (value > 99) {
+                    showDPError("Percentage cannot exceed 99%.");
+                    $("#DownPayment").val(99);
                 } else {
                     clearDPError();
                 }

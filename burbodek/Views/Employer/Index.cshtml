@@ -1265,7 +1265,7 @@ else
 			$('#deleteCampaignBtn').hide();
 			$('#ActivateCampaignBtn').show();
 		}
-						 $('#deleteCampaignBtn').on('click', function() {
+		$('#deleteCampaignBtn').on('click', function() {
 			Swal.fire({
 				title: 'Are you sure?',
 				text: "You won't be able to revert this!",
@@ -1452,7 +1452,8 @@ else
 				const latitude = $('input[name="Latitude"]').val();
 				const longitude = $('input[name="Longitude"]').val();
 				const logoFile = $('input[name="CampaignLogo"]')[0]?.files[0];
-				const PaymentDetails = $('#PaymentMethod').val();
+				const PaymentDetails = $('#PaymentMethod').val
+				const plan = "@User.FindFirst("Plan")?.Value";
 				console.log('Form Values:', {
 					campaignName,
 					campaignDescription,
@@ -1472,7 +1473,7 @@ else
 					return;
 				}
 
-				if (!PaymentDetails || PaymentDetails.trim() === '') {
+				if ((!PaymentDetails) && plan == "Basic") {
 					Swal.fire('Validation Error', 'Please enter payment details', 'warning');
 					return;
 				}
@@ -1507,7 +1508,10 @@ else
 				formData.append('FullAddress', fullAddress);
 				formData.append('Latitude', latitude);
 				formData.append('Longitude', longitude);
-				formData.append('PaymentDetailsId', PaymentDetails);
+
+				if (!PaymentDetails && plan === "Basic") {
+					formData.append('PaymentDetailsId', PaymentDetails);
+				}
 
 				// Add logo if exists
 				if (logoFile) {

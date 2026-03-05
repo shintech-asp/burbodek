@@ -191,8 +191,8 @@ namespace burbodek.Controllers
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
-            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId).ToList();
-            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId).ToList();
+            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
+            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
             var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
             var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
 
@@ -247,14 +247,14 @@ namespace burbodek.Controllers
             if (campaign.ListingType == "Jobs")
             {
                 listingTitle = _context.Jobs
-                    .Where(j => j.Id == campaign.SelectedListingId)
+                    .Where(j => j.Id == campaign.SelectedListingId && j.isDeleted != true)
                     .Select(j => j.JobTitle)
                     .FirstOrDefault();
             }
             else if (campaign.ListingType == "Training")
             {
                 listingTitle = _context.Training
-                    .Where(t => t.Id == campaign.SelectedListingId)
+                    .Where(t => t.Id == campaign.SelectedListingId && t.isDeleted != true)
                     .Select(t => t.Name)
                     .FirstOrDefault();
             }
@@ -582,7 +582,7 @@ namespace burbodek.Controllers
                             {
                                 UsersId = applicant.Id,
                                 Badge = trainingApplication.Training.TrainingBadge.Badge,
-                                ValidUntil = DateTime.Now.AddDays(trainingApplication.Training.TrainingBadge.Validity)
+                                ValidUntil = null
                             };
                             _context.UserBadge.Add(userBadge);
                             await _context.SaveChangesAsync();

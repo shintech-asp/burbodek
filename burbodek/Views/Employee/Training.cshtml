@@ -50,19 +50,6 @@
     <div class="card">
         <div class="card-header border-0 pt-6">
             <h2 class="fw-bold">My Applied Training</h2>
-            <div class="card-toolbar">
-                <div class="d-flex justify-content-end">
-                    <select class="form-select form-select-solid w-200px" data-control="select2" data-placeholder="Filter by status">
-                        <option></option>
-                        <option value="all" selected>All</option>
-                        <option value="pending">Pending</option>
-                        <option value="reviewing">Reviewing</option>
-                        <option value="shortlisted">Shortlisted</option>
-                        <option value="hired">Hired</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div class="card-body pt-0">
@@ -96,7 +83,7 @@
                                         if (data.Training.StartDate == null)
                                         {
                                             badge = "badge-light-primary";
-                                            date = "Will start in " + data.Training.StartDate.Humanize();
+                                            date = "No start date yet";
                                         }
                                         else if (data.Training.StartDate > DateTime.Now)
                                         {
