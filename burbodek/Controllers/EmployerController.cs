@@ -2243,7 +2243,7 @@ namespace burbodek.Controllers
             return View(applicant);
         }
         [HttpPost]
-        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody)
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody, IFormFile? Attachment)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             // Get the applicant for this job
@@ -2320,6 +2320,33 @@ namespace burbodek.Controllers
                 };
                 _context.EmailRecipients.Add(emailRecipient);
                 _context.SaveChanges();
+                if(Attachment != null || Attachment.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads","email-attachments");
+
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Attachment.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        Attachment.CopyTo(stream);
+                    }
+
+                    var fileData = new EmailAttachment
+                    {
+                        EmailID = sendEmailContent.Id,
+                        FileName = Attachment.FileName,
+                        FilePath = "/uploads/email-attachments/" + uniqueFileName,
+                        FileSize = Attachment.Length
+
+                    };
+                    _context.EmailAttachments.Add(fileData);
+                    _context.SaveChanges();
+                }
+
             }
 
 

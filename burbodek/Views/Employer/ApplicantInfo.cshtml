@@ -209,12 +209,13 @@
 						</div>
 					}
 				}
-				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Jobs.Id" asp-route-ApplicantId="@Model.Jobs.JobApplication?.FirstOrDefault()?.AppliedBy">
+				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Jobs.Id" asp-route-ApplicantId="@Model.Jobs.JobApplication?.FirstOrDefault()?.AppliedBy" enctype="multipart/form-data">
 					<div class="mb-5">
-						<select class="form-select" name="Status">
+						<select class="form-select" name="Status" id="Status">
 							<option value="@Model.Jobs.JobApplication.FirstOrDefault()?.Status" hidden selected>@Model.Jobs.JobApplication.FirstOrDefault()?.Status</option>
 							<option value="Applied">Applied</option>
 							<option value="For Interview">Interview</option>
+							<option value="Job Offer">Job Offer</option>
 							<option value="Hired">Hired</option>
 							<option value="Rejected">Reject</option>
 						</select>
@@ -239,7 +240,7 @@
 
 								<div class="modal-body">
 
-									<div class="mb-3">
+									<div class="mb-3" id="Subject">
 										<label class="form-label">Subject</label>
 										<input type="text" id="emailSubject" class="form-control">
 									</div>
@@ -355,7 +356,16 @@
 					alert("No email template found for this status.");
 					return;
 				}
-
+						if (selectedStatus == "Job Offer") {
+			$("#Subject").append(`
+				<div class="mb-3" id="AttachmentWrapper">
+					<label class="form-label">Attachments</label>
+					<input type="file" id="Attachment" class="form-control" name="Attachment">
+				</div>
+			`);
+		} else {
+			$("#AttachmentWrapper").remove();
+		}
 				// Replace placeholders
 				var applicantName = "@Model.Jobs.JobApplication?.FirstOrDefault()?.LastName, @Model.Jobs.JobApplication?.FirstOrDefault()?.FirstName";
 				var jobTitle = "@Model.Jobs.JobTitle";
