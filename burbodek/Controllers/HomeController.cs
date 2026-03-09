@@ -340,7 +340,7 @@ namespace burbodek.Controllers
                         .ThenInclude(u => u.TrainingBenefits)
                     .Include(u => u.Training)
                         .ThenInclude(u => u.TrainingMedia)
-                    .Where(u => (u.isDeleted == true) && (u.JobsId != null || u.TrainingId != null) && (u.Jobs.isFinal == null && u.Training.isFinal == null)).OrderByDescending(u => u.DateReported).Distinct().ToList();
+                    .Where(u => (u.isDeleted == true && u.isRetained != true) && (u.JobsId != null || u.TrainingId != null) && (u.Jobs.isFinal == null && u.Training.isFinal == null)).OrderByDescending(u => u.DateReported).Distinct().ToList();
             return View(data);
         }
         [HttpPost]
@@ -430,8 +430,8 @@ namespace burbodek.Controllers
             try
             {
                 var report = await _context.PostReport.FirstOrDefaultAsync(r => r.Id == id);
-                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId).ToListAsync();
-                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId).ToListAsync();
+                var isJobs = await _context.PostReport.Where(r => r.JobsId == report.JobsId && r.JobsId != null).ToListAsync();
+                var isTraining = await _context.PostReport.Where(r => r.TrainingId == report.TrainingId && r.TrainingId != null).ToListAsync();
 
                 if (report == null)
                     return Json(new { success = false, message = "Report not found." });
@@ -506,7 +506,7 @@ namespace burbodek.Controllers
             return System.IO.File.ReadAllText(path);
         }
         [HttpPost]
-        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails, string? DeclineReason)
+        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails, string? DeclineReason, bool? isAllowed)
         {
             try
             {
@@ -519,14 +519,31 @@ namespace burbodek.Controllers
                     // Load decline email template
                     string emailBody = LoadTemplate("Declined.html");
 
+                    // Create resubmit message
+                    string resubmitMessage = isAllowed == true
+                        ? "You may submit a new employer application after correcting the issue mentioned above."
+                        : "At this time, resubmission of your employer application is not allowed.";
+
+                    // Replace placeholders in template
+                    emailBody = emailBody.Replace("{{RejectionReason}}", DeclineReason);
+                    emailBody = emailBody.Replace("{{ResubmitMessage}}", resubmitMessage);
+
                     // Send email
                     await _email.SendEmailAsync(employer.Users.Email, "Application Declined", emailBody);
+
                     data.Expiration = DateTime.Now;
                     data.Status = "Expired";
-                    
                     _context.Subscription.Update(data);
+
                     employer.RejectionReason = DeclineReason;
                     employer.Status = "Decline";
+                    employer.isAllowedForResubmission = isAllowed;
+
+                    if (isAllowed == true)
+                    {
+                        employer.RegistrationCount += 1;
+                    }
+
                     _context.EmployerDetails.Update(employer);
 
                     await _context.SaveChangesAsync();

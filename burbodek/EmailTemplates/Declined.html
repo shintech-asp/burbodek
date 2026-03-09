@@ -3,96 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Status</title>
+    <title>Employer Application Status</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
+
+    <table role="presentation" style="width:100%;border-collapse:collapse;">
         <tr>
-            <td style="padding: 40px 0; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
+            <td style="padding:40px 0;text-align:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+                <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:bold;">
                     ⚓ Cruise Ship Jobs
                 </h1>
             </td>
         </tr>
     </table>
 
-    <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-collapse: collapse;">
+    <table role="presentation" style="width:100%;max-width:600px;margin:0 auto;background-color:#ffffff;border-collapse:collapse;">
         <tr>
-            <td style="padding: 60px 40px;">
+            <td style="padding:60px 40px;">
+
                 <!-- Icon -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
+                <div style="text-align:center;margin-bottom:30px;">
+                    <div style="width:80px;height:80px;margin:0 auto;background:linear-gradient(135deg,#ed8936 0%,#dd6b20 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:white;font-size:36px;">!</span>
                     </div>
                 </div>
 
-                <!-- Content -->
-                <h2 style="color: #1a1a1a; font-size: 28px; margin: 0 0 20px; text-align: center; font-weight: bold;">
-                    Thank You for Your Interest
+                <h2 style="color:#1a1a1a;font-size:28px;margin:0 0 20px;text-align:center;font-weight:bold;">
+                    Employer Application Update
                 </h2>
 
-                <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin: 0 0 25px;">
-                    Dear Applicant,
+                <p style="color:#4a5568;font-size:16px;line-height:1.8;margin:0 0 25px;">
+                    Dear Employer,
                 </p>
 
-                <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin: 0 0 25px;">
-                    We appreciate you taking the time to apply for an employer account with Cruise Ship Jobs. After reviewing your application, we have decided not to move forward at this time.
+                <p style="color:#4a5568;font-size:16px;line-height:1.8;margin:0 0 25px;">
+                    Thank you for applying to become an employer on the <strong>Cruise Ship Jobs</strong> platform.
+                    After carefully reviewing your submitted documents and information, we regret to inform you that your application has not been approved at this time.
                 </p>
 
-                <div style="background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%); border-left: 4px solid #ed8936; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                    <p style="color: #744210; font-size: 14px; line-height: 1.6; margin: 0;">
-                        <strong>📋 Note:</strong> This decision doesn't reflect on your organization's quality. We carefully evaluate each application based on specific criteria for our platform.
+                <!-- Rejection Reason -->
+                <div style="background:#fff5f5;border-left:4px solid #e53e3e;padding:20px;border-radius:8px;margin:30px 0;">
+                    <p style="margin:0;color:#742a2a;font-size:14px;line-height:1.6;">
+                        <strong>Reason for Rejection:</strong><br>
+                        {{RejectionReason}}
                     </p>
                 </div>
 
-                <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin: 25px 0;">
-                    <strong>We encourage you to:</strong>
+                <!-- Resubmission Info -->
+                <div style="background:#f7fafc;border-left:4px solid #667eea;padding:20px;border-radius:8px;margin:30px 0;">
+                    <p style="margin:0;color:#2d3748;font-size:14px;line-height:1.6;">
+                        <strong>Resubmission Status:</strong><br>
+
+                        {{#if AllowResubmit}}
+                        You are allowed to submit a new application after addressing the issue mentioned above. Please ensure that all required documents and information are complete before reapplying.
+                        {{else}}
+                        At this time, resubmission of the application is not permitted. If you believe this decision was made in error, you may contact our support team for further clarification.
+                        {{/if}}
+
+                    </p>
+                </div>
+
+                <p style="color:#4a5568;font-size:16px;line-height:1.8;margin:25px 0;">
+                    If you have any questions or require further clarification, please feel free to reach out to our support team.
                 </p>
 
-                <table style="width: 100%; margin: 20px 0;">
-                    <tr>
-                        <td style="padding: 15px; background-color: #f7fafc; border-radius: 8px;">
-                            <p style="color: #2d3748; font-size: 14px; margin: 0 0 10px; line-height: 1.6;">
-                                ✓ Review our <a href="[GUIDELINES_URL]" style="color: #667eea; text-decoration: none; font-weight: bold;">employer guidelines</a>
-                            </p>
-                            <p style="color: #2d3748; font-size: 14px; margin: 0 0 10px; line-height: 1.6;">
-                                ✓ Reach out to our team for feedback
-                            </p>
-                            <p style="color: #2d3748; font-size: 14px; margin: 0; line-height: 1.6;">
-                                ✓ Reapply in the future once requirements are met
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-
-                <div style="text-align: center; margin: 40px 0;">
-                    <a href="[CONTACT_URL]" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                        Get in Touch
+                <div style="text-align:center;margin:40px 0;">
+                    <a href="[CONTACT_URL]" style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#ffffff;text-decoration:none;border-radius:8px;font-size:16px;font-weight:bold;">
+                        Contact Support
                     </a>
                 </div>
 
-                <p style="color: #718096; font-size: 14px; text-align: center; line-height: 1.6; margin: 30px 0 0;">
-                    Questions? Contact us at <a href="mailto:support@cruiseshipjobs.com" style="color: #667eea; text-decoration: none;">support@cruiseshipjobs.com</a>
+                <p style="color:#718096;font-size:14px;text-align:center;line-height:1.6;margin:30px 0 0;">
+                    Support Email:
+                    <a href="mailto:support@cruiseshipjobs.com" style="color:#667eea;text-decoration:none;">
+                        support@cruiseshipjobs.com
+                    </a>
                 </p>
+
             </td>
         </tr>
     </table>
 
-    <!-- Footer -->
-    <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+    <table role="presentation" style="width:100%;max-width:600px;margin:0 auto;border-collapse:collapse;">
         <tr>
-            <td style="padding: 40px; text-align: center; color: #718096; font-size: 14px;">
-                <p style="margin: 0 0 10px;">
-                    © 2024 Cruise Ship Jobs. All rights reserved.
-                </p>
-                <p style="margin: 0;">
-                    <a href="[PRIVACY_URL]" style="color: #667eea; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-                    <a href="[TERMS_URL]" style="color: #667eea; text-decoration: none; margin: 0 10px;">Terms of Service</a>
-                </p>
+            <td style="padding:40px;text-align:center;color:#718096;font-size:14px;">
+                <p style="margin:0 0 10px;">© 2026 Cruise Ship Jobs. All rights reserved.</p>
             </td>
         </tr>
     </table>
+
 </body>
 </html>

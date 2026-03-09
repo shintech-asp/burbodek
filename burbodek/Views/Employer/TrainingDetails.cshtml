@@ -21,6 +21,34 @@
 			}
 		</style>
 
+
+		@if (Model.isDeleted == true && (Model.isFinal == null || Model.isFinal == false))
+		{
+			<div class="alert alert-danger">
+				<p><span class="fw-bold">Note: </span> This job is deleted</p>
+				@if (Model.Appeal == null)
+				{
+					<button class="btn btn-success btn-sm" id="appeal"
+							data-bs-toggle="modal"
+							data-bs-target="#appealModal">
+						Appeal
+					</button>
+				}
+				else
+				{
+					<button class="btn btn-success btn-sm" disabled>
+						Appeal submitted
+					</button>
+
+				}
+			</div>
+		}
+		@if (Model.isFinal == true)
+		{
+			<div class="alert alert-danger">
+				<p><span class="fw-bold">Note: </span> This job is permanently deleted by the admin</p>
+			</div>
+		}
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">
@@ -106,29 +134,41 @@
 											</tr>
 										</thead>
 										<tbody>
-											@if (Model?.TrainingApplication?.Count > 0)
+											@if(Model.isDeleted == null || Model.isDeleted == false)
 											{
-												@foreach (var data in Model.TrainingApplication)
+												@if (Model?.TrainingApplication?.Count > 0)
 												{
-													<tr data-applied-id="@data.AppliedBy">
-														<td>@data.FirstName, @data.LastName</td>
-														<td>@ViewBag.ModeOfPayment</td>
-														<td>
-															<span class="badge badge-primary">@(data.TrainingCertificate.Count > 0 ? "Certificate uploaded" : ViewBag.PaymentStatus == "Fully Paid" ? "Upload certificate" : ViewBag.PaymentStatus)</span>
-														</td>
-														<td class="text-center">
-															<a class="btn btn-sm btn-primary" asp-action="TrainingReceipt" asp-controller="Employer" asp-route-AppliedId="@data.AppliedBy" asp-route-Id="@data.Id">
-																View
-															</a>
-														</td>
+													@foreach (var data in Model.TrainingApplication)
+													{
+														<tr data-applied-id="@data.AppliedBy">
+															<td>@data.FirstName, @data.LastName</td>
+															<td>@ViewBag.ModeOfPayment</td>
+															<td>
+																<span class="badge badge-primary">@(data.TrainingCertificate.Count > 0 ? "Certificate uploaded" : ViewBag.PaymentStatus == "Fully Paid" ? "Upload certificate" : ViewBag.PaymentStatus)</span>
+															</td>
+															<td class="text-center">
+																<a class="btn btn-sm btn-primary" asp-action="TrainingReceipt" asp-controller="Employer" asp-route-AppliedId="@data.AppliedBy" asp-route-Id="@data.Id">
+																	View
+																</a>
+															</td>
+														</tr>
+													}
+												}
+												else
+												{
+													<tr>
+														<td colspan="4" class="text-center">No applicants yet</td>
 													</tr>
 												}
 											}
 											else
 											{
-												<tr>
-													<td colspan="4" class="text-center">No applicants yet</td>
-												</tr>
+												@if (Model.isDeleted == true)
+												{
+													<tr>
+														<td colspan="4" class="fst-italic text-danger">This training is deleted by the admin.</td>
+													</tr>
+												}
 											}
 										</tbody>
 									</table>
@@ -245,10 +285,14 @@
 								<!--begin::Row-->
 								<div class="d-flex align-items-center mb-3">
 									<!--begin::Label-->
-									@if(Model.StartDate == null)
+									
+									@if (Model.isDeleted != true)
 									{
-										<button class="btn btn-primary btn-sm" id="openStartDateModal">Add start date</button>
-										<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
+										@if (Model.StartDate == null)
+										{
+											<button class="btn btn-primary btn-sm" id="openStartDateModal">Add start date</button>
+											<button class="btn btn-warning btn-sm" id="expirationDate">Adjust Expiration</button>
+										}
 									}
 									<!--end::Label-->
 								</div>
@@ -305,8 +349,154 @@
 		</div>
 	</div>
 </div>
+
+
+<div class="modal fade" id="appealModal" tabindex="-1" aria-labelledby="appealModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header border-0 pb-0">
+				<h5 class="modal-title fw-bold" id="appealModalLabel">⚠️ Reports Against This Post</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<p class="text-muted" style="font-size:13px;">
+					The following reports were submitted against your post. Review each reason before submitting your appeal.
+				</p>
+
+				<!-- Reports List -->
+				<div class="table-responsive mb-4">
+					<table class="table table-bordered table-sm align-middle">
+						<thead class="table-light">
+							<tr>
+								<th>#</th>
+								<th>Reason</th>
+								<th>Description</th>
+								<th>Date Reported</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var (report, i) in Model.PostReport.Select((r, i) => (r, i + 1)))
+							{
+								<tr>
+									<td>@i</td>
+									<td><span class="badge bg-danger">@report.Reason</span></td>
+									<td>@report.Description</td>
+									<td>@report.DateReported.ToString("MMM dd, yyyy")</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="alert alert-warning" role="alert" style="font-size:13px;">
+					<strong>⚠️ Note:</strong> Submitting a false or invalid appeal may result in permanent removal of your post.
+				</div>
+			</div>
+			<div class="modal-footer border-0 pt-0">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-success" id="submitAppealBtn">
+					<i class="bi bi-send"></i> Appeal This Post
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
 @section Scripts {
 	<script>
+				document.getElementById("submitAppealBtn").addEventListener("click", function () {
+				$("#appealModal").modal('hide');
+					Swal.fire({
+			title: 'Submit Appeal',
+			html: `
+				<p style="font-size:13px; color:#666; margin-bottom:12px; text-align:left;">
+					Please provide a detailed explanation for your appeal. Be honest and specific.
+				</p>
+				<textarea id="appealDescription"
+					style="width:100%;
+						   height:120px;
+						   font-size:13px;
+						   resize:vertical;
+						   padding: 10px;
+						   border: 1px solid #ced4da;
+						   border-radius: 6px;
+						   font-family: inherit;
+						   outline: none;
+						   box-sizing: border-box;">
+				</textarea>
+			`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonText: 'Submit Appeal',
+			cancelButtonText: 'Cancel',
+			confirmButtonColor: '#28a745',
+			didOpen: () => {
+				document.getElementById('appealDescription').focus();
+
+				// Focus ring on click
+				const ta = document.getElementById('appealDescription');
+				ta.addEventListener('focus', () => ta.style.borderColor = '#28a745');
+				ta.addEventListener('blur', () => ta.style.borderColor = '#ced4da');
+			},
+			preConfirm: () => {
+				const description = document.getElementById("appealDescription").value.trim();
+				if (!description) {
+					Swal.showValidationMessage("Please provide a description for your appeal.");
+					return false;
+				}
+				if (description.length < 20) {
+					Swal.showValidationMessage("Appeal description must be at least 20 characters.");
+					return false;
+				}
+				return { description };
+			}
+		}).then((result) => {
+				if (result.isConfirmed) {
+
+					// Show loading
+					Swal.fire({
+						title: 'Submitting Appeal...',
+						allowOutsideClick: false,
+						didOpen: () => Swal.showLoading()
+					});
+
+					$.ajax({
+						url: '/Employer/SubmitTrainingAppeal',
+						type: 'POST',
+						data: {
+							TrainingId: @Model.Id,
+							Description: result.value.description
+						},
+						success: function (res) {
+							console.log(res.response)
+							console.log(res)
+							if (res.success) {
+								Swal.fire({
+									title: 'Appeal Submitted!',
+									text: 'Your appeal has been submitted and is now under review.',
+									icon: 'success',
+									confirmButtonColor: '#28a745'
+								}).then(() => {
+									location.reload();
+								});
+							} else {
+								Swal.fire({
+									title: 'Failed',
+									text: res.message,
+									icon: 'error'
+								});
+							}
+						},
+						error: function () {
+							Swal.fire({
+								title: 'Error',
+								text: 'Something went wrong. Please try again.',
+								icon: 'error'
+							});
+						}
+					});
+				}
+			});
+		});
 				$("#openStartDateModal").on("click", function() {
 			$("#startDateModal").modal("show");
 		});

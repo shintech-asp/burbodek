@@ -351,6 +351,7 @@
 
 @section Scripts {
 	<script>
+
 				document.getElementById("submitAppealBtn").addEventListener("click", function () {
 				$("#appealModal").modal('hide');
 					Swal.fire({
@@ -360,7 +361,6 @@
 					Please provide a detailed explanation for your appeal. Be honest and specific.
 				</p>
 				<textarea id="appealDescription"
-					placeholder="Explain why this report is invalid or provide context for your post..."
 					style="width:100%;
 						   height:120px;
 						   font-size:13px;
@@ -416,14 +416,14 @@
 							Description: result.value.description
 						},
 						success: function (res) {
-							if (res.response) {
+							if (res.success) {
 								Swal.fire({
 									title: 'Appeal Submitted!',
 									text: 'Your appeal has been submitted and is now under review.',
 									icon: 'success',
 									confirmButtonColor: '#28a745'
 								}).then(() => {
-									bootstrap.Modal.getInstance(document.getElementById('appealModal')).hide();
+									location.reload();
 								});
 							} else {
 								Swal.fire({

@@ -20,6 +20,10 @@ namespace burbodek.Models
         [NotMapped]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
+        public bool? isVerified { get; set; }
+        public string? Otpcode { get; set; }
+        public DateTime? Otpsent { get; set; }
+        public DateTime? Otpexpiration { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime? DateArchived { get; set; }
         public DateTime? DateModified { get; set; }

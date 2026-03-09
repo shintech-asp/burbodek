@@ -400,11 +400,10 @@
 
             const fullPaymentAmount = parseFloat("@(Model.TrainingPayments.Price)");
             var partialPaymentAmount;
-            if(@Model.TrainingPayments.TrainingApplication.Training.Unit == "Percentage"){
-
+            if("@Model.TrainingPayments.TrainingApplication.Training.Unit" == "Percentage"){
                 partialPaymentAmount = parseFloat("@((Model.TrainingPayments.TrainingApplication.Training.DownPayment / 100m) * Model.TrainingPayments.Price ?? 0)");
             }else{
-                partialPaymentAmount = parseFloat("@(Model.TrainingPayments.Price - Model.TrainingPayments.TrainingApplication.Training.DownPayment)")
+                partialPaymentAmount = parseFloat("@(Model.TrainingPayments.TrainingApplication.Training.DownPayment)")
             }
             const trainingName = "@Model.TrainingPayments.TrainingApplication.Training.Name".trim();
 

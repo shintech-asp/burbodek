@@ -41,7 +41,7 @@ namespace burbodek.Controllers
             }
             else
             {
-                return Json(new { success = true, message = "Fill up the appeal description" });
+                return Json(new { success = false, message = "Fill up the appeal description" });
             }
             
         }
@@ -57,7 +57,7 @@ namespace burbodek.Controllers
             }
             else
             {
-                return Json(new { success = true, message = "Fill up the appeal description" });
+                return Json(new { success = false, message = "Fill up the appeal description" });
             }
             
         }
@@ -2490,6 +2490,25 @@ namespace burbodek.Controllers
                 return View(model);
             }
 
+            var user = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).FirstOrDefault(u => u.Id == user);
+            if (userData.Subscription.FirstOrDefault().PlansId == 1)
+            {
+                var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var endOfMonth = startOfMonth.AddMonths(1);
+
+                var training = _context.Jobs
+                    .Where(t => t.UsersId == user &&
+                                t.CreatedAt >= startOfMonth &&
+                                t.CreatedAt < endOfMonth)
+                    .Count();
+                if (training > 5)
+                {
+                    TempData["error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    return View(model);
+                }
+            }
+
             var job = new Jobs
             {
                 UsersId = int.Parse(User.FindFirst("UsersId")?.Value),
@@ -2624,7 +2643,24 @@ namespace burbodek.Controllers
                 TempData["error"] = "Please fill up all the details.";
                 return View(model);
             }
-            
+            var user = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).FirstOrDefault(u => u.Id == user);
+            if (userData.Subscription.FirstOrDefault().PlansId == 1)
+            {
+                var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var endOfMonth = startOfMonth.AddMonths(1);
+
+                var training = _context.Training
+                    .Where(t => t.UsersId == user &&
+                                t.CreatedAt >= startOfMonth &&
+                                t.CreatedAt < endOfMonth)
+                    .Count();
+                if(training > 5)
+                {
+                    TempData["error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    return View(model);
+                }
+            }
 
             var train = new Training
             {
