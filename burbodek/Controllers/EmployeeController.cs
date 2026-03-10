@@ -174,7 +174,7 @@ namespace burbodek.Controllers
                     .Include(j => j.Users)
                         .ThenInclude(u => u.EmployerDetails)
                     .Include(j => j.JobApplication)
-                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null);
+                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null && (j.JobApplication.Count(u => u.Status == "Hired") < j.WillHire));
 
                 if (!string.IsNullOrEmpty(keyword))
                 {
@@ -553,19 +553,28 @@ namespace burbodek.Controllers
                                     .ThenInclude(u => u.Training)
                                         .ThenInclude(u => u.Users)
                                 .Where(u => u.UsersId == userId && u.TrainingApplication.Training.Expiration >= DateTime.Now && u.ModeOfPayment == "E-wallet" && u.Paid == null).ToList();
-            var campaign = _context.Campaign.Where(u => u.IsActive).ToList();
+            var campaign = _context.Campaign
+     .Where(c => c.IsActive)
+     .ToList();
 
             foreach (var c in campaign)
             {
                 if (c.ListingType == "Jobs")
                 {
-                    c.SelectedJob = _context.Jobs.FirstOrDefault(j => j.Id == c.SelectedListingId && j.ExpirationDate >= DateTime.Now);
+                    c.SelectedJob = _context.Jobs
+                        .FirstOrDefault(j => j.Id == c.SelectedListingId && j.ExpirationDate >= DateTime.Now);
                 }
                 else if (c.ListingType == "Training")
                 {
-                    c.SelectedTraining = _context.Training.FirstOrDefault(t => t.Id == c.SelectedListingId && t.Expiration >= DateTime.Now);
+                    c.SelectedTraining = _context.Training
+                        .FirstOrDefault(t => t.Id == c.SelectedListingId && t.Expiration >= DateTime.Now);
                 }
             }
+
+            campaign = campaign
+                .Where(c => c.SelectedJob != null || c.SelectedTraining != null)
+                .ToList();
+
             var dashboard = new EmployeeDashboardViewModel
             {
                 Training = data,
@@ -598,6 +607,7 @@ namespace burbodek.Controllers
                         .Where(t =>
                             requiredBadges.Contains(t.TrainingBadge.Badge) &&
                             !t.TrainingApplication.Any(a => a.AppliedBy == userId)
+                            && t.isDeleted != true
                         )
                         .OrderBy(t => t.Expiration) // optional: prioritize soon-expiring
                         .Take(3)
@@ -693,6 +703,7 @@ namespace burbodek.Controllers
                     && j.JobRequiredBadge.Any(rb =>
                         rb.Badge == trainingBadge
                     )
+                            && j.isDeleted != true
                 )
                 .OrderBy(j => j.ExpirationDate)
                 .Take(3)

@@ -191,7 +191,7 @@ namespace burbodek.Controllers
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
-            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
+            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId && u.isDeleted != true && (u.JobApplication.Count(u => u.Status == "Hired") < u.WillHire)).ToList();
             var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
             var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
             var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
@@ -2486,7 +2486,7 @@ namespace burbodek.Controllers
             .ForEach(k => ModelState.Remove(k));
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Please fill up all the details.";
+                TempData["Error"] = "Please fill up all the details.";
                 return View(model);
             }
 
@@ -2504,7 +2504,7 @@ namespace burbodek.Controllers
                     .Count();
                 if (training > 5)
                 {
-                    TempData["error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    TempData["Error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
                     return View(model);
                 }
             }
@@ -2641,7 +2641,7 @@ namespace burbodek.Controllers
             }
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Please fill up all the details.";
+                TempData["Error"] = "Please fill up all the details.";
                 return View(model);
             }
             var user = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -2658,7 +2658,7 @@ namespace burbodek.Controllers
                     .Count();
                 if(training > 5)
                 {
-                    TempData["error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    TempData["Error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
                     return View(model);
                 }
             }

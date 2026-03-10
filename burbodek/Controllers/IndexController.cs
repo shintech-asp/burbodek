@@ -55,7 +55,7 @@ namespace burbodek.Controllers
                     .Include(j => j.Users)
                         .ThenInclude(u => u.EmployerDetails)
                     .Include(j => j.JobApplication)
-                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null);
+                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null && (j.JobApplication.Count(u => u.Status == "Hired") < j.WillHire));
 
                 if (!string.IsNullOrEmpty(keyword))
                 {

@@ -157,23 +157,12 @@
 				<!--begin::Input group-->
 				<div class="row mb-5">
 					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
+					<div class="col-md-12 fv-row fv-plugins-icon-container">
 						<!--begin::Label-->
 						<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
 						<!--end::Label-->
 						<!--begin::Input-->
 						<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.ExpectedSalary" readonly>
-						<!--end::Input-->
-						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-					</div>
-					<!--end::Col-->
-					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
-						<!--end::Label-->
-						<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-						<!--end::Label-->
-						<!--end::Input-->
-						<input type="date" class="form-control" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.StartDate.ToString("yyyy-MM-dd")" name="StartDate" readonly />
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
