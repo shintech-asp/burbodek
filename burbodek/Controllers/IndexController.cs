@@ -36,92 +36,133 @@ namespace burbodek.Controllers
             return View(model);
         }
 
-        public IActionResult BrowseJob(string keyword, string location, int page = 1)
+        public IActionResult BrowseJob(string keyword, string location, decimal? salaryMin, decimal? salaryMax, int page = 1, string filter = "all")
         {
             int pageSize = 10;
 
-            // --- JOBS QUERY ---
-            var jobQuery = _context.Jobs
-                .Include(j => j.Users)
-                    .ThenInclude(u => u.EmployerDetails)
-                .Include(j => j.JobApplication)
-                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted != null);
+            // Normalize filter
+            filter = string.IsNullOrEmpty(filter) ? "all" : filter.ToLower();
 
-            if (!string.IsNullOrEmpty(keyword))
+            List<JobItemViewModel> jobs = new();
+            List<TrainingItemViewModel> trainings = new();
+            int totalJobs = 0;
+            int totalTrainings = 0;
+
+            // --- JOBS QUERY (skip if filter is training) ---
+            if (filter == "all" || filter == "jobs")
             {
-                jobQuery = jobQuery.Where(j =>
-                    j.JobTitle.Contains(keyword) ||
-                    j.JobDescription.Contains(keyword) ||
-                    j.JobRole.Any(r => r.Role.Contains(keyword)));
-            }
+                var jobQuery = _context.Jobs
+                    .Include(j => j.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                    .Include(j => j.JobApplication)
+                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null);
 
-            if (!string.IsNullOrEmpty(location))
-            {
-                jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
-            }
-
-            int totalJobs = jobQuery.Count();
-
-            var jobs = jobQuery
-                .OrderByDescending(j => j.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(j => new JobItemViewModel
+                if (!string.IsNullOrEmpty(keyword))
                 {
-                    Id = j.Id,
-                    JobTitle = j.JobTitle,
-                    JobDescription = j.JobDescription,
-                    EmployerAddress = j.Users.EmployerDetails.Address,
-                    SalaryMin = j.SalaryMin,
-                    SalaryMax = j.SalaryMax,
-                    CreatedAt = j.CreatedAt
-                })
-                .AsNoTracking()
-                .ToList();
+                    jobQuery = jobQuery.Where(j =>
+                        j.JobTitle.Contains(keyword) ||
+                        j.JobDescription.Contains(keyword) ||
+                        j.JobRole.Any(r => r.Role.Contains(keyword)));
+                }
 
-            // --- TRAININGS QUERY ---
-            var trainingQuery = _context.Training
-                .Include(t => t.Users)
-                    .ThenInclude(u => u.EmployerDetails)
-                .Include(t => t.TrainingApplication)
-                .Where(t => t.isArchived == null);
+                if (!string.IsNullOrEmpty(location))
+                    jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
 
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                trainingQuery = trainingQuery.Where(t =>
-                    t.Name.Contains(keyword) || t.TrainingDescription.Contains(keyword));
+                if (salaryMin.HasValue)
+                    jobQuery = jobQuery.Where(j => j.SalaryMax >= salaryMin.Value);
+
+                if (salaryMax.HasValue)
+                    jobQuery = jobQuery.Where(j => j.SalaryMin <= salaryMax.Value);
+
+                totalJobs = jobQuery.Count();
+
+                jobs = jobQuery
+                    .OrderByDescending(j => j.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(j => new JobItemViewModel
+                    {
+                        Id = j.Id,
+                        JobTitle = j.JobTitle,
+                        JobDescription = j.JobDescription,
+                        EmployerAddress = j.Users.EmployerDetails.Address,
+                        SalaryMin = j.SalaryMin,
+                        SalaryMax = j.SalaryMax,
+                        CreatedAt = j.CreatedAt,
+                        JobRequiredBadge = j.JobRequiredBadge.ToList(),
+                        AlreadyApplied = false
+                    })
+                    .AsNoTracking()
+                    .ToList();
             }
 
-            if (!string.IsNullOrEmpty(location))
+            // --- TRAININGS QUERY (skip if filter is job) ---
+            if (filter == "all" || filter == "trainings")
             {
-                trainingQuery = trainingQuery.Where(t => t.Users.EmployerDetails.Address.Contains(location));
-            }
+                var trainingQuery = _context.Training
+                    .Include(t => t.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                    .Include(t => t.TrainingApplication)
+                    .Where(t => t.isArchived == null && t.Expiration >= DateTime.Now && t.isDeleted == null);
 
-            var trainings = trainingQuery
-                .OrderByDescending(t => t.CreatedAt)
-                .Select(t => new TrainingItemViewModel
+                if (!string.IsNullOrEmpty(keyword))
                 {
-                    Id = t.Id,
-                    Name = t.Name,
-                    TrainingDescription = t.TrainingDescription,
-                    EmployerAddress = t.Users.EmployerDetails.Address,
-                    Price = t.Price,
-                    ModeOfPayment = t.ModeOfPayment,
-                    PaymentOption = t.PaymentOption,
-                    CreatedAt = t.CreatedAt
-                })
-                .AsNoTracking()
-                .ToList();
+                    trainingQuery = trainingQuery.Where(t =>
+                        t.Name.Contains(keyword) || t.TrainingDescription.Contains(keyword));
+                }
 
-            // --- COMBINE INTO ONE VIEWMODEL ---
+                if (!string.IsNullOrEmpty(location))
+                    trainingQuery = trainingQuery.Where(t => t.Users.EmployerDetails.Address.Contains(location));
+
+                // Salary filter only applies to jobs, but if you want price range for trainings too:
+                if (salaryMin.HasValue)
+                    trainingQuery = trainingQuery.Where(t => t.Price >= salaryMin.Value);
+
+                if (salaryMax.HasValue)
+                    trainingQuery = trainingQuery.Where(t => t.Price <= salaryMax.Value);
+
+                totalTrainings = trainingQuery.Count();
+
+                trainings = trainingQuery
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(t => new TrainingItemViewModel
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        TrainingDescription = t.TrainingDescription,
+                        EmployerAddress = t.Users.EmployerDetails.Address,
+                        Price = t.Price,
+                        ModeOfPayment = t.ModeOfPayment,
+                        PaymentOption = t.PaymentOption,
+                        CreatedAt = t.CreatedAt,
+                        TrainingBadge = t.TrainingBadge.Badge,
+                        AlreadyApplied = false
+                    })
+                    .AsNoTracking()
+                    .ToList();
+            }
+
+            // Total for pagination depends on active filter
+            int totalItems = filter switch
+            {
+                "job" => totalJobs,
+                "training" => totalTrainings,
+                _ => totalJobs + totalTrainings
+            };
+
             var viewModel = new JobListViewModel
             {
                 Jobs = jobs,
                 Trainings = trainings,
                 CurrentPage = page,
-                TotalPages = (int)Math.Ceiling(totalJobs / (double)pageSize),
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
                 Keyword = keyword,
-                Location = location
+                Location = location,
+                SalaryMin = salaryMin,
+                SalaryMax = salaryMax,
+                Filter = filter
             };
 
             return View(viewModel);

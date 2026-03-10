@@ -1866,16 +1866,6 @@ else
 				btn.prop('disabled', false).html(originalText);
 				return;
 			}
-			if (result.province.includes('N/A')) {
-				Swal.fire({
-					title: 'Outside Philippines',
-					text: 'The searched location is not within the Philippines. Please search for a Philippine location.',
-					icon: 'error',
-					confirmButtonText: 'OK'
-				});
-				btn.prop('disabled', false).html(originalText);
-				return;
-			}
 			const lat = parseFloat(result.lat).toFixed(6);
 			const lng = parseFloat(result.lon).toFixed(6);
 

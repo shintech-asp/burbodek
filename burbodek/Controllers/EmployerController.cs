@@ -2491,7 +2491,7 @@ namespace burbodek.Controllers
             }
 
             var user = int.Parse(User.FindFirst("UsersId")?.Value);
-            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).FirstOrDefault(u => u.Id == user);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).ThenInclude(u => u.Plans).FirstOrDefault(u => u.Id == user);
             if (userData.Subscription.FirstOrDefault().PlansId == 1)
             {
                 var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
@@ -2523,7 +2523,8 @@ namespace burbodek.Controllers
                 Tor = false,
                 Coe = false,
                 SeamansBook = false,
-                PassportId = false
+                PassportId = false,
+                WillHire = model.WillHire
             };
 
             _context.Jobs.Add(job);
@@ -2644,7 +2645,7 @@ namespace burbodek.Controllers
                 return View(model);
             }
             var user = int.Parse(User.FindFirst("UsersId")?.Value);
-            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).FirstOrDefault(u => u.Id == user);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).ThenInclude(u => u.Plans).FirstOrDefault(u => u.Id == user);
             if (userData.Subscription.FirstOrDefault().PlansId == 1)
             {
                 var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);

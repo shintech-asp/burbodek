@@ -353,60 +353,120 @@
 				}
 				@foreach (var campaign in Model.Campaign.OrderByDescending(c => c.CreatedAt))
 				{
-					<div class="feed-card">
-						<!-- Post Header -->
-						<div class="feed-header">
-							<img src="@(campaign.LogoFilePath ?? "~/assets/media/avatars/default.jpg")"
-								 class="feed-avatar"
-								 alt="@campaign.CampaignName" />
-							<div class="feed-user-info flex-grow-1">
-								<h6>@campaign.CampaignName</h6>
-								<p class="feed-timestamp">@campaign.CreatedAt.Humanize()</p>
+					@if((campaign.SelectedJob?.isDeleted != true && campaign.ListingType == "Jobs"))
+					{
+						<div class="feed-card">
+							<!-- Post Header -->
+							<div class="feed-header">
+								<img src="@(campaign.LogoFilePath ?? "~/assets/media/avatars/default.jpg")"
+									 class="feed-avatar"
+									 alt="@campaign.CampaignName" />
+								<div class="feed-user-info flex-grow-1">
+									<h6>@campaign.CampaignName</h6>
+									<p class="feed-timestamp">@campaign.CreatedAt.Humanize()</p>
+								</div>
 							</div>
-						</div>
 
-						<!-- Post Content -->
-						@if (!string.IsNullOrEmpty(campaign.CampaignDescription))
-						{
-							<div class="feed-content">
-								<p class="feed-text">@campaign.CampaignDescription</p>
-							</div>
-						}
-
-						<!-- Post Image -->
-						@if (!string.IsNullOrEmpty(campaign.LogoFilePath))
-						{
-							<img src="@campaign.LogoFilePath"
-								 class="feed-image"
-								 alt="@campaign.CampaignName" />
-						}
-
-						<!-- Post Stats -->
-						<div class="feed-stats">
-							<div class="feed-views">
-								<i class="ki-duotone ki-eye fs-5"></i>
-								<span>@campaign.TotalClicks views</span>
-							</div>
-						</div>
-
-						<!-- Post Actions -->
-						<div class="feed-actions">
-							@if (campaign.ListingType == "Jobs")
+							<!-- Post Content -->
+							@if (!string.IsNullOrEmpty(campaign.CampaignDescription))
 							{
-								<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="JobViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
-									<i class="ki-duotone ki-arrow-right fs-3"></i>
-									View Details
-								</a>
+								<div class="feed-content">
+									<p class="feed-text">@campaign.CampaignDescription</p>
+								</div>
 							}
-							else
+
+							<!-- Post Image -->
+							@if (!string.IsNullOrEmpty(campaign.LogoFilePath))
 							{
-								<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="TrainingViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
-									<i class="ki-duotone ki-arrow-right fs-3"></i>
-									View Details
-								</a>
+								<img src="@campaign.LogoFilePath"
+									 class="feed-image"
+									 alt="@campaign.CampaignName" />
 							}
+
+							<!-- Post Stats -->
+							<div class="feed-stats">
+								<div class="feed-views">
+									<i class="ki-duotone ki-eye fs-5"></i>
+									<span>@campaign.TotalClicks views</span>
+								</div>
+							</div>
+
+							<!-- Post Actions -->
+							<div class="feed-actions">
+								@if (campaign.ListingType == "Jobs")
+								{
+									<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="JobViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+										<i class="ki-duotone ki-arrow-right fs-3"></i>
+										View Details
+									</a>
+								}
+								else
+								{
+									<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="TrainingViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+										<i class="ki-duotone ki-arrow-right fs-3"></i>
+										View Details
+									</a>
+								}
+							</div>
 						</div>
-					</div>
+					}
+					else if ((campaign.SelectedTraining?.isDeleted != true && campaign.ListingType == "Training"))
+					{
+						<div class="feed-card">
+							<!-- Post Header -->
+							<div class="feed-header">
+								<img src="@(campaign.LogoFilePath ?? "~/assets/media/avatars/default.jpg")"
+									 class="feed-avatar"
+									 alt="@campaign.CampaignName" />
+								<div class="feed-user-info flex-grow-1">
+									<h6>@campaign.CampaignName</h6>
+									<p class="feed-timestamp">@campaign.CreatedAt.Humanize()</p>
+								</div>
+							</div>
+
+							<!-- Post Content -->
+							@if (!string.IsNullOrEmpty(campaign.CampaignDescription))
+							{
+								<div class="feed-content">
+									<p class="feed-text">@campaign.CampaignDescription</p>
+								</div>
+							}
+
+							<!-- Post Image -->
+							@if (!string.IsNullOrEmpty(campaign.LogoFilePath))
+							{
+								<img src="@campaign.LogoFilePath"
+									 class="feed-image"
+									 alt="@campaign.CampaignName" />
+							}
+
+							<!-- Post Stats -->
+							<div class="feed-stats">
+								<div class="feed-views">
+									<i class="ki-duotone ki-eye fs-5"></i>
+									<span>@campaign.TotalClicks views</span>
+								</div>
+							</div>
+
+							<!-- Post Actions -->
+							<div class="feed-actions">
+								@if (campaign.ListingType == "Jobs")
+								{
+									<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="JobViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+										<i class="ki-duotone ki-arrow-right fs-3"></i>
+										View Details
+									</a>
+								}
+								else
+								{
+									<a class="feed-action-btn view-campaign-btn w-100" asp-controller="Employee" asp-action="TrainingViewCampaign" asp-route-CampaignId="@campaign.Id" asp-route-Id="@campaign.SelectedListingId">
+										<i class="ki-duotone ki-arrow-right fs-3"></i>
+										View Details
+									</a>
+								}
+							</div>
+						</div>
+					}
 				}
 			</div>
 		</div>

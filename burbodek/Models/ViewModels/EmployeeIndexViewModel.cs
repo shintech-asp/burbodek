@@ -40,6 +40,7 @@
         public string Location { get; set; }
         public decimal? SalaryMin { get; set; }
         public decimal? SalaryMax { get; set; }
+        public string Filter { get; set; }
     }
 
 

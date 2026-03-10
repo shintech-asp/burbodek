@@ -20,6 +20,7 @@
         public bool SeamansBook { get; set; }
         public bool Tor { get; set; }
         public bool Coe { get; set; }
+        public int? WillHire { get; set; }
     }
 
 }
