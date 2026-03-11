@@ -267,11 +267,18 @@ namespace burbodek.Controllers
                     TempData["Status"] = "Your account is still pending for admins approval.";
                     return View();
                 }
-                if (user.EmployerDetails.Status == "Decline")
+                if (user.EmployerDetails.Status == "Decline" &&( user.EmployerDetails.isAllowedForResubmission == false || user.EmployerDetails.isAllowedForResubmission == null))
                 {
                     TempData["Status"] = "Your account is declined: <br><br>Reason for declined: <br><h5>"
                         + user.EmployerDetails.RejectionReason
-                        + "</h5><br>You may apply for the next 3 months. Thank you!";
+                        + "</h5><br>Thank you for applying.";
+                    return View();
+                }
+                else if(user.EmployerDetails.Status == "Decline" && (user.EmployerDetails.isAllowedForResubmission == true))
+                {
+                    TempData["Status"] = "Your account is declined: <br><br>Reason for declined: <br><h5>"
+                        + user.EmployerDetails.RejectionReason
+                        + "</h5><br>You may re-apply again by signing up the same email.";
                     return View();
                 }
             }
@@ -494,6 +501,7 @@ namespace burbodek.Controllers
             ModelState.Remove("Users");
             ModelState.Remove("Subscription");
 
+            var data = _context.Terms.FirstOrDefault();
             // ✅ Basic validation
             if (employer.Users == null ||
                 string.IsNullOrWhiteSpace(employer.Users.Username) ||
@@ -507,26 +515,105 @@ namespace burbodek.Controllers
 
             if (ModelState.IsValid)
             {
-                if (_context.Users.Any(u => u.Email == employer.Users.Email && u.EmployerDetails.isAllowedForResubmission == true && u.EmployerDetails.RegistrationCount <= 3))
+                if (_context.Users.Any(u => u.Email == employer.Users.Email && u.EmployerDetails.isAllowedForResubmission == true && u.EmployerDetails.RegistrationCount > 3))
                 {
                     TempData["Error"] = "This email is permanently banned.";
-                    return View(employer);
+                    return View(data);
                 }else if (_context.Users.Any(u => u.Email == employer.Users.Email && u.EmployerDetails.isAllowedForResubmission != true))
                 {
                     TempData["Error"] = "This email is already used.";
-                    return View(employer);
+                    return View(data);
+                }
+                else if(_context.Users.Any(u => u.Email == employer.Users.Email && u.EmployerDetails.isAllowedForResubmission == true && u.EmployerDetails.RegistrationCount <= 3))
+                {
+                    var existingUser = _context.Users
+                        .Include(u => u.EmployerDetails)
+                        .FirstOrDefault(u => u.Email == employer.Users.Email);
+                    if (existingUser != null)
+                    {
+                        existingUser.Username = employer.Users.Username;
+                        existingUser.Email = employer.Users.Email;
+                        existingUser.Password = new PasswordHasher<Users>().HashPassword(existingUser, employer.Users.Password);
+                        existingUser.EmployerDetails.RegistrationCount += 1;
+                        existingUser.EmployerDetails.isAllowedForResubmission = existingUser.EmployerDetails.RegistrationCount > 3 ? false : true;
+                        existingUser.EmployerDetails.BusinessName = employer.BusinessName;
+                        existingUser.EmployerDetails.BusinessDescription = employer.BusinessDescription;
+                        existingUser.EmployerDetails.Address = employer.Address;
+                        existingUser.EmployerDetails.Latitude = employer.Latitude;
+                        existingUser.EmployerDetails.Longitude = employer.Longitude;
+                        existingUser.EmployerDetails.isEmployer = employer.isEmployer ?? 0;
+                        existingUser.EmployerDetails.isTrainingCenter = employer.isTrainingCenter ?? 0;
+                        existingUser.EmployerDetails.Status = "For Approval";
+                        void ReuploadFile(IFormFile? file, string details)
+                        {
+                            if (file != null)
+                            {
+                                // Ensure uploads directory exists
+                                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                                if (!Directory.Exists(uploadsFolder))
+                                {
+                                    Directory.CreateDirectory(uploadsFolder);
+                                }
+
+                                // Unique filename to avoid collisions
+                                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                                // Save file physically
+                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    file.CopyTo(stream);
+                                }
+
+                                // Save metadata in DB
+                                var existingFile = _context.Files.FirstOrDefault(f => f.UsersId == existingUser.Id && f.ImageDetails == details);
+                                if (existingFile != null)
+                                {
+                                    existingFile.FileName = file.FileName;
+                                    existingFile.ContentType = file.ContentType;
+                                    existingFile.File = $"/uploads/{uniqueFileName}";
+                                    _context.Files.Update(existingFile);
+                                }
+                                else
+                                {
+                                    var newFile = new Files
+                                    {
+                                        UsersId = existingUser.Id,
+                                        ImageDetails = details,
+                                        FileName = file.FileName, // original name
+                                        ContentType = file.ContentType,
+                                        File = $"/uploads/{uniqueFileName}" // relative path for serving
+                                    };
+                                    _context.Files.Add(newFile);
+                                }
+
+                                _context.SaveChanges();
+                            }
+                        }
+
+                        ReuploadFile(sec_dti, "sec_dti");
+                        ReuploadFile(bir_certificate, "bir_certificate");
+                        ReuploadFile(business_permit, "business_permit");
+                        ReuploadFile(poea_license, "poea_license");
+                        ReuploadFile(proof_partnership, "proof_partnership");
+
+                        _context.Users.Update(existingUser);
+                        _context.SaveChanges();
+                        TempData["Success"] = "Email successfully registered!";
+                        return RedirectToAction("SignIn", "Index");
+                    }
                 }
 
-                // ✅ Create user
-                var user = new Users
-                {
-                    Username = employer.Users.Username,
-                    Email = employer.Users.Email,
-                    Password = employer.Users.Password,
-                    Role = "Employer",
-                    DateCreated = DateTime.Now,
-                    isVerified = true
-                };
+                    // ✅ Create user
+                    var user = new Users
+                    {
+                        Username = employer.Users.Username,
+                        Email = employer.Users.Email,
+                        Password = employer.Users.Password,
+                        Role = "Employer",
+                        DateCreated = DateTime.Now,
+                        isVerified = true
+                    };
 
                 var passwordHasher = new PasswordHasher<Users>();
                 user.Password = passwordHasher.HashPassword(user, user.Password);
@@ -606,7 +693,7 @@ namespace burbodek.Controllers
             TempData["Error"] = string.Join("; ", ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage));
-            return View(employer);
+            return View(data);
         }
 
     }
