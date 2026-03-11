@@ -88,7 +88,7 @@
 			<div class="flex-lg-row-fluid me-0 me-lg-20">
 				<!--begin::Form-->
 				<form asp-controller="Employee" asp-action="JobApply" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" enctype="multipart/form-data">
-					@if(Model.UserInfo != null)
+					@if (Model.UserProfile != null)
 					{
 						<!--begin::Input group-->
 						<div class="row mb-5">
@@ -98,7 +98,7 @@
 								<label class="required fs-5 fw-semibold mb-2">First Name</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserInfo.FirstName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserProfile?.FirstName" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -109,7 +109,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserInfo.LastName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserProfile?.LastName" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -124,7 +124,7 @@
 								<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserInfo.MobileNo">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserProfile?.MobileNo" readonly>
 								<!--end::Input-->
 							</div>
 							<!--end::Col-->
@@ -138,7 +138,24 @@
 								<label class="required fs-5 fw-semibold mb-2">Age</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.UserInfo.Age">
+								@{
+									int? age = null;
+
+									if (Model.UserProfile.Birthdate.HasValue)
+									{
+										var birthdate = Model.UserProfile.Birthdate.Value;
+										var today = DateOnly.FromDateTime(DateTime.Today);
+
+										age = today.Year - birthdate.Year;
+
+										if (today < birthdate.AddYears(age.Value))
+										{
+											age--;
+										}
+									}
+								}
+
+								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@(age.HasValue? age: "")" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -149,72 +166,13 @@
 								<label class="required fs-5 fw-semibold mb-2">City</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserInfo.City">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City" readonly>
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
 							<!--end::Col-->
 						</div>
 						<!--end::Input group-->
-						<!--begin::Input group-->
-						<div class="row mb-5">
-							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
-								<!--begin::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
-								<!--end::Label-->
-								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.UserInfo.ExpectedSalary">
-								<!--end::Input-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-							</div>
-							<!--end::Col-->
-							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
-								<!--end::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-								<!--end::Label-->
-								<!--end::Input-->
-								<input type="date" class="form-control" name="StartDate" />
-								<!--end::Input-->
-								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-							</div>
-							<!--end::Col-->
-						</div>
-						<!--end::Input group-->
-						<!--begin::Input group-->
-						<div class="d-flex flex-column mb-5">
-							<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
-							<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="">@Model.UserInfo.Experience</textarea>
-						</div>
-						<!--end::Input group-->
-						<!--begin::Input group-->
-						<div class="d-flex flex-column mb-8">
-							<label class="fs-6 fw-semibold mb-2 required">Application</label>
-							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="">@Model.UserInfo.ApplicationLetter</textarea>
-						</div>
-						<!--end::Input group-->
-						<!-- Upload Media -->
-						@if (Model.Jobs.JobUploads != null)
-						{
-							var uploadsList = Model.Jobs.JobUploads.ToList();
-							@for (int i = 0; i < uploadsList.Count; i++)
-							{
-								var data = uploadsList[i];
-
-								<div class="mb-5">
-									<label class="form-label fw-bold required">@data.Name</label>
-
-									<div class="card">
-										<div class="card-body">
-											<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
-											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
-										</div>
-									</div>
-								</div>
-							}
-
-						}
 					}
 					else
 					{
@@ -284,26 +242,48 @@
 							<!--end::Col-->
 						</div>
 						<!--end::Input group-->
+					}
+					@if(Model.UserInfo != null)
+					{
 						<!--begin::Input group-->
 						<div class="row mb-5">
 							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<div class="col-md-12 fv-row fv-plugins-icon-container">
 								<!--begin::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
+								<label class="fs-5 fw-semibold mb-2">Expected Monthly Salary (Optional)</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.UserInfo.ExpectedSalary">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
 							<!--end::Col-->
+						</div>
+						<!--end::Input group-->
+						<!--begin::Input group-->
+						<div class="d-flex flex-column mb-5">
+							<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
+							<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="">@Model.UserInfo.Experience</textarea>
+						</div>
+						<!--end::Input group-->
+						<!--begin::Input group-->
+						<div class="d-flex flex-column mb-8">
+							<label class="fs-6 fw-semibold mb-2 required">Application</label>
+							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="">@Model.UserInfo.ApplicationLetter</textarea>
+						</div>
+						<!--end::Input group-->
+					}
+					else
+					{
+						<!--begin::Input group-->
+						<div class="row mb-5">
 							<!--begin::Col-->
-							<div class="col-md-6 fv-row fv-plugins-icon-container">
+							<div class="col-md-12 fv-row fv-plugins-icon-container">
+								<!--begin::Label-->
+								<label class="fs-5 fw-semibold mb-2">Expected Monthly Salary (Optional)</label>
 								<!--end::Label-->
-								<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-								<!--end::Label-->
-								<!--end::Input-->
-								<input type="date" class="form-control" name="StartDate" />
+								<!--begin::Input-->
+								<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -322,85 +302,28 @@
 							<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder=""></textarea>
 						</div>
 						<!--end::Input group-->
-						<!-- Upload Media -->
-						@if (Model.Jobs.Coe)
+					}
+
+					<!-- Upload Media -->
+					@if (Model.Jobs.JobUploads != null)
+					{
+						var uploadsList = Model.Jobs.JobUploads.ToList();
+						@for (int i = 0; i < uploadsList.Count; i++)
 						{
+							var data = uploadsList[i];
+
 							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Certificate of Employment</label>
-								</div>
+								<label class="form-label fw-bold required">@data.Name</label>
+
 								<div class="card">
 									<div class="card-body">
-										<input type="file" class="form-control filepond" name="CoeFile" accept="image/*,application/pdf"/>
+										<input type="hidden" name="Uploads[@i].JobUploadsId" value="@data.Id" />
+										<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" required/>
 									</div>
 								</div>
 							</div>
 						}
-						@if (Model.Jobs.Tor)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Transcript of Records</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="TorFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Diploma)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Diploma</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="DiplomaFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.PassportId)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Passport Id</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="PassportIdFile" accept="image/*,application/pdf"/>
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.Resume)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Resume</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="ResumeFile" accept="image/*,application/pdf" />
-									</div>
-								</div>
-							</div>
-						}
-						@if (Model.Jobs.SeamansBook)
-						{
-							<div class="mb-5">
-								<div>
-									<label class="form-label fw-bold required">Seaman's Book</label>
-								</div>
-								<div class="card">
-									<div class="card-body">
-										<input type="file" class="form-control filepond" name="SeamansBookFile" accept="image/*,application/pdf" />
-									</div>
-								</div>
-							</div>
-						}
+
 					}
 					<!--begin::Separator-->
 					<div class="separator mb-8"></div>
@@ -660,6 +583,27 @@
 							<!--end::Section-->
 						</div>
 						<!--end::Item-->
+						<!--begin::Item-->
+						<div class="mb-8">
+							<!--begin::Title-->
+							<h4 class="text-gray-700 w-bolder mb-0">Looking for</h4>
+							<!--end::Title-->
+							<!--begin::Section-->
+							<div class="my-2">
+								<!--begin::Row-->
+								<div class="d-flex align-items-center mb-3">
+									<!--begin::Bullet-->
+									<span class="bullet me-3"></span>
+									<!--end::Bullet-->
+									<!--begin::Label-->
+									<div class="text-gray-600 fw-semibold fs-6">@(Model.Jobs.WillHire != null ? Model.Jobs.WillHire : "Potential") Employees</div>
+									<!--end::Label-->
+								</div>
+								<!--end::Row-->
+							</div>
+							<!--end::Section-->
+						</div>
+						<!--end::Item-->
 					</div>
 					<!--end::Body-->
 				</div>
@@ -716,11 +660,13 @@
 </div>
 @section Scripts {
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
+				document.addEventListener('DOMContentLoaded', function () {
+
 			FilePond.registerPlugin(
 				FilePondPluginImagePreview,
 				FilePondPluginPdfPreview
 			);
+
 			FilePond.setOptions({
 				allowMultiple: false,
 				acceptedFileTypes: ['image/*', 'application/pdf'],
@@ -733,26 +679,97 @@
 				server: null,
 				instantUpload: false,
 				allowRevert: true,
-				storeAsFile: true, // ✅ very important!
-				// Add these options:
+				storeAsFile: true,
 				chunkUploads: false,
 				allowReplace: true,
 				allowReorder: false
 			});
 
-				const inputs = document.querySelectorAll('.filepond');
-				inputs.forEach(input => {
-					const pond = FilePond.create(input);
-					const defaultFile = input.dataset.defaultFile;
-					if (defaultFile) {
-						pond.addFile(defaultFile);
-					}
-					pond.on('addfile', (error, file) => {
-						if (error) {
-							alert('Invalid file: Only images and PDFs allowed.');
-						}
+			// ==============================
+			// ZOOM OVERLAY
+			// ==============================
+			const overlay = document.createElement('div');
+			overlay.style.cssText = `
+				display: none;
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.85);
+				z-index: 9999;
+				align-items: center;
+				justify-content: center;
+				cursor: zoom-out;
+			`;
+			overlay.innerHTML = `
+				<img id="zoomImg" src="" alt="Zoomed"
+					 style="max-width: 90vw; max-height: 90vh;
+							border-radius: 10px; object-fit: contain;
+							box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+			`;
+			document.body.appendChild(overlay);
+
+			overlay.addEventListener('click', () => {
+				overlay.style.display = 'none';
+				document.body.style.overflow = '';
+			});
+
+			document.addEventListener('keydown', e => {
+				if (e.key === 'Escape') {
+					overlay.style.display = 'none';
+					document.body.style.overflow = '';
+				}
+			});
+
+			function openZoom(src) {
+				document.getElementById('zoomImg').src = src;
+				overlay.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+			}
+
+			// ==============================
+			// FILEPOND INSTANCES
+			// ==============================
+			const inputs = document.querySelectorAll('.filepond');
+			inputs.forEach(input => {
+				const pond = FilePond.create(input);
+				const defaultFile = input.dataset.defaultFile;
+
+				if (defaultFile) {
+					pond.addFile(defaultFile).then(() => {
+						// Add zoom to default loaded image
+						setTimeout(() => attachZoom(pond, defaultFile), 500);
 					});
+				}
+
+				pond.on('addfile', (error, file) => {
+					if (error) {
+						alert('Invalid file: Only images and PDFs allowed.');
+						return;
+					}
+
+					// Add zoom for images
+					if (file.file.type.startsWith('image/')) {
+						setTimeout(() => {
+							attachZoom(pond, URL.createObjectURL(file.file));
+						}, 300);
+					}
 				});
+			});
+
+			function attachZoom(pond, src) {
+				const wrapper = pond.element.querySelector('.filepond--image-preview-wrapper');
+				if (wrapper) {
+					wrapper.style.cursor = 'zoom-in';
+					// Remove old listener to avoid duplicates
+					const newWrapper = wrapper.cloneNode(true);
+					wrapper.parentNode.replaceChild(newWrapper, wrapper);
+					newWrapper.addEventListener('click', (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						openZoom(src);
+					});
+				}
+			}
+
 		});
 	</script>
 }

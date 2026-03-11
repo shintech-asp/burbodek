@@ -90,7 +90,7 @@
 				<form asp-controller="Employee" asp-action="TrainingApply" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" enctype="multipart/form-data">
 					<input id="redirect" name="redirect" hidden/>
 					<!--begin::Input group-->
-					@if(Model.UserInfo != null)
+					@if(Model.UserProfile != null)
 					{
 						<div class="row mb-5">
 							<!--begin::Col-->
@@ -99,7 +99,7 @@
 								<label class="required fs-5 fw-semibold mb-2">First Name</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserInfo.FirstName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.UserProfile?.FirstName">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -110,7 +110,7 @@
 								<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserInfo.LastName">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.UserProfile?.LastName">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -125,7 +125,7 @@
 								<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.UserInfo.MobileNo">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@(Model.UserProfile?.MobileNo)">
 								<!--end::Input-->
 							</div>
 							<!--end::Col-->
@@ -139,7 +139,24 @@
 								<label class="required fs-5 fw-semibold mb-2">Age</label>
 								<!--end::Label-->
 								<!--begin::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.UserInfo.Age">
+								@{
+									int? age = null;
+
+									if (Model.UserProfile.Birthdate.HasValue)
+									{
+										var birthdate = Model.UserProfile.Birthdate.Value;
+										var today = DateOnly.FromDateTime(DateTime.Today);
+
+										age = today.Year - birthdate.Year;
+
+										if (today < birthdate.AddYears(age.Value))
+										{
+											age--;
+										}
+									}
+								}
+
+								<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@(age.HasValue? age: "")">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -150,7 +167,7 @@
 								<label class="required fs-5 fw-semibold mb-2">City</label>
 								<!--end::Label-->
 								<!--end::Input-->
-								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserInfo.City">
+								<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.UserProfile?.City">
 								<!--end::Input-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 							</div>
@@ -261,7 +278,7 @@
 									<div class="card">
 										<div class="card-body">
 											<input type="hidden" name="Uploads[@i].TrainingUploadsId" value="@data.Id" />
-											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" />
+											<input type="file" class="form-control filepond" name="Uploads[@i].File" accept="image/*,application/pdf" required/>
 										</div>
 									</div>
 								</div>
@@ -661,9 +678,11 @@
 </div>
 @section Scripts {
 	<script>
-		document.addEventListener("DOMContentLoaded", function () {
+				document.addEventListener("DOMContentLoaded", function () {
 
-			// ✅ SweetAlert2 - ReserveNow
+			// ==============================
+			// SWEETALERT2 - ReserveNow
+			// ==============================
 			const reserveBtn = document.getElementById("ReserveNow");
 			if (reserveBtn) {
 				reserveBtn.addEventListener("click", function (e) {
@@ -684,7 +703,7 @@
 								timer: 1500,
 								showConfirmButton: false
 							}).then(() => {
-								$("#redirect").val("1")
+								$("#redirect").val("1");
 								document.querySelector("form").submit();
 							});
 						} else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -702,7 +721,9 @@
 				});
 			}
 
-			// ✅ SweetAlert2 - PayNow
+			// ==============================
+			// SWEETALERT2 - PayNow
+			// ==============================
 			const payNowBtn = document.getElementById("PayNow");
 			if (payNowBtn) {
 				payNowBtn.addEventListener("click", function (e) {
@@ -729,7 +750,65 @@
 				});
 			}
 
-			// ✅ FilePond initialization
+			// ==============================
+			// ZOOM OVERLAY
+			// ==============================
+			const overlay = document.createElement('div');
+			overlay.style.cssText = `
+				display: none;
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.85);
+				z-index: 9999;
+				align-items: center;
+				justify-content: center;
+				cursor: zoom-out;
+			`;
+			overlay.innerHTML = `
+				<img id="zoomImg" src="" alt="Zoomed"
+					 style="max-width: 90vw; max-height: 90vh;
+							border-radius: 10px; object-fit: contain;
+							box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+			`;
+			document.body.appendChild(overlay);
+
+			overlay.addEventListener('click', () => {
+				overlay.style.display = 'none';
+				document.body.style.overflow = '';
+			});
+
+			document.addEventListener('keydown', e => {
+				if (e.key === 'Escape') {
+					overlay.style.display = 'none';
+					document.body.style.overflow = '';
+				}
+			});
+
+			function openZoom(src) {
+				document.getElementById('zoomImg').src = src;
+				overlay.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+			}
+
+			function attachZoom(pond, src) {
+				setTimeout(() => {
+					const wrapper = pond.element.querySelector('.filepond--image-preview-wrapper');
+					if (wrapper) {
+						wrapper.style.cursor = 'zoom-in';
+						const newWrapper = wrapper.cloneNode(true);
+						wrapper.parentNode.replaceChild(newWrapper, wrapper);
+						newWrapper.addEventListener('click', (e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							openZoom(src);
+						});
+					}
+				}, 300);
+			}
+
+			// ==============================
+			// FILEPOND INITIALIZATION
+			// ==============================
 			if (window.FilePond) {
 				FilePond.registerPlugin(
 					FilePondPluginImagePreview,
@@ -758,18 +837,30 @@
 				inputs.forEach(input => {
 					const pond = FilePond.create(input);
 					const defaultFile = input.dataset.defaultFile;
+
 					if (defaultFile) {
-						pond.addFile(defaultFile);
+						pond.addFile(defaultFile).then(() => {
+							attachZoom(pond, defaultFile);
+						});
 					}
-					pond.on('addfile', (error) => {
+
+					pond.on('addfile', (error, file) => {
 						if (error) {
 							alert('Invalid file: Only images and PDFs allowed.');
+							return;
+						}
+
+						// Attach zoom for images
+						if (file.file.type.startsWith('image/')) {
+							attachZoom(pond, URL.createObjectURL(file.file));
 						}
 					});
 				});
+
 			} else {
 				console.error("FilePond not loaded!");
 			}
+
 		});
 	</script>
 }

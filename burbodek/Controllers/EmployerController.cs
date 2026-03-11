@@ -28,12 +28,171 @@ namespace burbodek.Controllers
             _paymongo = paymongo;
             _environment = environment;
         }
+
+        public IActionResult SubmitTrainingAppeal(int TrainingId, string Description)
+        {
+            if(Description != null)
+            {
+                var data = _context.Training.Where(u => u.Id == TrainingId).FirstOrDefault();
+
+                data.Appeal = Description;
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Fill up the appeal description" });
+            }
+            
+        }
+        public IActionResult SubmitJobAppeal(int JobId, string Description)
+        {
+            if(Description != null)
+            {
+                var data = _context.Jobs.Where(u => u.Id == JobId).FirstOrDefault();
+
+                data.Appeal = Description;
+                _context.SaveChanges(); 
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Fill up the appeal description" });
+            }
+            
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile profileImage)
+        {
+            try
+            {
+                if (profileImage == null || profileImage.Length == 0)
+                    return Json(new { success = false, message = "No image provided." });
+
+                // Validate extension
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(profileImage.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                    return Json(new { success = false, message = "Invalid file type. Only JPG, PNG, and WEBP are allowed." });
+
+                // Validate size (5MB)
+                if (profileImage.Length > 5 * 1024 * 1024)
+                    return Json(new { success = false, message = "File size must not exceed 5MB." });
+
+                // Get current user
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var user = await _context.Users.Include(u => u.UserProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                if (user.UserProfile != null)
+                {
+                    // Delete old profile picture if it's not the default
+                    if (!string.IsNullOrEmpty(user.UserProfile.Picture))
+                    {
+                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                            user.UserProfile.Picture.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    user.UserProfile.Picture = relativePath;
+
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+                else
+                {
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    var data = new UserProfile
+                    {
+                        Picture = relativePath,
+                        UsersId = userId
+                    };
+                    await _context.UserProfile.AddAsync(data);
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         public IActionResult Index()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             var data = _context.Subscription.Where(u => u.UsersId == userId && (u.Expiration > DateTime.Now || !u.Expiration.HasValue) && u.Status == "Current").FirstOrDefault();
-            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId).ToList();
-            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId).ToList();
+            var jobs = _context.Jobs.Include(u => u.JobApplication).Where(u => u.UsersId == userId && u.isDeleted != true && (u.JobApplication.Count(u => u.Status == "Hired") < u.WillHire)).ToList();
+            var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
             var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
             var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
 
@@ -88,14 +247,14 @@ namespace burbodek.Controllers
             if (campaign.ListingType == "Jobs")
             {
                 listingTitle = _context.Jobs
-                    .Where(j => j.Id == campaign.SelectedListingId)
+                    .Where(j => j.Id == campaign.SelectedListingId && j.isDeleted != true)
                     .Select(j => j.JobTitle)
                     .FirstOrDefault();
             }
             else if (campaign.ListingType == "Training")
             {
                 listingTitle = _context.Training
-                    .Where(t => t.Id == campaign.SelectedListingId)
+                    .Where(t => t.Id == campaign.SelectedListingId && t.isDeleted != true)
                     .Select(t => t.Name)
                     .FirstOrDefault();
             }
@@ -423,7 +582,7 @@ namespace burbodek.Controllers
                             {
                                 UsersId = applicant.Id,
                                 Badge = trainingApplication.Training.TrainingBadge.Badge,
-                                ValidUntil = DateTime.Now.AddDays(trainingApplication.Training.TrainingBadge.Validity)
+                                ValidUntil = null
                             };
                             _context.UserBadge.Add(userBadge);
                             await _context.SaveChangesAsync();
@@ -648,6 +807,7 @@ namespace burbodek.Controllers
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobApplication)
                         .Include(u => u.JobRequirements)
+                        .Include(u => u.PostReport)
                         .Include(u => u.JobRole)
                         .Include(u => u.JobMedia)
                         .Include(u => u.JobRequiredBadge)
@@ -682,9 +842,12 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingBenefits)
                 .Include(u => u.TrainingRequirements)
                 .Include(u => u.TrainingMedia)
+                .Include(u => u.PostReport)
                 .Include(u => u.TrainingBadge)
                 .Include(u => u.TrainingApplication)
                     .ThenInclude(u => u.TrainingPayments)
+                .Include(u => u.TrainingApplication)
+                    .ThenInclude(u => u.TrainingCertificate)
                 .FirstOrDefault(u => u.Id == Id && u.isArchived == null);
 
             if (data == null)
@@ -819,6 +982,7 @@ namespace burbodek.Controllers
                     .FirstOrDefault() ?? "None"),
                 new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
                 new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
             };
 
             var identity = new ClaimsIdentity(claims, "MyCookieAuth");
@@ -889,6 +1053,235 @@ namespace burbodek.Controllers
                 .ToList();
 
             return Json(new { response = jobs });
+        }
+        public async Task<IActionResult> UpdateTrainingExpiration(DateTime newExpiration, int TrainingId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+                var training = _context.Training
+                    .Include(t => t.Users)
+                    .ThenInclude(u => u.EmployerDetails)
+                    .Where(j => j.UsersId == userId && j.Id == TrainingId)
+                    .FirstOrDefault();
+
+                if (training == null)
+                    return Json(new { response = false, message = "Training not found." });
+
+                var oldExpiration = training.Expiration;
+
+                // Get all applicants for this training
+                var applicationIdList = _context.TrainingApplication
+                    .Where(ta => ta.TrainingId == TrainingId)
+                    .Select(ta => ta.AppliedBy)
+                    .ToList();
+                if(applicationIdList.Count > 0)
+                {
+                    foreach (var applicantId in applicationIdList)
+                    {
+                        try
+                        {
+                            var applicantInfo = _context.Users.FirstOrDefault(u => u.Id == applicantId);
+                            if (applicantInfo == null) continue;
+
+                            var sendEmail = new EmailThread
+                            {
+                                Subject = "Training Expiration Date Updated - " + training.Name,
+                                CreatedBy = training.UsersId,
+                                CreatedAt = DateTime.Now
+                            };
+                            _context.EmailThreads.Add(sendEmail);
+                            await _context.SaveChangesAsync();
+
+                            var email = new Email
+                            {
+                                Thread = sendEmail,
+                                SenderID = training.UsersId,
+                                Body = @"
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <style>
+                                body {
+                                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                                    line-height: 1.6;
+                                    color: #333;
+                                    margin: 0;
+                                    padding: 0;
+                                    background-color: #f5f5f5;
+                                }
+                                .container {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    background-color: #ffffff;
+                                    border-radius: 8px;
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                    overflow: hidden;
+                                }
+                                .header {
+                                    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+                                    color: white;
+                                    padding: 40px 20px;
+                                    text-align: center;
+                                }
+                                .header h1 {
+                                    margin: 0;
+                                    font-size: 28px;
+                                    font-weight: 600;
+                                }
+                                .content {
+                                    padding: 40px;
+                                }
+                                .greeting {
+                                    font-size: 16px;
+                                    margin-bottom: 20px;
+                                    color: #333;
+                                }
+                                .body-text {
+                                    font-size: 15px;
+                                    line-height: 1.7;
+                                    color: #555;
+                                    margin-bottom: 20px;
+                                }
+                                .highlight-box {
+                                    background-color: #e8f4f8;
+                                    border-left: 4px solid #0066cc;
+                                    padding: 20px;
+                                    margin: 25px 0;
+                                    border-radius: 4px;
+                                }
+                                .date-box {
+                                    background-color: #fff3e0;
+                                    border-left: 4px solid #ff9800;
+                                    padding: 15px;
+                                    margin: 15px 0;
+                                    border-radius: 4px;
+                                }
+                                .date-item {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 10px 0;
+                                    border-bottom: 1px solid #ffe0b2;
+                                    font-size: 14px;
+                                }
+                                .date-item:last-child {
+                                    border-bottom: none;
+                                }
+                                .date-item strong {
+                                    color: #ff9800;
+                                }
+                                .badge-old {
+                                    background-color: #f8d7da;
+                                    color: #842029;
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
+                                    font-size: 13px;
+                                    text-decoration: line-through;
+                                }
+                                .badge-new {
+                                    background-color: #d1e7dd;
+                                    color: #0f5132;
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
+                                    font-size: 13px;
+                                    font-weight: 600;
+                                }
+                                .footer {
+                                    background-color: #f9f9f9;
+                                    padding: 20px;
+                                    border-top: 1px solid #e0e0e0;
+                                    text-align: center;
+                                    font-size: 12px;
+                                    color: #888;
+                                }
+                                .divider {
+                                    height: 1px;
+                                    background-color: #e0e0e0;
+                                    margin: 30px 0;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='container'>
+                                <div class='header'>
+                                    <h1>🔔 Training Expiration Updated</h1>
+                                </div>
+                                <div class='content'>
+                                    <p class='greeting'>Dear " + applicantInfo.Username + @",</p>
+                                    <p class='body-text'>We would like to inform you that the expiration date for the following training program has been updated. Please take note of the new deadline.</p>
+
+                                    <div class='highlight-box'>
+                                        <p style='margin: 0; font-size: 12px; font-weight: 600; color: #0066cc; text-transform: uppercase; letter-spacing: 0.5px;'>Training Program</p>
+                                        <p style='margin: 5px 0 0 0; font-size: 18px; font-weight: 600; color: #333;'>" + training.Name + @"</p>
+                                        <p style='margin-top: 10px; margin-bottom: 0; font-size: 13px; color: #666;'>
+                                            <strong>Provider:</strong> " + training.Users?.EmployerDetails?.BusinessName + @"
+                                        </p>
+                                    </div>
+
+                                    <div class='date-box'>
+                                        <div class='date-item'>
+                                            <strong>📅 Previous Expiration:</strong>
+                                            <span class='badge-old'>" + oldExpiration.ToString("MMMM dd, yyyy") + @"</span>
+                                        </div>
+                                        <div class='date-item'>
+                                            <strong>📅 New Expiration:</strong>
+                                            <span class='badge-new'>" + newExpiration.ToString("MMMM dd, yyyy") + @"</span>
+                                        </div>
+                                    </div>
+
+                                    <p class='body-text'>Please ensure you complete all required tasks or submissions before the new expiration date. If you have any concerns, feel free to reach out to us.</p>
+
+                                    <div class='divider'></div>
+                                    <p class='body-text' style='font-size: 13px; color: #888;'>Best regards,<br><strong>The " + training.Users?.EmployerDetails?.BusinessName + @" Team</strong></p>
+                                </div>
+                                <div class='footer'>
+                                    <p>This is an automated message from " + training.Users?.EmployerDetails?.BusinessName + @". Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>",
+                                SentAt = DateTime.Now,
+                                IsDraft = false,
+                                IsTrashed = false,
+                                IsRead = false,
+                                IsStarred = false
+                            };
+                            _context.Emails.Add(email);
+                            await _context.SaveChangesAsync();
+
+                            var emailRecipient = new EmailRecipient
+                            {
+                                EmailID = email.Id,
+                                RecipientID = applicantId,
+                                RecipientType = RecipientType.TO,
+                                IsRead = false,
+                                IsTrashed = false,
+                                IsStarred = false
+                            };
+                            _context.EmailRecipients.Add(emailRecipient);
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error sending email to applicant {applicantId}: {ex.Message}");
+                        }
+                    }
+
+                }
+                training.Expiration = newExpiration;
+                _context.Training.Update(training);
+                await _context.SaveChangesAsync();
+
+                return Json(new { response = true, message = $"Expiration updated and {applicationIdList.Count} applicants notified!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { response = false, message = ex.Message });
+            }
         }
         public async Task<IActionResult> AddStartDateTraining(DateTime startDate, int TrainingId, string applicationIds = "")
         {
@@ -1176,7 +1569,7 @@ namespace burbodek.Controllers
         public IActionResult AccountSettings()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var userData = _context.Users.Include(u => u.EmployerDetails).Include(u => u.Jobs).Include(u => u.Training).FirstOrDefault(u => u.Id == userId);
+            var userData = _context.Users.Include(u => u.EmployerDetails).Include(u => u.UserProfile).Include(u => u.Jobs).Include(u => u.Training).FirstOrDefault(u => u.Id == userId);
             var TotalApplication = _context.TrainingApplication
                                 .Include(u => u.Training)
                                     .ThenInclude(u => u.Users)
@@ -1757,7 +2150,7 @@ namespace burbodek.Controllers
         public IActionResult AccountOverview()
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var userData = _context.Users.Include(u => u.EmployerDetails).Include(u => u.Jobs).Include(u =>u.Training).FirstOrDefault(u => u.Id == userId);
+            var userData = _context.Users.Include(u => u.UserProfile).Include(u => u.EmployerDetails).Include(u => u.Jobs).Include(u =>u.Training).FirstOrDefault(u => u.Id == userId);
             var TotalApplication = _context.TrainingApplication
                                 .Include(u => u.Training)
                                     .ThenInclude(u =>u.Users)
@@ -1828,16 +2221,29 @@ namespace burbodek.Controllers
                            .ThenInclude(u => u.ApplicantJobUpload.Where(u => u.UsersId == ApplicantId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
-
+            var templates = _context.EmailTemplate
+                    .Select(x => new EmailTemplateDTO
+                    {
+                        TypeOfEmail = x.TypeOfEmail,
+                        Subject = x.Subject,
+                        Body = x.Body
+                    })
+                    .ToList();
             if (data == null)
             {
                 return NotFound(); // or redirect to an error page
             }
 
-            return View(data);
+            var applicant = new ApplicantInfoViewModel
+            {
+                Jobs = data,
+                EmailTemplate = templates
+            };
+
+            return View(applicant);
         }
         [HttpPost]
-        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id)
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody, IFormFile? Attachment)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             // Get the applicant for this job
@@ -1848,18 +2254,21 @@ namespace burbodek.Controllers
                 .FirstOrDefault(u => u.Id == userId);
             var getJob = _context.Jobs
                 .Find(Id);
+
+            var templates = _context.EmailTemplate
+                    .Select(x => new EmailTemplateDTO
+                    {
+                        TypeOfEmail = x.TypeOfEmail,
+                        Subject = x.Subject,
+                        Body = x.Body
+                    })
+                    .ToList();
             if (getStatus == null)
             {
                 TempData["error"] = "Applicant not found.";
                 return RedirectToAction("JobDetails", new { Id });
             }
-            var emailTemplate = _context.EmailTemplate
-                                .Where(u => u.UsersId == userId && u.TypeOfEmail == Status && u.isActive == true)
-                                .FirstOrDefault();
-            var emailContent = emailTemplate.Body
-                                .Replace("{{ApplicantName}}", getStatus.FirstName)
-                                .Replace("{{CompanyName}}", getUser.EmployerDetails.BusinessName)
-                                .Replace("{{JobTitle}}", getStatus.Jobs.JobTitle);
+            var emailContent = EmailBody;
             
             var data = _context.Jobs
                        .Include(u => u.Users)
@@ -1883,7 +2292,7 @@ namespace burbodek.Controllers
                 TempData["success"] = "Applicant status updated successfully.";
                 var sendEmail = new EmailThread
                 {
-                    Subject = emailTemplate.Subject,
+                    Subject = EmailSubject,
                     CreatedBy = userId,
                     IsTrashed = false
                 };
@@ -1892,7 +2301,7 @@ namespace burbodek.Controllers
                 var sendEmailContent = new Email
                 {
                     ThreadID = sendEmail.Id,
-                    Body = emailContent,
+                    Body = EmailBody,
                     SenderID = userId,
                     IsDraft = false,
                     IsTrashed = false,
@@ -1911,9 +2320,42 @@ namespace burbodek.Controllers
                 };
                 _context.EmailRecipients.Add(emailRecipient);
                 _context.SaveChanges();
+                if(Attachment != null || Attachment.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads","email-attachments");
+
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Attachment.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        Attachment.CopyTo(stream);
+                    }
+
+                    var fileData = new EmailAttachment
+                    {
+                        EmailID = sendEmailContent.Id,
+                        FileName = Attachment.FileName,
+                        FilePath = "/uploads/email-attachments/" + uniqueFileName,
+                        FileSize = Attachment.Length
+
+                    };
+                    _context.EmailAttachments.Add(fileData);
+                    _context.SaveChanges();
+                }
+
             }
 
-            return View(data);
+
+            var applicant = new ApplicantInfoViewModel
+            {
+                Jobs = data,
+                EmailTemplate = templates
+            };
+            return View(applicant);
         }
 
         public IActionResult JobEdit(int Id)
@@ -2044,8 +2486,27 @@ namespace burbodek.Controllers
             .ForEach(k => ModelState.Remove(k));
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Please fill up all the details.";
+                TempData["Error"] = "Please fill up all the details.";
                 return View(model);
+            }
+
+            var user = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).ThenInclude(u => u.Plans).FirstOrDefault(u => u.Id == user);
+            if (userData.Subscription.FirstOrDefault().PlansId == 1)
+            {
+                var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var endOfMonth = startOfMonth.AddMonths(1);
+
+                var training = _context.Jobs
+                    .Where(t => t.UsersId == user &&
+                                t.CreatedAt >= startOfMonth &&
+                                t.CreatedAt < endOfMonth)
+                    .Count();
+                if (training > 5)
+                {
+                    TempData["Error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    return View(model);
+                }
             }
 
             var job = new Jobs
@@ -2062,7 +2523,8 @@ namespace burbodek.Controllers
                 Tor = false,
                 Coe = false,
                 SeamansBook = false,
-                PassportId = false
+                PassportId = false,
+                WillHire = model.WillHire
             };
 
             _context.Jobs.Add(job);
@@ -2149,6 +2611,7 @@ namespace burbodek.Controllers
                 }
             }
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Job Created successfully";
             return RedirectToAction("Index");
         }
 
@@ -2178,10 +2641,27 @@ namespace burbodek.Controllers
             }
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Please fill up all the details.";
+                TempData["Error"] = "Please fill up all the details.";
                 return View(model);
             }
-            
+            var user = int.Parse(User.FindFirst("UsersId")?.Value);
+            var userData = _context.Users.Include(u => u.Subscription.Where(u => u.Status == "Current")).ThenInclude(u => u.Plans).FirstOrDefault(u => u.Id == user);
+            if (userData.Subscription.FirstOrDefault().PlansId == 1)
+            {
+                var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var endOfMonth = startOfMonth.AddMonths(1);
+
+                var training = _context.Training
+                    .Where(t => t.UsersId == user &&
+                                t.CreatedAt >= startOfMonth &&
+                                t.CreatedAt < endOfMonth)
+                    .Count();
+                if(training > 5)
+                {
+                    TempData["Error"] = "Your monthly limit has been reached. If you want to post more, please apply for a subscription.";
+                    return View(model);
+                }
+            }
 
             var train = new Training
             {

@@ -656,77 +656,10 @@
 												<!--end::Avatar-->
 												<!--begin::Username-->
 												<div class="d-flex flex-column">
-													<div class="fw-bold d-flex align-items-center fs-5">Robert Fox
-													<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span></div>
-													<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">robert@kt.com</a>
+													<div class="fw-bold d-flex align-items-center fs-5">Administrator</div>
 												</div>
 												<!--end::Username-->
 											</div>
-										</div>
-										<!--end::Menu item-->
-										<!--begin::Menu separator-->
-										<div class="separator my-2"></div>
-										<!--end::Menu separator-->
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a href="../../demo1/dist/account/overview.html" class="menu-link px-5">My Profile</a>
-										</div>
-										<!--end::Menu item-->
-										<!--begin::Menu item-->
-										<div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
-											<a href="#" class="menu-link px-5">
-												<span class="menu-title">My Subscription</span>
-												<span class="menu-arrow"></span>
-											</a>
-											<!--begin::Menu sub-->
-											<div class="menu-sub menu-sub-dropdown w-175px py-4">
-												<!--begin::Menu item-->
-												<div class="menu-item px-3">
-													<a href="../../demo1/dist/account/referrals.html" class="menu-link px-5">Referrals</a>
-												</div>
-												<!--end::Menu item-->
-												<!--begin::Menu item-->
-												<div class="menu-item px-3">
-													<a href="../../demo1/dist/account/billing.html" class="menu-link px-5">Billing</a>
-												</div>
-												<!--end::Menu item-->
-												<!--begin::Menu item-->
-												<div class="menu-item px-3">
-													<a href="../../demo1/dist/account/statements.html" class="menu-link px-5">Payments</a>
-												</div>
-												<!--end::Menu item-->
-												<!--begin::Menu item-->
-												<div class="menu-item px-3">
-													<a href="../../demo1/dist/account/statements.html" class="menu-link d-flex flex-stack px-5">Statements
-													<span class="ms-2 lh-0" data-bs-toggle="tooltip" aria-label="View your statements" data-bs-original-title="View your statements" data-kt-initialized="1">
-														<i class="ki-duotone ki-information-5 fs-5">
-															<span class="path1"></span>
-															<span class="path2"></span>
-															<span class="path3"></span>
-														</i>
-													</span></a>
-												</div>
-												<!--end::Menu item-->
-												<!--begin::Menu separator-->
-												<div class="separator my-2"></div>
-												<!--end::Menu separator-->
-												<!--begin::Menu item-->
-												<div class="menu-item px-3">
-													<div class="menu-content px-3">
-														<label class="form-check form-switch form-check-custom form-check-solid">
-															<input class="form-check-input w-30px h-20px" type="checkbox" value="1" checked="checked" name="notifications">
-															<span class="form-check-label text-muted fs-7">Notifications</span>
-														</label>
-													</div>
-												</div>
-												<!--end::Menu item-->
-											</div>
-											<!--end::Menu sub-->
-										</div>
-										<!--end::Menu item-->
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a href="../../demo1/dist/account/statements.html" class="menu-link px-5">My Statements</a>
 										</div>
 										<!--end::Menu item-->
 										<!--begin::Menu separator-->
@@ -808,9 +741,6 @@
 												<!--end::Menu item-->
 											</div>
 											<!--end::Menu-->
-										</div>
-										<div class="menu-item px-5 my-1">
-											<a href="../../demo1/dist/account/settings.html" class="menu-link px-5">Account Settings</a>
 										</div>
 										<!--end::Menu item-->
 										<!--begin::Menu item-->
@@ -900,7 +830,20 @@
 													<span class="path2"></span>
 												</i>
 												</span>
-												<span class="menu-title">Users</span>
+												<span class="menu-title">Applicants</span>
+											</a>
+											<!--end:Menu link-->
+										</div>
+										<div class="menu-item">
+											<!--begin:Menu link-->
+											<a class="menu-link" asp-controller="Home" asp-action="Application">
+												<span class="menu-icon">
+													<i class="ki-duotone ki-some-files">
+														<span class="path1"></span>
+														<span class="path2"></span>
+													</i>
+												</span>
+												<span class="menu-title">Employer/Training Center</span>
 											</a>
 											<!--end:Menu link-->
 										</div>
@@ -912,7 +855,7 @@
 										</div>
 										<div class="menu-item">
 											<!--begin:Menu link-->
-											<a class="menu-link" asp-controller="Home" asp-action="Reports">
+											<a class="menu-link" asp-controller="Home" asp-action="Faq">
 												<span class="menu-icon">
 												<i class="ki-duotone ki-filter-tablet">
 													<span class="path1"></span>
@@ -925,14 +868,27 @@
 										</div>
 										<div class="menu-item">
 											<!--begin:Menu link-->
-										<a class="menu-link" asp-controller="Home" asp-action="Application">
+											<a class="menu-link" asp-controller="Home" asp-action="Subscription">
 												<span class="menu-icon">
-												<i class="ki-duotone ki-some-files">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
+													<i class="ki-duotone ki-filter-tablet">
+														<span class="path1"></span>
+														<span class="path2"></span>
+													</i>
 												</span>
-												<span class="menu-title">Application</span>
+												<span class="menu-title">Subscription</span>
+											</a>
+											<!--end:Menu link-->
+										</div>
+										<div class="menu-item">
+											<!--begin:Menu link-->
+											<a class="menu-link" asp-controller="Home" asp-action="Reports">
+												<span class="menu-icon">
+													<i class="ki-duotone ki-filter-tablet">
+														<span class="path1"></span>
+														<span class="path2"></span>
+													</i>
+												</span>
+												<span class="menu-title">Reports</span>
 											</a>
 											<!--end:Menu link-->
 										</div>

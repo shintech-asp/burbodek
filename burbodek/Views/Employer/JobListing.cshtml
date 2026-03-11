@@ -72,9 +72,30 @@
                             <td><span class="badge badge-light-info">@(data.JobApplication?.Count ?? 0) Applicants</span></td>
                             <td>@data.ExpirationDate.Humanize()</td>
                             <td>
-                                <span class="badge @(data.ExpirationDate > DateTime.Now ? "badge-success" : "badge-danger")">
-                                    @(data.ExpirationDate > DateTime.Now ? "Active" : "Expired")
-                                </span>
+                                @if(data.isDeleted == null || data.isDeleted == false)
+                                {
+                                    <span class="badge @(data.ExpirationDate > DateTime.Now ? "badge-success" : "badge-danger")">
+                                        @(data.ExpirationDate > DateTime.Now ? "Active" : "Expired")
+                                    </span>
+                                }
+                                @if (data.Appeal != null && (data.isDeleted == true) && data.isFinal != true)
+                                {
+                                    <span class="badge badge-info">
+                                        Appeal sent. Waiting for admin respond
+                                    </span>
+                                }
+                                @if (data.Appeal == null && (data.isDeleted == true) && data.isFinal != true)
+                                {
+                                    <span class="badge badge-warning">
+                                        Currently deleted: Waiting for your appeal
+                                    </span>
+                                }
+                                @if (data.isFinal == true)
+                                {
+                                    <span class="badge badge-danger">
+                                        Permanently deleted
+                                    </span>
+                                }
                             </td>
                             <td class="text-end pe-4">
                                 <a class="btn btn-light btn-sm" asp-action="JobDetails" asp-controller="Employer" asp-route-Id="@data.Id">View</a>

@@ -15,7 +15,7 @@ namespace burbodek.Models
         public string MobileNo { get; set; }
         public int Age { get; set; }
         public string City { get; set; }
-        public int ExpectedSalary { get; set; }
+        public int? ExpectedSalary { get; set; }
         public DateTime StartDate { get; set; }
         public string Experience { get; set; }
         public string ApplicationLetter { get; set; }

@@ -3,6 +3,7 @@ using burbodek.Models;
 using burbodek.Models.DTO;
 using burbodek.Models.ViewModels;
 using burbodek.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,97 +26,262 @@ namespace burbodek.Controllers
             _paymongo = paymongo;
             _environment = environment;
         }
-        public IActionResult Index(string keyword, string location, int page = 1)
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile profileImage)
+        {
+            try
+            {
+                if (profileImage == null || profileImage.Length == 0)
+                    return Json(new { success = false, message = "No image provided." });
+
+                // Validate extension
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(profileImage.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                    return Json(new { success = false, message = "Invalid file type. Only JPG, PNG, and WEBP are allowed." });
+
+                // Validate size (5MB)
+                if (profileImage.Length > 5 * 1024 * 1024)
+                    return Json(new { success = false, message = "File size must not exceed 5MB." });
+
+                // Get current user
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var user = await _context.Users.Include(u=> u.UserProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                if(user.UserProfile != null)
+                {
+                    // Delete old profile picture if it's not the default
+                    if (!string.IsNullOrEmpty(user.UserProfile.Picture))
+                    {
+                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                            user.UserProfile.Picture.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    user.UserProfile.Picture = relativePath;
+
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+                else
+                {
+                    // Save new file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profileImage.CopyToAsync(stream);
+                    }
+
+                    // Update DB
+                    var relativePath = $"/uploads/profiles/{fileName}";
+                    var data = new UserProfile
+                    {
+                        Picture = relativePath,
+                        UsersId = userId
+                    };
+                    await _context.UserProfile.AddAsync(data);
+                    await _context.SaveChangesAsync();
+                    var claims = new List<Claim>
+                {
+                    new Claim("UsersId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim("Status", user.EmployerDetails?.Status ?? "none"),
+                    new Claim("isSubscriber", _context.Subscription.Any(s => s.UsersId == user.Id && s.Status == "Current").ToString()),
+                    new Claim("SubscriberType", _context.Subscription.Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.PlansId.ToString() ?? "Expired"),
+                    new Claim("Plan", _context.Subscription.Include(u=>u.Plans).Where(u => u.Status == "Current" && u.UsersId == user.Id).FirstOrDefault()?.Plans.PlanName.ToString() ?? "None"),
+                    new Claim("isTrainingCenter", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isTrainingCenter == 1).ToString()),
+                    new Claim("isEmployer", _context.EmployerDetails.Any(u => u.UsersId == user.Id && u.isEmployer == 1).ToString()),
+                    new Claim("Picture", _context.UserProfile.Where(u => u.UsersId == user.Id).FirstOrDefault()?.Picture ?? "/assets/media/avatars/300-14.jpg"),
+                };
+
+                    var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", principal);
+                    return Json(new { success = true, path = relativePath });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult Index(string keyword, string location, decimal? salaryMin, decimal? salaryMax, int page = 1, string filter = "all")
         {
             int pageSize = 10;
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
-            // --- JOBS QUERY ---
-            var jobQuery = _context.Jobs
-                .Include(j => j.Users)
-                    .ThenInclude(u => u.EmployerDetails)
-                .Include(j => j.JobApplication)
-                .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null);
+            // Normalize filter
+            filter = string.IsNullOrEmpty(filter) ? "all" : filter.ToLower();
 
-            if (!string.IsNullOrEmpty(keyword))
+            List<JobItemViewModel> jobs = new();
+            List<TrainingItemViewModel> trainings = new();
+            int totalJobs = 0;
+            int totalTrainings = 0;
+
+            // --- JOBS QUERY (skip if filter is training) ---
+            if (filter == "all" || filter == "jobs")
             {
-                jobQuery = jobQuery.Where(j =>
-                    j.JobTitle.Contains(keyword) ||
-                    j.JobDescription.Contains(keyword) ||
-                    j.JobRole.Any(r => r.Role.Contains(keyword)));
-            }
+                var jobQuery = _context.Jobs
+                    .Include(j => j.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                    .Include(j => j.JobApplication)
+                    .Where(j => j.ExpirationDate > DateTime.Now && j.isArchived == null && j.isDeleted == null && (j.JobApplication.Count(u => u.Status == "Hired") < j.WillHire));
 
-            if (!string.IsNullOrEmpty(location))
-            {
-                jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
-            }
-
-            int totalJobs = jobQuery.Count();
-
-            var jobs = jobQuery
-                .OrderByDescending(j => j.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(j => new JobItemViewModel
+                if (!string.IsNullOrEmpty(keyword))
                 {
-                    Id = j.Id,
-                    JobTitle = j.JobTitle,
-                    JobDescription = j.JobDescription,
-                    EmployerAddress = j.Users.EmployerDetails.Address,
-                    SalaryMin = j.SalaryMin,
-                    SalaryMax = j.SalaryMax,
-                    CreatedAt = j.CreatedAt,
-                    JobRequiredBadge = j.JobRequiredBadge.ToList(),
-                    AlreadyApplied = j.JobApplication.Any(a => a.AppliedBy == userId)
-                })
-                .AsNoTracking()
-                .ToList();
+                    jobQuery = jobQuery.Where(j =>
+                        j.JobTitle.Contains(keyword) ||
+                        j.JobDescription.Contains(keyword) ||
+                        j.JobRole.Any(r => r.Role.Contains(keyword)));
+                }
 
-            // --- TRAININGS QUERY ---
-            var trainingQuery = _context.Training
-                .Include(t => t.Users)
-                    .ThenInclude(u => u.EmployerDetails)
-                .Include(t => t.TrainingApplication)
-                .Where(t => t.isArchived == null);
+                if (!string.IsNullOrEmpty(location))
+                    jobQuery = jobQuery.Where(j => j.Users.EmployerDetails.Address.Contains(location));
 
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                trainingQuery = trainingQuery.Where(t =>
-                    t.Name.Contains(keyword) || t.TrainingDescription.Contains(keyword));
+                if (salaryMin.HasValue)
+                    jobQuery = jobQuery.Where(j => j.SalaryMax >= salaryMin.Value);
+
+                if (salaryMax.HasValue)
+                    jobQuery = jobQuery.Where(j => j.SalaryMin <= salaryMax.Value);
+
+                totalJobs = jobQuery.Count();
+
+                jobs = jobQuery
+                    .OrderByDescending(j => j.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(j => new JobItemViewModel
+                    {
+                        Id = j.Id,
+                        JobTitle = j.JobTitle,
+                        JobDescription = j.JobDescription,
+                        EmployerAddress = j.Users.EmployerDetails.Address,
+                        SalaryMin = j.SalaryMin,
+                        SalaryMax = j.SalaryMax,
+                        CreatedAt = j.CreatedAt,
+                        JobRequiredBadge = j.JobRequiredBadge.ToList(),
+                        AlreadyApplied = j.JobApplication.Any(a => a.AppliedBy == userId)
+                    })
+                    .AsNoTracking()
+                    .ToList();
             }
 
-            if (!string.IsNullOrEmpty(location))
+            // --- TRAININGS QUERY (skip if filter is job) ---
+            if (filter == "all" || filter == "trainings")
             {
-                trainingQuery = trainingQuery.Where(t => t.Users.EmployerDetails.Address.Contains(location));
-            }
+                var trainingQuery = _context.Training
+                    .Include(t => t.Users)
+                        .ThenInclude(u => u.EmployerDetails)
+                    .Include(t => t.TrainingApplication)
+                    .Where(t => t.isArchived == null && t.Expiration >= DateTime.Now && t.isDeleted == null);
 
-            var trainings = trainingQuery
-                .OrderByDescending(t => t.CreatedAt)
-                .Select(t => new TrainingItemViewModel
+                if (!string.IsNullOrEmpty(keyword))
                 {
-                    Id = t.Id,
-                    Name = t.Name,
-                    TrainingDescription = t.TrainingDescription,
-                    EmployerAddress = t.Users.EmployerDetails.Address,
-                    Price = t.Price,
-                    ModeOfPayment = t.ModeOfPayment,
-                    PaymentOption = t.PaymentOption,
-                    CreatedAt = t.CreatedAt,
-                    TrainingBadge = t.TrainingBadge.Badge,
-                    AlreadyApplied = t.TrainingApplication.Any(a => a.AppliedBy == userId)
-                })
-                .AsNoTracking()
-                .ToList();
+                    trainingQuery = trainingQuery.Where(t =>
+                        t.Name.Contains(keyword) || t.TrainingDescription.Contains(keyword));
+                }
 
-            // --- COMBINE INTO ONE VIEWMODEL ---
+                if (!string.IsNullOrEmpty(location))
+                    trainingQuery = trainingQuery.Where(t => t.Users.EmployerDetails.Address.Contains(location));
+
+                // Salary filter only applies to jobs, but if you want price range for trainings too:
+                if (salaryMin.HasValue)
+                    trainingQuery = trainingQuery.Where(t => t.Price >= salaryMin.Value);
+
+                if (salaryMax.HasValue)
+                    trainingQuery = trainingQuery.Where(t => t.Price <= salaryMax.Value);
+
+                totalTrainings = trainingQuery.Count();
+
+                trainings = trainingQuery
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(t => new TrainingItemViewModel
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        TrainingDescription = t.TrainingDescription,
+                        EmployerAddress = t.Users.EmployerDetails.Address,
+                        Price = t.Price,
+                        ModeOfPayment = t.ModeOfPayment,
+                        PaymentOption = t.PaymentOption,
+                        CreatedAt = t.CreatedAt,
+                        TrainingBadge = t.TrainingBadge.Badge,
+                        AlreadyApplied = t.TrainingApplication.Any(a => a.AppliedBy == userId)
+                    })
+                    .AsNoTracking()
+                    .ToList();
+            }
+
+            // Total for pagination depends on active filter
+            int totalItems = filter switch
+            {
+                "job" => totalJobs,
+                "training" => totalTrainings,
+                _ => totalJobs + totalTrainings
+            };
+
             var viewModel = new JobListViewModel
             {
                 Jobs = jobs,
                 Trainings = trainings,
                 CurrentPage = page,
-                TotalPages = (int)Math.Ceiling(totalJobs / (double)pageSize),
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
                 Keyword = keyword,
-                Location = location
+                Location = location,
+                SalaryMin = salaryMin,
+                SalaryMax = salaryMax,
+                Filter = filter
             };
 
             return View(viewModel);
@@ -368,13 +534,15 @@ namespace burbodek.Controllers
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
 
             var training = _context.TrainingApplication
-                .Where(a => a.AppliedBy == userId && ((a.TrainingPayments.FirstOrDefault().ModeOfPayment == "E-wallet" && a.TrainingPayments.FirstOrDefault().Paid != null)||(a.TrainingPayments.FirstOrDefault().ModeOfPayment == "Cash")))
+                .Where(a => a.AppliedBy == userId)
                 .Include(a => a.Training)
                     .ThenInclude(u => u.Users)
                 .Include(a=> a.TrainingPayments)
                     .ThenInclude(a => a.Users)
                 .ToList();
-
+            ViewBag.TotalTraining = _context.TrainingApplication.Where(u => u.AppliedBy == userId).Count();
+            ViewBag.TotalOngoing = _context.TrainingApplication.Include(u => u.Training).Where(u => u.AppliedBy == userId && u.TrainingCertificate == null && u.Training.StartDate != null).Count();
+            ViewBag.TotalCompleted = _context.TrainingApplication.Include(u => u.Training).Where(u => u.AppliedBy == userId && u.TrainingCertificate != null && u.Training.StartDate != null).Count();
             return View(training);
         }
         public IActionResult Dashboard()
@@ -385,7 +553,28 @@ namespace burbodek.Controllers
                                     .ThenInclude(u => u.Training)
                                         .ThenInclude(u => u.Users)
                                 .Where(u => u.UsersId == userId && u.TrainingApplication.Training.Expiration >= DateTime.Now && u.ModeOfPayment == "E-wallet" && u.Paid == null).ToList();
-            var campaign = _context.Campaign.Where(u => u.IsActive).ToList();
+            var campaign = _context.Campaign
+     .Where(c => c.IsActive)
+     .ToList();
+
+            foreach (var c in campaign)
+            {
+                if (c.ListingType == "Jobs")
+                {
+                    c.SelectedJob = _context.Jobs
+                        .FirstOrDefault(j => j.Id == c.SelectedListingId && j.ExpirationDate >= DateTime.Now);
+                }
+                else if (c.ListingType == "Training")
+                {
+                    c.SelectedTraining = _context.Training
+                        .FirstOrDefault(t => t.Id == c.SelectedListingId && t.Expiration >= DateTime.Now);
+                }
+            }
+
+            campaign = campaign
+                .Where(c => c.SelectedJob != null || c.SelectedTraining != null)
+                .ToList();
+
             var dashboard = new EmployeeDashboardViewModel
             {
                 Training = data,
@@ -418,6 +607,7 @@ namespace burbodek.Controllers
                         .Where(t =>
                             requiredBadges.Contains(t.TrainingBadge.Badge) &&
                             !t.TrainingApplication.Any(a => a.AppliedBy == userId)
+                            && t.isDeleted != true
                         )
                         .OrderBy(t => t.Expiration) // optional: prioritize soon-expiring
                         .Take(3)
@@ -480,7 +670,7 @@ namespace burbodek.Controllers
                 return NotFound();
 
             // 🔹 Badge obtained from this training
-            var trainingBadge = training.TrainingBadge.Badge;
+            var trainingBadge = training.TrainingBadge?.Badge;
 
             // 🔹 User's existing badges
             var userBadges = _context.UserBadge
@@ -513,6 +703,7 @@ namespace burbodek.Controllers
                     && j.JobRequiredBadge.Any(rb =>
                         rb.Badge == trainingBadge
                     )
+                            && j.isDeleted != true
                 )
                 .OrderBy(j => j.ExpirationDate)
                 .Take(3)
@@ -1721,14 +1912,59 @@ namespace burbodek.Controllers
             var userInfo = _context.JobApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
                         .FirstOrDefault();
 
+            var userProfile = _context.UserProfile.Where(a => a.UsersId == userId)
+                        .FirstOrDefault();
             var viewModel = new JobApplyViewModel
             {
                 Jobs = data,
-                UserInfo = userInfo
+                UserInfo = userInfo,
+                UserProfile = userProfile
             };
             return View(viewModel);
         }
 
+        public IActionResult SubmitReport(int? TrainingId, int? JobsId, string Reason, string Description)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+            var alreadyReported = _context.PostReport
+                                    .Any(u => u.UsersId == userId &&
+                                             ((TrainingId != null && u.TrainingId == TrainingId) ||
+                                              (JobsId != null && u.JobsId == JobsId)));
+            if(Reason != null && Description != null)
+            {
+                if (alreadyReported)
+                {
+                    TempData["Error"] = "Report already submitted";
+                }
+                else
+                {
+                    var report = new PostReport
+                    {
+                        UsersId = userId,
+                        TrainingId = TrainingId,
+                        JobsId = JobsId,
+                        Reason = Reason,
+                        Description = Description
+                    };
+                    _context.PostReport.Add(report);
+                    _context.SaveChanges();
+                    TempData["Success"] = "Report submitted successfully!";
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Fill up all the details!";
+            }
+            if(TrainingId != null)
+            {
+                return RedirectToAction("TrainingInfo", new { Id = TrainingId });
+            }
+            else
+            {
+                return RedirectToAction("JobInfo", new { Id = JobsId });
+            }
+               
+        }
         public IActionResult TrainingApply(int Id)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -1736,6 +1972,8 @@ namespace burbodek.Controllers
             var data = _context.Training
                         .Include(u => u.Users)
                             .ThenInclude(u => u.EmployerDetails)
+                        .Include(u => u.Users)
+                            .ThenInclude(u => u.UserProfile)
                         .Include(u => u.TrainingRequirements)
                         .Include(u => u.TrainingMedia)
                         .Include(u => u.TrainingBenefits)
@@ -1743,13 +1981,13 @@ namespace burbodek.Controllers
                         .Include(u => u.TrainingUploads.Where(u => u.isActive))
                         .Where(u => u.Id == Id && u.isArchived == null)
                         .FirstOrDefault();
-            var userInfo = _context.TrainingApplication.Where(a => a.AppliedBy == userId).OrderByDescending(a => a.CreatedAt)
+            var userProfile = _context.UserProfile.Where(a => a.UsersId == userId)
                         .FirstOrDefault();
 
             var viewModel = new TrainingApplyViewModel
             {
                 Training = data,
-                UserInfo = userInfo
+                UserProfile = userProfile
             };
             return View(viewModel);
         }
@@ -2021,6 +2259,7 @@ namespace burbodek.Controllers
             ModelState.Remove("Jobs");
             ModelState.Remove("AppliedBy");
             ModelState.Remove("CV");
+            ModelState.Remove("Experience");
 
             model.JobsId = Id;
             model.AppliedBy = int.Parse(User.FindFirst("UsersId")?.Value);
@@ -2032,7 +2271,7 @@ namespace burbodek.Controllers
                     Console.WriteLine($"Key: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
                 }
                 TempData["error"] = "Please fill all the required fields!";
-                return View(model);
+                return View(Id);
             }
 
             // File upload logic (refactored for reuse)
@@ -2066,7 +2305,7 @@ namespace burbodek.Controllers
                 City = model.City,
                 ExpectedSalary = model.ExpectedSalary,
                 StartDate = model.StartDate,
-                Experience = model.Experience,
+                Experience = model.Experience ?? "",
                 ApplicationLetter = model.ApplicationLetter
             };
 
@@ -2095,7 +2334,7 @@ namespace burbodek.Controllers
 
             // Get the "Applied" email template
             var emailTemplate = await _context.EmailTemplate
-                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied" && et.UsersId == job.UsersId);
+                .FirstOrDefaultAsync(et => et.TypeOfEmail == "Applied");
 
             if (emailTemplate != null && applicant != null)
             {
@@ -2109,40 +2348,40 @@ namespace burbodek.Controllers
                     .Replace("{{ApplicantName}}", model.FirstName + " " + model.LastName)
                     .Replace("{{JobTitle}}", job.JobTitle)
                     .Replace("{{CompanyName}}", job.Users.EmployerDetails.BusinessName);
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var sendEmail = new EmailThread
+                {
+                    Subject = subject,
+                    CreatedBy = job.UsersId,
+                    CreatedAt = DateTime.Now
+                };
+                _context.EmailThreads.Add(sendEmail);
+                await _context.SaveChangesAsync();
+                var email = new Email
+                {
+                    Thread = sendEmail,
+                    SenderID = job.UsersId,
+                    Body = body,
+                    SentAt = DateTime.Now,
+                    IsDraft = false,
+                    IsTrashed = false,
+                    IsRead = false,
+                    IsStarred = false
+                };
+                _context.Emails.Add(email);
+                await _context.SaveChangesAsync();
+                var emailRecipient = new EmailRecipient
+                {
+                    EmailID = email.Id,
+                    RecipientID = userId,
+                    RecipientType = RecipientType.TO,
+                    IsRead = false,
+                    IsTrashed = false,
+                    IsStarred = false
+                };
+                _context.EmailRecipients.Add(emailRecipient);
+                await _context.SaveChangesAsync();
             }
-            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var sendEmail = new EmailThread
-            {
-                Subject = emailTemplate.Subject,
-                CreatedBy = job.UsersId,
-                CreatedAt = DateTime.Now
-            };
-            _context.EmailThreads.Add(sendEmail);
-            await _context.SaveChangesAsync();
-            var email = new Email
-            {
-                Thread = sendEmail,
-                SenderID = job.UsersId,
-                Body = emailTemplate.Body,
-                SentAt = DateTime.Now,
-                IsDraft = false,
-                IsTrashed = false,
-                IsRead = false,
-                IsStarred = false
-            };
-            _context.Emails.Add(email);
-            await _context.SaveChangesAsync();
-            var emailRecipient = new EmailRecipient
-            {
-                EmailID = email.Id,
-                RecipientID = userId,
-                RecipientType = RecipientType.TO,
-                IsRead = false,
-                IsTrashed = false,
-                IsStarred = false
-            };
-            _context.EmailRecipients.Add(emailRecipient);
-            await _context.SaveChangesAsync();
             TempData["success"] = "Application submitted successfully!";
             return RedirectToAction("Index");
         }
@@ -2169,6 +2408,8 @@ namespace burbodek.Controllers
                             .ThenInclude(u => u.TrainingCertificate)
                        .Include(u => u.TrainingRequirements)
                        .Include(u => u.TrainingMedia)
+                       .Include(u => u.TrainingUploads.Where(a => a.isActive))
+                           .ThenInclude(u => u.ApplicantTrainingUpload.Where(u => u.UsersId == userId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
 
@@ -2190,6 +2431,8 @@ namespace burbodek.Controllers
                        .Include(u => u.JobRequirements)
                        .Include(u => u.JobRole)
                        .Include(u => u.JobMedia)
+                       .Include(u => u.JobUploads.Where(a => a.isActive))
+                           .ThenInclude(u => u.ApplicantJobUpload.Where(u => u.UsersId == userId))
                        .Where(u => u.Id == Id && u.isArchived == null)
                        .FirstOrDefault();
 
@@ -2200,39 +2443,37 @@ namespace burbodek.Controllers
 
             return View(data);
         }
-        public IActionResult ChangeProfileDetails(string Firstname, string Middlename, string Lastname, string Nationality, DateOnly Birthday, string MobileNumber)
+        public IActionResult ChangeProfileDetails(string Firstname, string Lastname, string Nationality, string Birthday, string MobileNumber)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var user = _context.EmployeeDetails
+            var user = _context.UserProfile
                         .FirstOrDefault(u => u.UsersId == userId);
-
+            DateOnly parsedBirthday = DateOnly.Parse(Birthday);
             if (user == null)
             {
-                var users = new EmployeeDetails
+                var users = new UserProfile
                 {
-                    Firstname = Firstname,
-                    Middlename = Middlename,
-                    Lastname = Lastname,
-                    Nationality = Nationality,
-                    Birthday = Birthday,
-                    MobileNumber = MobileNumber,
+                    FirstName = Firstname,
+                    LastName = Lastname,
+                    City = Nationality,
+                    Birthdate = parsedBirthday,
+                    MobileNo = MobileNumber,
                     UsersId = userId
                 };
 
 
-                _context.EmployeeDetails.Add(users);
+                _context.UserProfile.Add(users);
                 _context.SaveChanges();
             }
             else
             {
-                user.Firstname = Firstname;
-                user.Middlename = Middlename;
-                user.Lastname = Lastname;
-                user.Nationality = Nationality;
-                user.Birthday = Birthday;
-                user.MobileNumber = MobileNumber;
+                user.FirstName = Firstname;
+                user.LastName = Lastname;
+                user.City = Nationality;
+                user.Birthdate = parsedBirthday;
+                user.MobileNo = MobileNumber;
 
-                _context.EmployeeDetails.Update(user);
+                _context.UserProfile.Update(user);
                 _context.SaveChanges();
 
             }
@@ -2271,6 +2512,7 @@ namespace burbodek.Controllers
                 .Include(u => u.TrainingApplication.Where(u => u.AppliedBy == userId))
                 .Include(u => u.JobApplication.Where(u => u.AppliedBy == userId))
                 .Include(u => u.EmployeeDetails)
+                .Include(u => u.UserProfile)
                 .Include(u => u.UserBadge)
                 .Where(u => u.Id == userId).FirstOrDefault();
 

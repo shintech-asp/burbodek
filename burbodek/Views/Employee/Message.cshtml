@@ -109,13 +109,13 @@
 
                                             <!-- Sender -->
                                             <td class="w-150px w-md-175px">
-                                                <a href="#" class="d-flex align-items-center text-gray-900">
+                                                <a asp-action="Reply" asp-route-Id="@thread.Id" class="d-flex align-items-center text-gray-900">
                                                     <div class="symbol symbol-35px me-3">
                                                         <div class="symbol-label bg-light-primary">
-                                                            <span class="text-primary">@(thread.Creator?.Username?.Substring(0, 1) ?? "A")</span>
+                                                            <span class="text-primary">@email.Sender.Username.Substring(0, 1)</span>
                                                         </div>
                                                     </div>
-                                                    <span class="@(recipient?.IsRead == false ? "fw-semibold" : "")">@thread.Creator?.Email</span>
+                                                    <span class="fw-semibold">@email.Sender.Email</span>
                                                 </a>
                                             </td>
 

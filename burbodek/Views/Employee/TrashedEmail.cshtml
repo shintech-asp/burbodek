@@ -94,7 +94,7 @@
                                         @* var from = email.Id; // You can join with Users table if needed *@
                                         <tr data-recipient-id="@email.Emails.FirstOrDefault()?.Recipients.FirstOrDefault().Id">
                                             <td class="w-150px w-md-175px">
-                                                <a href="#" class="d-flex align-items-center text-gray-900">
+                                                <a asp-action ="TrashedView" asp-route-Id="@email.Id" asp-route-RecipientId="@email.Emails.FirstOrDefault()?.Recipients.FirstOrDefault().Id" class="d-flex align-items-center text-gray-900">
                                                     <div class="symbol symbol-35px me-3">
                                                         <div class="symbol-label bg-light-primary">
                                                             <span class="text-primary">@email.Emails.FirstOrDefault()?.Sender.Username.Substring(0, 1)</span>

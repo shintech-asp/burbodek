@@ -155,7 +155,14 @@
                         <!--begin::Input wrapper-->
                         <div class="position-relative">
                             <!--begin::Input-->
-                            <input type="number" class="form-control form-control-solid" placeholder="Enter card number" name="PhoneNumber"/>
+                            <input type="text"
+                                   class="form-control form-control-solid"
+                                   placeholder="Enter phone number"
+                                   name="PhoneNumber"
+                                   maxlength="11"
+                                   pattern="^09\d{9}$"
+                                   title="Phone number must start with 09 and be 11 digits"
+                                   required />
                             <!--end::Input-->
                             <!--begin::Card logos-->
                             <div class="position-absolute translate-middle-y top-50 end-0 me-5">

@@ -420,12 +420,21 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("RegistrationCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
+
+                    b.Property<bool?>("isAllowedForResubmission")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("isEmployer")
                         .HasColumnType("int");
@@ -550,7 +559,7 @@ namespace burbodek.Migrations
                     b.Property<string>("Diploma")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ExpectedSalary")
+                    b.Property<int?>("ExpectedSalary")
                         .HasColumnType("int");
 
                     b.Property<string>("Experience")
@@ -747,6 +756,9 @@ namespace burbodek.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Appeal")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("Coe")
                         .HasColumnType("bit");
 
@@ -794,8 +806,17 @@ namespace burbodek.Migrations
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("WillHire")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("isArchived")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool?>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isFinal")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -892,6 +913,51 @@ namespace burbodek.Migrations
                     b.ToTable("Plans");
                 });
 
+            modelBuilder.Entity("burbodek.Models.PostReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateReported")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("JobsId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TrainingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isRetained")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobsId");
+
+                    b.HasIndex("TrainingId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("PostReport");
+                });
+
             modelBuilder.Entity("burbodek.Models.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -924,6 +990,23 @@ namespace burbodek.Migrations
                     b.ToTable("Subscription");
                 });
 
+            modelBuilder.Entity("burbodek.Models.Terms", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Terms");
+                });
+
             modelBuilder.Entity("burbodek.Models.Training", b =>
                 {
                     b.Property<int>("Id")
@@ -931,6 +1014,9 @@ namespace burbodek.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Appeal")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Coe")
                         .HasColumnType("bit");
@@ -996,6 +1082,12 @@ namespace burbodek.Migrations
 
                     b.Property<DateTime?>("isArchived")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool?>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isFinal")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1089,7 +1181,7 @@ namespace burbodek.Migrations
                     b.Property<int>("TrainingId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Validity")
+                    b.Property<int?>("Validity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1276,7 +1368,7 @@ namespace burbodek.Migrations
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("ValidUntil")
+                    b.Property<DateTime?>("ValidUntil")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
@@ -1284,6 +1376,43 @@ namespace burbodek.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("UserBadge");
+                });
+
+            modelBuilder.Entity("burbodek.Models.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("Birthdate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MobileNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Picture")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsersId")
+                        .IsUnique();
+
+                    b.ToTable("UserProfile");
                 });
 
             modelBuilder.Entity("burbodek.Models.Users", b =>
@@ -1307,6 +1436,15 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Otpcode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Otpexpiration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("Otpsent")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1318,6 +1456,9 @@ namespace burbodek.Migrations
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("isVerified")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1615,6 +1756,29 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("burbodek.Models.PostReport", b =>
+                {
+                    b.HasOne("burbodek.Models.Jobs", "Jobs")
+                        .WithMany("PostReport")
+                        .HasForeignKey("JobsId");
+
+                    b.HasOne("burbodek.Models.Training", "Training")
+                        .WithMany("PostReport")
+                        .HasForeignKey("TrainingId");
+
+                    b.HasOne("burbodek.Models.Users", "Users")
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Jobs");
+
+                    b.Navigation("Training");
+
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("burbodek.Models.Subscription", b =>
                 {
                     b.HasOne("burbodek.Models.Plans", "Plans")
@@ -1760,6 +1924,17 @@ namespace burbodek.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("burbodek.Models.UserProfile", b =>
+                {
+                    b.HasOne("burbodek.Models.Users", "Users")
+                        .WithOne("UserProfile")
+                        .HasForeignKey("burbodek.Models.UserProfile", "UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("burbodek.Models.Email", b =>
                 {
                     b.Navigation("Attachments");
@@ -1797,10 +1972,14 @@ namespace burbodek.Migrations
                     b.Navigation("JobRole");
 
                     b.Navigation("JobUploads");
+
+                    b.Navigation("PostReport");
                 });
 
             modelBuilder.Entity("burbodek.Models.Training", b =>
                 {
+                    b.Navigation("PostReport");
+
                     b.Navigation("TrainingApplication");
 
                     b.Navigation("TrainingBadge")
@@ -1854,6 +2033,8 @@ namespace burbodek.Migrations
                     b.Navigation("TrainingApplication");
 
                     b.Navigation("UserBadge");
+
+                    b.Navigation("UserProfile");
                 });
 #pragma warning restore 612, 618
         }

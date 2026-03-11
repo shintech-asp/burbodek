@@ -3,7 +3,9 @@
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
 }
 @using Humanizer
-@model Jobs;
+@model ApplicantInfoViewModel;
+@using System.Text.Json
+@using burbodek.Models.ViewModels
 <div class="card">
 	<!--begin::Body-->
 	<div class="card-body p-lg-17">
@@ -24,10 +26,10 @@
 		<div class="position-relative mb-17">
 			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
 				<div class="carousel-inner">
-					@if (Model.JobMedia != null && Model.JobMedia.Any())
+					@if (Model.Jobs.JobMedia != null && Model.Jobs.JobMedia.Any())
 					{
 						var index = 0;
-						foreach (var media in Model.JobMedia)
+						foreach (var media in Model.Jobs.JobMedia)
 						{
 							var isActive = index == 0 ? "active" : "";
 							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
@@ -76,8 +78,8 @@
 
 			<!-- Business Info -->
 			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
-				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Users.EmployerDetails?.BusinessName</h3>
-				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
+				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.Jobs.Users.EmployerDetails?.BusinessName</h3>
+				<div class="fs-5 fw-semibold">@Model.Jobs.Users.EmployerDetails?.BusinessDescription</div>
 			</div>
 		</div>
 		<!--begin::Layout-->
@@ -94,7 +96,7 @@
 						<label class="required fs-5 fw-semibold mb-2">First Name</label>
 						<!--end::Label-->
 						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.JobApplication?.FirstOrDefault()?.FirstName" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="FirstName" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.FirstName" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -105,7 +107,7 @@
 						<label class="required fs-5 fw-semibold mb-2">Last Name</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.JobApplication?.FirstOrDefault()?.LastName" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="LastName" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.LastName" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -120,7 +122,7 @@
 						<label class="fs-5 fw-semibold mb-2">Mobile No</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.JobApplication?.FirstOrDefault()?.MobileNo" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="MobileNo" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.MobileNo" readonly>
 						<!--end::Input-->
 					</div>
 					<!--end::Col-->
@@ -134,7 +136,7 @@
 						<label class="required fs-5 fw-semibold mb-2">Age</label>
 						<!--end::Label-->
 						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.JobApplication?.FirstOrDefault()?.Age" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="Age" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.Age" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -145,7 +147,7 @@
 						<label class="required fs-5 fw-semibold mb-2">City</label>
 						<!--end::Label-->
 						<!--end::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.JobApplication?.FirstOrDefault()?.City" readonly>
+						<input type="text" class="form-control form-control-solid" placeholder="" name="City" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.City" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -155,23 +157,12 @@
 				<!--begin::Input group-->
 				<div class="row mb-5">
 					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
+					<div class="col-md-12 fv-row fv-plugins-icon-container">
 						<!--begin::Label-->
 						<label class="required fs-5 fw-semibold mb-2">Expected Salary</label>
 						<!--end::Label-->
 						<!--begin::Input-->
-						<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.JobApplication?.FirstOrDefault()?.ExpectedSalary" readonly>
-						<!--end::Input-->
-						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-					</div>
-					<!--end::Col-->
-					<!--begin::Col-->
-					<div class="col-md-6 fv-row fv-plugins-icon-container">
-						<!--end::Label-->
-						<label class="required fs-5 fw-semibold mb-2">Start Date</label>
-						<!--end::Label-->
-						<!--end::Input-->
-						<input type="date" class="form-control" value="@Model.JobApplication?.FirstOrDefault()?.StartDate.ToString("yyyy-MM-dd")" name="StartDate" readonly />
+						<input type="text" class="form-control form-control-solid" placeholder="" name="ExpectedSalary" value="@Model.Jobs.JobApplication?.FirstOrDefault()?.ExpectedSalary" readonly>
 						<!--end::Input-->
 						<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 					</div>
@@ -181,19 +172,19 @@
 				<!--begin::Input group-->
 				<div class="d-flex flex-column mb-5">
 					<label class="fs-6 fw-semibold mb-2">Experience (Optional)</label>
-					<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="" readonly>@Model.JobApplication?.FirstOrDefault()?.Experience</textarea>
+					<textarea class="form-control form-control-solid" rows="2" name="Experience" placeholder="" readonly>@Model.Jobs.JobApplication?.FirstOrDefault()?.Experience</textarea>
 				</div>
 				<!--end::Input group-->
 				<!--begin::Input group-->
 				<div class="d-flex flex-column mb-8">
 					<label class="fs-6 fw-semibold mb-2">Application</label>
-					<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="" readonly>@Model.JobApplication?.FirstOrDefault()?.ApplicationLetter</textarea>
+					<textarea class="form-control form-control-solid" rows="4" name="ApplicationLetter" placeholder="" readonly>@Model.Jobs.JobApplication?.FirstOrDefault()?.ApplicationLetter</textarea>
 				</div>
 				<!--end::Input group-->
 				<!-- Upload Media -->
-				@if (Model.JobUploads != null)
+				@if (Model.Jobs.JobUploads != null)
 				{
-					@foreach(var data in Model.JobUploads)
+					@foreach (var data in Model.Jobs.JobUploads)
 					{
 						<div class="mb-5">
 							<div>
@@ -207,12 +198,13 @@
 						</div>
 					}
 				}
-				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Id" asp-route-ApplicantId="@Model.JobApplication?.FirstOrDefault()?.AppliedBy">
+				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Jobs.Id" asp-route-ApplicantId="@Model.Jobs.JobApplication?.FirstOrDefault()?.AppliedBy" enctype="multipart/form-data">
 					<div class="mb-5">
-						<select class="form-select" name="Status">
-							<option value="@Model.JobApplication.FirstOrDefault()?.Status" hidden selected>@Model.JobApplication.FirstOrDefault()?.Status</option>
+						<select class="form-select" name="Status" id="Status">
+							<option value="@Model.Jobs.JobApplication.FirstOrDefault()?.Status" hidden selected>@Model.Jobs.JobApplication.FirstOrDefault()?.Status</option>
 							<option value="Applied">Applied</option>
 							<option value="For Interview">Interview</option>
+							<option value="Job Offer">Job Offer</option>
 							<option value="Hired">Hired</option>
 							<option value="Rejected">Reject</option>
 						</select>
@@ -221,19 +213,50 @@
 					<div class="separator mb-8"></div>
 					<!--end::Separator-->
 					<!--begin::Submit-->
-					<a class="btn btn-danger" asp-controller="Employer" asp-action="JobDetails" asp-route-Id="@Model.Id">Back</a>
-					<button type="submit" class="btn btn-primary" id="kt_careers_submit_button">
-						<!--begin::Indicator label-->
+					<a class="btn btn-danger" asp-controller="Employer" asp-action="JobDetails" asp-route-Id="@Model.Jobs.Id">Back</a>
+					<button type="button" class="btn btn-primary" id="previewEmailBtn">
 						<span class="indicator-label">Submit Changes</span>
-						<!--end::Indicator label-->
-						<!--begin::Indicator progress-->
-						<span class="indicator-progress">
-							Please wait...
-							<span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-						</span>
-						<!--end::Indicator progress-->
 					</button>
-					<!--end::Submit-->
+					<!-- Email Preview Modal -->
+					<div class="modal fade" id="emailPreviewModal" tabindex="-1">
+						<div class="modal-dialog modal-xl modal-dialog-scrollable">
+							<div class="modal-content">
+
+								<div class="modal-header">
+									<h5 class="modal-title">Review & Edit Email</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+								</div>
+
+								<div class="modal-body">
+
+									<div class="mb-3" id="Subject">
+										<label class="form-label">Subject</label>
+										<input type="text" id="emailSubject" class="form-control">
+									</div>
+
+									<div class="mb-3">
+										<label class="form-label">Email Body</label>
+										<div id="emailBody" style="height: 500px;"></div>
+									</div>
+
+								</div>
+
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary"
+											data-bs-dismiss="modal">
+										Cancel
+									</button>
+									<button type="button" class="btn btn-success"
+											id="confirmSubmitBtn">
+										Confirm & Send
+									</button>
+								</div>
+
+							</div>
+						</div>
+					</div>
+
+
 				</form>
 				<!--end::Form-->
 			</div>
@@ -281,7 +304,133 @@
 	</style>
 
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
+				var emailTemplates = @Html.Raw(JsonSerializer.Serialize(Model.EmailTemplate));
+
+		document.addEventListener('DOMContentLoaded', function () {
+
+			// ==============================
+			// INIT GRAPESJS EDITOR
+			// ==============================
+			const editor = grapesjs.init({
+				container: '#emailBody',
+				height: '500px',
+				width: 'auto',
+				storageManager: false,
+				panels: { defaults: [] }, // Remove unnecessary panels
+				blockManager: { blocks: [] },
+				plugins: [],
+				canvas: {
+					styles: [],
+				},
+				deviceManager: {
+					devices: [
+						{ name: 'Desktop', width: '' }
+					]
+				},
+			});
+
+			// Hide GrapesJS toolbar except what we need
+			editor.Panels.removePanel('views');
+			editor.Panels.removePanel('devices-c');
+
+			// ==============================
+			// PREVIEW BUTTON
+			// ==============================
+			document.getElementById("previewEmailBtn").addEventListener("click", function () {
+
+				var selectedStatus = document.querySelector("select[name='Status']").value;
+				var template = emailTemplates.find(t => t.TypeOfEmail === selectedStatus);
+
+				if (!template) {
+					alert("No email template found for this status.");
+					return;
+				}
+						if (selectedStatus == "Job Offer") {
+			$("#Subject").append(`
+				<div class="mb-3" id="AttachmentWrapper">
+					<label class="form-label">Attachments</label>
+					<input type="file" id="Attachment" class="form-control" name="Attachment">
+				</div>
+			`);
+		} else {
+			$("#AttachmentWrapper").remove();
+		}
+				// Replace placeholders
+				var applicantName = "@Model.Jobs.JobApplication?.FirstOrDefault()?.LastName, @Model.Jobs.JobApplication?.FirstOrDefault()?.FirstName";
+				var jobTitle = "@Model.Jobs.JobTitle";
+				var companyName = "@Model.Jobs.Users.Username";
+
+				var body = template.Body
+					.replaceAll("{{ApplicantName}}", applicantName)
+					.replaceAll("{{JobTitle}}", jobTitle)
+					.replaceAll("{{CompanyName}}", companyName);
+
+				var subject = template.Subject
+					.replaceAll("{{JobTitle}}", jobTitle)
+					.replaceAll("{{CompanyName}}", companyName);
+
+				// Set subject
+				document.getElementById("emailSubject").value = subject;
+
+				// Load full HTML into GrapesJS (renders with styles!)
+				editor.setComponents(body);
+
+				// Show modal — wait for modal to be visible before rendering
+				const modalEl = document.getElementById('emailPreviewModal');
+				const modal = new bootstrap.Modal(modalEl);
+
+				modalEl.addEventListener('shown.bs.modal', function () {
+					editor.refresh(); // Re-render inside modal
+				}, { once: true });
+
+				modal.show();
+			});
+
+			// ==============================
+			// CONFIRM SUBMIT
+			// ==============================
+		document.getElementById("confirmSubmitBtn").addEventListener("click", function () {
+
+			const form = document.querySelector("form");
+			const editedSubject = document.getElementById("emailSubject").value;
+
+			// Get the full HTML with styles properly combined
+			const css = editor.getCss();
+			const html = editor.getHtml();
+
+			const fullHtml = `<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<style>${css}</style>
+		</head>
+		${html}
+		</html>`;
+
+			// Remove old hidden inputs (avoid duplicates)
+			document.querySelectorAll("input[name='EmailSubject'], input[name='EmailBody']")
+				.forEach(e => e.remove());
+
+			let subjectInput = document.createElement("input");
+			subjectInput.type = "hidden";
+			subjectInput.name = "EmailSubject";
+			subjectInput.value = editedSubject;
+
+			let bodyInput = document.createElement("input");
+			bodyInput.type = "hidden";
+			bodyInput.name = "EmailBody";
+			bodyInput.value = fullHtml;
+
+			form.appendChild(subjectInput);
+			form.appendChild(bodyInput);
+
+			form.submit();
+		});
+
+			// ==============================
+			// FILEPOND INIT
+			// ==============================
 			FilePond.registerPlugin(
 				FilePondPluginImagePreview,
 				FilePondPluginPdfPreview
@@ -305,7 +454,9 @@
 				allowRevert: false
 			});
 
-			// Create overlay element
+			// ==============================
+			// IMAGE ZOOM OVERLAY
+			// ==============================
 			const overlay = document.createElement('div');
 			overlay.className = 'image-zoom-overlay';
 			overlay.innerHTML = '<img src="" alt="Zoomed image">';
@@ -315,6 +466,9 @@
 				overlay.classList.remove('active');
 			});
 
+			// ==============================
+			// FILEPOND INSTANCES
+			// ==============================
 			const inputs = document.querySelectorAll('.filepond');
 			inputs.forEach(input => {
 				const pond = FilePond.create(input);
@@ -327,17 +481,16 @@
 				pond.on('addfile', (error, file) => {
 					if (error) {
 						alert('Invalid file: Only images and PDFs allowed.');
+						return;
 					}
 
-					// Add zoom for images
-					if (!error && file.file.type.startsWith('image/')) {
+					if (file.file.type.startsWith('image/')) {
 						setTimeout(() => {
 							const wrapper = pond.element.querySelector('.filepond--image-preview-wrapper');
 							if (wrapper) {
 								wrapper.addEventListener('click', (e) => {
 									e.preventDefault();
 									e.stopPropagation();
-
 									const imgSrc = file.source || URL.createObjectURL(file.file);
 									overlay.querySelector('img').src = imgSrc;
 									overlay.classList.add('active');
@@ -347,6 +500,7 @@
 					}
 				});
 			});
-		});
+
+		}); // END DOMContentLoaded
 	</script>
 }

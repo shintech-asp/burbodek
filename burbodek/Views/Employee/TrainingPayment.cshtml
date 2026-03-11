@@ -219,7 +219,16 @@
                                         <span>₱@(((decimal)Model.TrainingPayments.Price).ToString("N2"))</span>
                                         @if (Model.TrainingPayments.TrainingApplication.Training.DownPayment != null)
                                         {
-                                            <span class="text-success fs-6 fw-semibold">or Pay partial for as low as ₱@(((decimal)(Model.TrainingPayments.TrainingApplication.Training.DownPayment / 100m) * Model.TrainingPayments.Price).ToString("N2"))</span>
+                                            @if(Model.TrainingPayments.TrainingApplication.Training.Unit == "Percentage")
+                                            {
+
+                                                <span class="text-success fs-6 fw-semibold">or Pay partial for as low as ₱@(((decimal)(Model.TrainingPayments.TrainingApplication.Training.DownPayment / 100m) * Model.TrainingPayments.Price).ToString("N2"))</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span class="text-success fs-6 fw-semibold">or Pay partial for as low as ₱@(Model.TrainingPayments.Price - Model.TrainingPayments.TrainingApplication.Training.DownPayment)</span>
+                                            }
                                         }
                                     </span>
                                 </label>
@@ -390,7 +399,12 @@
             const amountPaidInInput = document.getElementById("amountPaidIn");
 
             const fullPaymentAmount = parseFloat("@(Model.TrainingPayments.Price)");
-            const partialPaymentAmount = parseFloat("@((Model.TrainingPayments.TrainingApplication.Training.DownPayment / 100m) * Model.TrainingPayments.Price ?? 0)");
+            var partialPaymentAmount;
+            if("@Model.TrainingPayments.TrainingApplication.Training.Unit" == "Percentage"){
+                partialPaymentAmount = parseFloat("@((Model.TrainingPayments.TrainingApplication.Training.DownPayment / 100m) * Model.TrainingPayments.Price ?? 0)");
+            }else{
+                partialPaymentAmount = parseFloat("@(Model.TrainingPayments.TrainingApplication.Training.DownPayment)")
+            }
             const trainingName = "@Model.TrainingPayments.TrainingApplication.Training.Name".trim();
 
             // Listen for radio changes

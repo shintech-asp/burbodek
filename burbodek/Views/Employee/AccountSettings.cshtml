@@ -14,12 +14,59 @@
 		<div class="card-body pt-9 pb-0">
 			<!--begin::Details-->
 			<div class="d-flex flex-wrap flex-sm-nowrap">
-				<!--begin: Pic-->
+				<!--begin::Pic-->
 				<div class="me-7 mb-4">
 					<div class="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative">
-						<img src="~/assets/media/avatars/300-1.jpg" alt="image">
+
+						<!--begin::Avatar Image-->
+						<img id="profilePreview" src="@(Model.UserProfile?.Picture ?? "/assets/media/avatars/300-14.jpg")" alt="image" />
+						<!--end::Avatar Image-->
+						<!--begin::Online Indicator-->
 						<div class="position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border border-4 border-body h-20px w-20px"></div>
+						<!--end::Online Indicator-->
+						<!--begin::Upload Overlay-->
+						<div id="uploadOverlay"
+							 class="position-absolute top-0 start-0 w-100 h-100 rounded d-flex align-items-center justify-content-center"
+							 style="background: rgba(0,0,0,0.45); opacity:0; transition: opacity 0.2s; cursor:pointer; border-radius: inherit;"
+							 onclick="document.getElementById('profileImageInput').click()"
+							 onmouseenter="this.style.opacity='1'"
+							 onmouseleave="this.style.opacity='0'">
+							<i class="ki-duotone ki-pencil fs-2x text-white">
+								<span class="path1"></span><span class="path2"></span>
+							</i>
+						</div>
+						<!--end::Upload Overlay-->
+						<!--begin::Hidden File Input-->
+						<input type="file"
+							   id="profileImageInput"
+							   accept="image/*"
+							   class="d-none"
+							   onchange="previewProfileImage(event)" />
+						<!--end::Hidden File Input-->
 					</div>
+
+					<!--begin::Accept/Decline Buttons-->
+					<div id="profileActions" class="d-none d-flex justify-content-center gap-2 mt-3">
+						<button type="button"
+								class="btn btn-icon btn-sm btn-success"
+								onclick="confirmProfileImage()"
+								data-bs-toggle="tooltip"
+								title="Save">
+							<i class="ki-duotone ki-check fs-2">
+								<span class="path1"></span>
+							</i>
+						</button>
+						<button type="button"
+								class="btn btn-icon btn-sm btn-danger"
+								onclick="cancelProfileImage()"
+								data-bs-toggle="tooltip"
+								title="Cancel">
+							<i class="ki-duotone ki-cross fs-2">
+								<span class="path1"></span>
+							</i>
+						</button>
+					</div>
+					<!--end::Accept/Decline Buttons-->
 				</div>
 				<!--end::Pic-->
 				<!--begin::Info-->
@@ -172,19 +219,13 @@
 							<div class="row">
 								<!--begin::Col-->
 								<div class="col-lg-6 fv-row fv-plugins-icon-container">
-									<input type="text" name="Firstname" class="form-control form-control-lg form-control-solid mb-3 mb-lg-0" placeholder="First name" value="@Model.EmployeeDetails?.Firstname">
+									<input type="text" name="FirstName" class="form-control form-control-lg form-control-solid mb-3 mb-lg-0" placeholder="First name" value="@Model.UserProfile?.FirstName">
 									<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 								</div>
 								<!--end::Col-->
 								<!--begin::Col-->
 								<div class="col-lg-6 fv-row fv-plugins-icon-container">
-									<input type="text" name="Middlename" class="form-control form-control-lg form-control-solid" placeholder="Middle name" value="@Model.EmployeeDetails?.Middlename">
-									<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
-								</div>
-								<!--end::Col-->
-								<!--begin::Col-->
-								<div class="col-lg-6 fv-row fv-plugins-icon-container">
-									<input type="text" name="Lastname" class="form-control form-control-lg form-control-solid" placeholder="Last name" value="@Model.EmployeeDetails?.Lastname">
+									<input type="text" name="LastName" class="form-control form-control-lg form-control-solid" placeholder="Last name" value="@Model.UserProfile?.LastName">
 									<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 								</div>
 								<!--end::Col-->
@@ -210,7 +251,7 @@
 						<!--end::Label-->
 						<!--begin::Col-->
 						<div class="col-lg-8 fv-row fv-plugins-icon-container">
-							<input type="text" name="MobileNumber" class="form-control form-control-lg form-control-solid" placeholder="Phone number" value="@Model.EmployeeDetails?.MobileNumber">
+							<input type="text" name="MobileNo" class="form-control form-control-lg form-control-solid" placeholder="Phone number" value="@Model.UserProfile?.MobileNo">
 							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 						</div>
 						<!--end::Col-->
@@ -234,8 +275,9 @@
 							<input type="date"
 								   name="Birthday"
 								   class="form-control form-control-lg form-control-solid"
-								   placeholder=""
-								   value="@(Model.EmployeeDetails?.Birthday.ToString("yyyy-MM-dd"))">
+								   value="@(Model.UserProfile?.Birthdate.HasValue == true
+						   ? Model.UserProfile.Birthdate.Value.ToString("yyyy-MM-dd")
+						   : "")">
 							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
 						</div>
 
@@ -245,10 +287,10 @@
 					<div class="row mb-6">
 						<!--begin::Label-->
 						<label class="col-lg-4 col-form-label fw-semibold fs-6">
-							<span class="required">Nationality</span>
+							<span class="required">Province</span>
 							<span class="ms-1" data-bs-toggle="tooltip"
 								  aria-label="Select your nationality"
-								  data-bs-original-title="Select your nationality"
+								  data-bs-original-title="Select your province"
 								  data-kt-initialized="1">
 								<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
 									<span class="path1"></span>
@@ -263,51 +305,56 @@
 							<select name="Nationality"
 									class="form-select form-select-lg form-select-solid"
 									data-control="select2"
-									data-placeholder="Select nationality">
+									data-placeholder="Select province">
 
-								<option value="">Select nationality</option>
+								<option value="">Select Province</option>
 
-								<!-- Common -->
-								<option value="Filipino" selected="@(Model.EmployeeDetails?.Nationality == "Filipino")">Filipino</option>
-								<option value="American" selected="@(Model.EmployeeDetails?.Nationality == "American")">American</option>
-								<option value="British" selected="@(Model.EmployeeDetails?.Nationality == "British")">British</option>
-								<option value="Canadian" selected="@(Model.EmployeeDetails?.Nationality == "Canadian")">Canadian</option>
-								<option value="Australian" selected="@(Model.EmployeeDetails?.Nationality == "Australian")">Australian</option>
+								<!-- Luzon -->
+								<option value="Abra" selected="@(Model.UserProfile?.City == "Abra")">Abra</option>
+								<option value="Albay" selected="@(Model.UserProfile?.City == "Albay")">Albay</option>
+								<option value="Batangas" selected="@(Model.UserProfile?.City == "Batangas")">Batangas</option>
+								<option value="Benguet" selected="@(Model.UserProfile?.City == "Benguet")">Benguet</option>
+								<option value="Bulacan" selected="@(Model.UserProfile?.City == "Bulacan")">Bulacan</option>
+								<option value="Cagayan" selected="@(Model.UserProfile?.City == "Cagayan")">Cagayan</option>
+								<option value="Camarines Sur" selected="@(Model.UserProfile?.City == "Camarines Sur")">Camarines Sur</option>
+								<option value="Cavite" selected="@(Model.UserProfile?.City == "Cavite")">Cavite</option>
+								<option value="Ilocos Norte" selected="@(Model.UserProfile?.City == "Ilocos Norte")">Ilocos Norte</option>
+								<option value="Ilocos Sur" selected="@(Model.UserProfile?.City == "Ilocos Sur")">Ilocos Sur</option>
+								<option value="Isabela" selected="@(Model.UserProfile?.City == "Isabela")">Isabela</option>
+								<option value="La Union" selected="@(Model.UserProfile?.City == "La Union")">La Union</option>
+								<option value="Laguna" selected="@(Model.UserProfile?.City == "Laguna")">Laguna</option>
+								<option value="Nueva Ecija" selected="@(Model.UserProfile?.City == "Nueva Ecija")">Nueva Ecija</option>
+								<option value="Pampanga" selected="@(Model.UserProfile?.City == "Pampanga")">Pampanga</option>
+								<option value="Pangasinan" selected="@(Model.UserProfile?.City == "Pangasinan")">Pangasinan</option>
+								<option value="Quezon" selected="@(Model.UserProfile?.City == "Quezon")">Quezon</option>
+								<option value="Rizal" selected="@(Model.UserProfile?.City == "Rizal")">Rizal</option>
+								<option value="Tarlac" selected="@(Model.UserProfile?.City == "Tarlac")">Tarlac</option>
+								<option value="Zambales" selected="@(Model.UserProfile?.City == "Zambales")">Zambales</option>
 
-								<!-- Asia -->
-								<option value="Chinese" selected="@(Model.EmployeeDetails?.Nationality == "Chinese")">Chinese</option>
-								<option value="Japanese" selected="@(Model.EmployeeDetails?.Nationality == "Japanese")">Japanese</option>
-								<option value="Korean" selected="@(Model.EmployeeDetails?.Nationality == "Korean")">Korean</option>
-								<option value="Indian" selected="@(Model.EmployeeDetails?.Nationality == "Indian")">Indian</option>
-								<option value="Thai" selected="@(Model.EmployeeDetails?.Nationality == "Thai")">Thai</option>
-								<option value="Vietnamese" selected="@(Model.EmployeeDetails?.Nationality == "Vietnamese")">Vietnamese</option>
-								<option value="Indonesian" selected="@(Model.EmployeeDetails?.Nationality == "Indonesian")">Indonesian</option>
-								<option value="Malaysian" selected="@(Model.EmployeeDetails?.Nationality == "Malaysian")">Malaysian</option>
-								<option value="Singaporean" selected="@(Model.EmployeeDetails?.Nationality == "Singaporean")">Singaporean</option>
+								<!-- Visayas -->
+								<option value="Aklan" selected="@(Model.UserProfile?.City == "Aklan")">Aklan</option>
+								<option value="Antique" selected="@(Model.UserProfile?.City == "Antique")">Antique</option>
+								<option value="Bohol" selected="@(Model.UserProfile?.City == "Bohol")">Bohol</option>
+								<option value="Capiz" selected="@(Model.UserProfile?.City == "Capiz")">Capiz</option>
+								<option value="Cebu" selected="@(Model.UserProfile?.City == "Cebu")">Cebu</option>
+								<option value="Eastern Samar" selected="@(Model.UserProfile?.City == "Eastern Samar")">Eastern Samar</option>
+								<option value="Iloilo" selected="@(Model.UserProfile?.City == "Iloilo")">Iloilo</option>
+								<option value="Leyte" selected="@(Model.UserProfile?.City == "Leyte")">Leyte</option>
+								<option value="Negros Occidental" selected="@(Model.UserProfile?.City == "Negros Occidental")">Negros Occidental</option>
+								<option value="Negros Oriental" selected="@(Model.UserProfile?.City == "Negros Oriental")">Negros Oriental</option>
+								<option value="Samar" selected="@(Model.UserProfile?.City == "Samar")">Samar</option>
 
-								<!-- Middle East -->
-								<option value="Saudi Arabian" selected="@(Model.EmployeeDetails?.Nationality == "Saudi Arabian")">Saudi Arabian</option>
-								<option value="Emirati" selected="@(Model.EmployeeDetails?.Nationality == "Emirati")">Emirati</option>
-								<option value="Qatari" selected="@(Model.EmployeeDetails?.Nationality == "Qatari")">Qatari</option>
-								<option value="Kuwaiti" selected="@(Model.EmployeeDetails?.Nationality == "Kuwaiti")">Kuwaiti</option>
-
-								<!-- Europe -->
-								<option value="French" selected="@(Model.EmployeeDetails?.Nationality == "French")">French</option>
-								<option value="German" selected="@(Model.EmployeeDetails?.Nationality == "German")">German</option>
-								<option value="Italian" selected="@(Model.EmployeeDetails?.Nationality == "Italian")">Italian</option>
-								<option value="Spanish" selected="@(Model.EmployeeDetails?.Nationality == "Spanish")">Spanish</option>
-								<option value="Dutch" selected="@(Model.EmployeeDetails?.Nationality == "Dutch")">Dutch</option>
-								<option value="Russian" selected="@(Model.EmployeeDetails?.Nationality == "Russian")">Russian</option>
-
-								<!-- Africa -->
-								<option value="Nigerian" selected="@(Model.EmployeeDetails?.Nationality == "Nigerian")">Nigerian</option>
-								<option value="South African" selected="@(Model.EmployeeDetails?.Nationality == "South African")">South African</option>
-								<option value="Egyptian" selected="@(Model.EmployeeDetails?.Nationality == "Egyptian")">Egyptian</option>
-
-								<!-- Americas -->
-								<option value="Mexican" selected="@(Model.EmployeeDetails?.Nationality == "Mexican")">Mexican</option>
-								<option value="Brazilian" selected="@(Model.EmployeeDetails?.Nationality == "Brazilian")">Brazilian</option>
-								<option value="Argentinian" selected="@(Model.EmployeeDetails?.Nationality == "Argentinian")">Argentinian</option>
+								<!-- Mindanao -->
+								<option value="Agusan del Norte" selected="@(Model.UserProfile?.City == "Agusan del Norte")">Agusan del Norte</option>
+								<option value="Agusan del Sur" selected="@(Model.UserProfile?.City == "Agusan del Sur")">Agusan del Sur</option>
+								<option value="Bukidnon" selected="@(Model.UserProfile?.City == "Bukidnon")">Bukidnon</option>
+								<option value="Cotabato" selected="@(Model.UserProfile?.City == "Cotabato")">Cotabato</option>
+								<option value="Davao del Sur" selected="@(Model.UserProfile?.City == "Davao del Sur")">Davao del Sur</option>
+								<option value="Davao del Norte" selected="@(Model.UserProfile?.City == "Davao del Norte")">Davao del Norte</option>
+								<option value="Lanao del Norte" selected="@(Model.UserProfile?.City == "Lanao del Norte")">Lanao del Norte</option>
+								<option value="Misamis Oriental" selected="@(Model.UserProfile?.City == "Misamis Oriental")">Misamis Oriental</option>
+								<option value="South Cotabato" selected="@(Model.UserProfile?.City == "South Cotabato")">South Cotabato</option>
+								<option value="Zamboanga del Sur" selected="@(Model.UserProfile?.City == "Zamboanga del Sur")">Zamboanga del Sur</option>
 
 							</select>
 
@@ -411,7 +458,124 @@
 </div>
 @section Scripts {
 	<script>
+				let originalProfileSrc = null;
+		let selectedProfileFile = null;
 
+		function previewProfileImage(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			// Validate type
+			if (!file.type.startsWith('image/')) {
+				Swal.fire({
+					text: "Please select a valid image file.",
+					icon: "warning",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+				return;
+			}
+
+			// Validate size (max 5MB)
+			if (file.size > 5 * 1024 * 1024) {
+				Swal.fire({
+					text: "Image size must not exceed 5MB.",
+					icon: "warning",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.onload = function (e) {
+				// Store original src before replacing
+				const preview = document.getElementById('profilePreview');
+				if (!originalProfileSrc) {
+					originalProfileSrc = preview.src;
+				}
+
+				selectedProfileFile = file;
+				preview.src = e.target.result;
+				document.getElementById('profileActions').classList.remove('d-none');
+				document.getElementById('profileActions').classList.add('d-flex');
+			};
+			reader.readAsDataURL(file);
+		}
+
+		function confirmProfileImage() {
+			if (!selectedProfileFile) return;
+
+			const formData = new FormData();
+			formData.append('profileImage', selectedProfileFile);
+
+			// Add antiforgery token
+
+			Swal.fire({
+				text: "Uploading profile picture...",
+				icon: "info",
+				showConfirmButton: false,
+				allowOutsideClick: false,
+				didOpen: () => Swal.showLoading(),
+			});
+
+			fetch('/Employee/UpdateProfilePicture', {
+				method: 'POST',
+				body: formData
+			})
+			.then(res => {
+				if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+				return res.json();
+			})
+			.then(data => {
+				if (data.success) {
+					Swal.fire({
+						text: "Profile picture updated successfully.",
+						icon: "success",
+						buttonsStyling: false,
+						confirmButtonText: "OK",
+						customClass: { confirmButton: "btn btn-primary" }
+					});
+					// Update original src to new image
+					originalProfileSrc = document.getElementById('profilePreview').src;
+					resetProfileActions();
+				} else {
+					Swal.fire({
+						text: data.message ?? "Failed to update profile picture.",
+						icon: "error",
+						buttonsStyling: false,
+						confirmButtonText: "OK",
+						customClass: { confirmButton: "btn btn-primary" }
+					});
+				}
+			})
+			.catch(() => {
+				Swal.fire({
+					text: "A network error occurred. Please try again.",
+					icon: "error",
+					buttonsStyling: false,
+					confirmButtonText: "OK",
+					customClass: { confirmButton: "btn btn-primary" }
+				});
+			});
+		}
+
+		function cancelProfileImage() {
+			// Revert preview to original
+			if (originalProfileSrc) {
+				document.getElementById('profilePreview').src = originalProfileSrc;
+			}
+			resetProfileActions();
+		}
+
+		function resetProfileActions() {
+			selectedProfileFile = null;
+			document.getElementById('profileImageInput').value = '';
+			document.getElementById('profileActions').classList.add('d-none');
+			document.getElementById('profileActions').classList.remove('d-flex');
+		}
 		// Change Password button
 		$('#kt_signin_password_button button').click(function() {
 			// Hide the display div
@@ -433,10 +597,9 @@
 			e.preventDefault();
 
 			// Get form values
-			var firstName = $('input[name="Firstname"]').val();
-			var middleName = $('input[name="Middlename"]').val();
-			var lastName = $('input[name="Lastname"]').val();
-			var mobileNumber = $('input[name="MobileNumber"]').val();
+			var firstName = $('input[name="FirstName"]').val();
+			var lastName = $('input[name="LastName"]').val();
+			var mobileNumber = $('input[name="MobileNo"]').val();
 			var birthDay = $('input[name="Birthday"]').val();
 			var nationality = $('select[name="Nationality"]').val();
 
@@ -450,11 +613,10 @@
 			}).then((result) => {
 				if (result.isConfirmed) {
 					$.ajax({
-						url: '@Url.Action("ChangeProfileDetails", "Employee")',
+						url: '/Employee/ChangeProfileDetails',
 						type: 'POST',
 						data: {
 							Firstname: firstName,
-							Middlename: middleName,
 							Lastname: lastName,
 							MobileNumber: mobileNumber,
 							Birthday: birthDay,
@@ -479,7 +641,7 @@
 							Swal.fire({
 								icon: 'error',
 								title: 'Server Error',
-								text: 'An unexpected error occurred. Please try again later.'
+								text: `An unexpected error occurred. Please try again later. ${xhr.responseText}`
 							});
 							console.log(xhr.responseText);
 						}

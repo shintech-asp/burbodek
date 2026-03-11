@@ -1232,6 +1232,18 @@ else
 		let map;
 		let marker;
 
+			  const stepper = document.getElementById('kt_create_account_stepper');
+		const nextButtons = document.querySelectorAll('[data-kt-stepper-action="next"]');
+		// 📌 Allow manual pinning by clicking map
+			nextButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				setTimeout(() => {
+					if (map) {
+						map.invalidateSize();
+					}
+				}, 150);  // give time for step transition animation
+			});
+		});
 				$(document).ready(function() {
 					$(document).on("click", ".view-campaign-btn", function () {
 						const id = $(this).data("id");
@@ -1265,7 +1277,7 @@ else
 			$('#deleteCampaignBtn').hide();
 			$('#ActivateCampaignBtn').show();
 		}
-						 $('#deleteCampaignBtn').on('click', function() {
+		$('#deleteCampaignBtn').on('click', function() {
 			Swal.fire({
 				title: 'Are you sure?',
 				text: "You won't be able to revert this!",
@@ -1452,7 +1464,8 @@ else
 				const latitude = $('input[name="Latitude"]').val();
 				const longitude = $('input[name="Longitude"]').val();
 				const logoFile = $('input[name="CampaignLogo"]')[0]?.files[0];
-				const PaymentDetails = $('#PaymentMethod').val();
+				const PaymentDetails = $('#PaymentMethod').val()
+				const plan = "@User.FindFirst("Plan")?.Value";
 				console.log('Form Values:', {
 					campaignName,
 					campaignDescription,
@@ -1472,7 +1485,7 @@ else
 					return;
 				}
 
-				if (!PaymentDetails || PaymentDetails.trim() === '') {
+				if ((!PaymentDetails) && plan == "Basic") {
 					Swal.fire('Validation Error', 'Please enter payment details', 'warning');
 					return;
 				}
@@ -1507,7 +1520,10 @@ else
 				formData.append('FullAddress', fullAddress);
 				formData.append('Latitude', latitude);
 				formData.append('Longitude', longitude);
-				formData.append('PaymentDetailsId', PaymentDetails);
+
+				if (plan === "Basic") {
+					formData.append('PaymentDetailsId', PaymentDetails);
+				}
 
 				// Add logo if exists
 				if (logoFile) {
@@ -1648,11 +1664,18 @@ else
 					console.log('Creating map instance...');
 
 					// Create map instance - Center on Philippines
-					map = L.map('locationMap', {
-						center: [12.8797, 121.7740],
-						zoom: 6,
-						scrollWheelZoom: true
-					});
+							const philippinesBounds = [
+			[4.5, 116.0],  // Southwest
+			[21.5, 127.0]  // Northeast
+		];
+
+		map = L.map('locationMap', {
+			center: [12.8797, 121.7740],
+			zoom: 6,
+			scrollWheelZoom: true,
+			maxBounds: philippinesBounds,
+			maxBoundsViscosity: 1.0
+		});
 
 					console.log('Map created successfully');
 
@@ -1684,64 +1707,102 @@ else
 					});
 
 					// Handle map click - Set location
-					map.on('click', async function (e) {
-						console.log('Map clicked at:', e.latlng);
-						
-						const lat = e.latlng.lat.toFixed(6);
-						const lng = e.latlng.lng.toFixed(6);
+							map.on('click', async function (e) {
+			console.log('Map clicked at:', e.latlng);
 
-						// Update or create marker
-						if (marker) {
-							marker.setLatLng([lat, lng]);
-						} else {
-							marker = L.marker([lat, lng]).addTo(map);
-						}
+			const lat = e.latlng.lat.toFixed(6);
+			const lng = e.latlng.lng.toFixed(6);
 
-						// Update hidden input fields
-						$('#locationLatitude').val(lat);
-						$('#locationLongitude').val(lng);
+			// Show loading state
+			$('#locationCity').val('Loading...');
+			$('#locationProvince').val('Loading...');
+			$('#locationFullAddress').val('Loading address...');
 
-						// Show loading state
-						$('#locationCity').val('Loading...');
-						$('#locationProvince').val('Loading...');
-						$('#locationFullAddress').val('Loading address...');
+			try {
+				const url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng;
+				const response = await fetch(url);
 
-						// Reverse Geocode using Nominatim
-						try {
-							const url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng;
-							const response = await fetch(url);
-							
-							if (!response.ok) {
-								throw new Error('Geocoding service unavailable');
-							}
-							
-							const data = await response.json();
-							console.log('Geocoding data:', data);
+				if (!response.ok) {
+					throw new Error('Geocoding service unavailable');
+				}
 
-							// Safely extract address data
-							const address = data.address || {};
-							const city = address.city || address.town || address.county || 'N/A';
-							const province = address.state || address.province || address.region || 'N/A';
-							const fullAddress = data.display_name || 'Address not found';
+				const data = await response.json();
+				console.log('Geocoding data:', data);
 
-							$('#locationCity').val(city);
-							$('#locationProvince').val(province);
-							$('#locationFullAddress').val(fullAddress);
-							$('#locationAddress').val(fullAddress);
+				const address = data.address || {};
 
-							// Show marker popup
-							marker.bindPopup('<strong>' + city + ', ' + province + '</strong><br>' + fullAddress).openPopup();
+				// ❌ Block if no country (likely ocean/sea)
+				if (!address.state) {
+					// Remove marker if placed
+					if (marker) {
+						map.removeLayer(marker);
+						marker = null;
+					}
+					$('#locationCity').val('');
+					$('#locationProvince').val('');
+					$('#locationFullAddress').val('');
+					$('#locationLatitude').val('0');
+					$('#locationLongitude').val('0');
 
-							// Center map on marker
-							map.setView([lat, lng], 13);
-						} catch (err) {
-							console.error('Reverse geocoding failed:', err);
-							$('#locationCity').val('N/A');
-							$('#locationProvince').val('N/A');
-							$('#locationFullAddress').val('Unable to fetch address');
-						}
+					Swal.fire({
+						title: 'Invalid Location',
+						text: 'You cannot pin a location in the ocean or sea. Please select a location on land.',
+						icon: 'warning',
+						confirmButtonText: 'OK'
 					});
+					return;
+				}
 
+				// ❌ Block non-Philippines locations
+				if (address.country !== 'Philippines') {
+					if (marker) {
+						map.removeLayer(marker);
+						marker = null;
+					}
+					$('#locationCity').val('');
+					$('#locationProvince').val('');
+					$('#locationFullAddress').val('');
+					$('#locationLatitude').val('0');
+					$('#locationLongitude').val('0');
+
+					Swal.fire({
+						title: 'Outside Philippines',
+						text: `"${address.country}" is not allowed. Please pin a location within the Philippines only.`,
+						icon: 'error',
+						confirmButtonText: 'OK'
+					});
+					return;
+				}
+
+				// ✅ Valid PH location — update or create marker
+				if (marker) {
+					marker.setLatLng([lat, lng]);
+				} else {
+					marker = L.marker([lat, lng]).addTo(map);
+				}
+
+				$('#locationLatitude').val(lat);
+				$('#locationLongitude').val(lng);
+
+				const city = address.city || address.town || address.municipality || address.county || 'N/A';
+				const province = address.state || address.province || address.region || 'N/A';
+				const fullAddress = data.display_name || 'Address not found';
+
+				$('#locationCity').val(city);
+				$('#locationProvince').val(province);
+				$('#locationFullAddress').val(fullAddress);
+				$('#locationAddress').val(fullAddress);
+
+				marker.bindPopup('<strong>' + city + ', ' + province + '</strong><br>' + fullAddress).openPopup();
+				map.setView([lat, lng], 13);
+
+			} catch (err) {
+				console.error('Reverse geocoding failed:', err);
+				$('#locationCity').val('N/A');
+				$('#locationProvince').val('N/A');
+				$('#locationFullAddress').val('Unable to fetch address');
+			}
+		});
 					// Search by address button
 					$('#searchLocationBtn').on('click', function() {
 						searchAddress();
@@ -1785,34 +1846,32 @@ else
 			
 			fetch(url)
 				.then(response => response.json())
-				.then(data => {
-					console.log('Search results:', data);
-					
-					if (data.length === 0) {
-						alert('Location not found. Please try a different address.');
-						btn.prop('disabled', false).html(originalText);
-						return;
-					}
+						.then(data => {
+			if (data.length === 0) {
+				Swal.fire('Not Found', 'Location not found. Please try a different address.', 'warning');
+				btn.prop('disabled', false).html(originalText);
+				return;
+			}
 
-					const result = data[0];
-					const lat = parseFloat(result.lat).toFixed(6);
-					const lng = parseFloat(result.lon).toFixed(6);
+			const result = data[0];
 
-					console.log('Found location:', lat, lng);
+			// ❌ Block non-Philippines search results
+			if (!result.display_name.includes('Philippines')) {
+				Swal.fire({
+					title: 'Outside Philippines',
+					text: 'The searched location is not within the Philippines. Please search for a Philippine location.',
+					icon: 'error',
+					confirmButtonText: 'OK'
+				});
+				btn.prop('disabled', false).html(originalText);
+				return;
+			}
+			const lat = parseFloat(result.lat).toFixed(6);
+			const lng = parseFloat(result.lon).toFixed(6);
 
-					// Simulate map click to trigger the geocoding flow
-					const clickEvent = {
-						latlng: {
-							lat: parseFloat(lat),
-							lng: parseFloat(lng)
-						}
-					};
-
-					// Trigger the map click handler logic manually
-					map.fire('click', clickEvent);
-
-					btn.prop('disabled', false).html(originalText);
-				})
+			map.fire('click', { latlng: { lat: parseFloat(lat), lng: parseFloat(lng) } });
+			btn.prop('disabled', false).html(originalText);
+		})
 				.catch(error => {
 					console.error('Search error:', error);
 					alert('Error searching location. Please try again.');
