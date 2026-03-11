@@ -50,17 +50,10 @@
                     </p>
                 </div>
 
-                <!-- Resubmission Info -->
                 <div style="background:#f7fafc;border-left:4px solid #667eea;padding:20px;border-radius:8px;margin:30px 0;">
                     <p style="margin:0;color:#2d3748;font-size:14px;line-height:1.6;">
                         <strong>Resubmission Status:</strong><br>
-
-                        {{#if AllowResubmit}}
-                        You are allowed to submit a new application after addressing the issue mentioned above. Please ensure that all required documents and information are complete before reapplying.
-                        {{else}}
-                        At this time, resubmission of the application is not permitted. If you believe this decision was made in error, you may contact our support team for further clarification.
-                        {{/if}}
-
+                        {{ResubmitMessage}}
                     </p>
                 </div>
 

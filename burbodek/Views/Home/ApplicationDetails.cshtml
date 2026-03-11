@@ -94,22 +94,36 @@
     {
         <div class="card-footer">
             <div class="text-end">
+
+                <div class="form-check form-switch mb-4 text-start">
+                    <input class="form-check-input" type="checkbox" id="AllowReapplyToggle">
+                    <label class="form-check-label fw-semibold" for="AllowReapplyToggle">
+                        Allow Reapplication if Declined
+                    </label>
+                </div>
+
                 <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
                       asp-route-Id="@Model.Id"
                       asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
                       method="post">
 
                     <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
+                    <input type="hidden" id="AllowReapply" name="isAllowed" value="false" />
 
                     <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">Approve</button>
                     <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">Decline</button>
                 </form>
+
             </div>
         </div>
     }
 </div>
 @section Scripts {
     <script>
+        function updateReapplyValue() {
+            const toggle = document.getElementById("AllowReapplyToggle");
+            document.getElementById("AllowReapply").value = toggle.checked;
+        }
                 function confirmAction(action) {
             if (action === "decline") {
                 const reasons = [
@@ -189,7 +203,7 @@
                         reasonInput.name = "DeclineReason";
                         reasonInput.value = finalReason;
                         document.getElementById("approvalForm").appendChild(reasonInput);
-
+                        updateReapplyValue();
                         document.getElementById("approvalForm").submit();
                     }
                 });
@@ -206,6 +220,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         document.getElementById("ApprovalDetails").value = action;
+                        updateReapplyValue();
                         document.getElementById("approvalForm").submit();
                     }
                 });
