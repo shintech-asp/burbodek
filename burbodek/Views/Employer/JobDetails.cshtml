@@ -373,6 +373,22 @@
 @section Scripts {
 	<script>
 
+		document.getElementById("deleteJobBtn").addEventListener("click", function (e) {
+			e.preventDefault();
+			Swal.fire({
+				title: 'Are you sure?',
+				text: "This action cannot be undone. The job will be permanently deleted.",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Yes, delete it!'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					document.getElementById("deleteJobForm").submit();
+				}
+			});
+		});
 				document.getElementById("submitAppealBtn").addEventListener("click", function () {
 				$("#appealModal").modal('hide');
 					Swal.fire({
@@ -462,21 +478,6 @@
 							});
 						}
 					});
-				}
-			});
-		});
-		document.getElementById("deleteJobBtn").addEventListener("click", function (e) {
-			Swal.fire({
-				title: 'Are you sure?',
-				text: "This action cannot be undone. The job will be permanently deleted.",
-				icon: 'warning',
-				showCancelButton: true,
-				confirmButtonColor: '#d33',
-				cancelButtonColor: '#3085d6',
-				confirmButtonText: 'Yes, delete it!'
-			}).then((result) => {
-				if (result.isConfirmed) {
-					document.getElementById("deleteJobForm").submit();
 				}
 			});
 		});

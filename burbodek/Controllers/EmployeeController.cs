@@ -2196,7 +2196,9 @@ namespace burbodek.Controllers
                             
                             <div class='highlight-box'>
                                 <p class='highlight-label'>What's Next?</p>
-                                <p class='body-text' style='margin: 10px 0; font-size: 14px;'>Our team is currently reviewing applications. If your qualifications match what we're looking for, we'll reach out to schedule an interview.</p>
+                               <p class='body-text' style='margin: 10px 0; font-size: 14px;'>
+                                Please wait while the training center provides the training details. Once the schedule and information are available, we will notify you with the next steps.
+                                </p>
                             </div>
                             
                             <p class='body-text'>In the meantime, feel free to explore more about " + trainingDesc.Users.EmployerDetails.BusinessName + @" and learn about our training programs and values.</p>
