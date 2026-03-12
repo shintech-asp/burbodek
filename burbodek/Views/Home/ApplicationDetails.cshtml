@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Employer Application Details";
+
+    bool isTrainingCenter = Model.EmployerDetails?.isTrainingCenter == 1;
+    bool isEmployer = Model.EmployerDetails?.isEmployer == 1;
+    bool isBoth = isTrainingCenter && isEmployer;
 }
 
 <div class="card mb-5">
@@ -19,6 +23,22 @@
                 <p><strong>User:</strong> @Model.Username (@Model.Email)</p>
                 <p><strong>Business Description:</strong> @Model.EmployerDetails.BusinessDescription</p>
                 <p>
+                    <strong>Type:</strong>
+                    @if (isBoth)
+                    {
+                        <span class="badge badge-light-primary me-1">Training Center</span>
+                        <span class="badge badge-light-success">Employer</span>
+                    }
+                    else if (isTrainingCenter)
+                    {
+                        <span class="badge badge-light-primary">Training Center</span>
+                    }
+                    else if (isEmployer)
+                    {
+                        <span class="badge badge-light-success">Employer</span>
+                    }
+                </p>
+                <p>
                     <strong>Status:</strong>
                     <span class="badge badge-light-@(Model.EmployerDetails.Status == "Approved" ? "success" : "warning")">
                         @Model.EmployerDetails.Status
@@ -27,7 +47,7 @@
                 <p><strong>Address:</strong> @Model.EmployerDetails.Address</p>
             </div>
         </div>
-        <br />
+
         <br />
         <h3 class="fw-bold mb-4">Uploaded Documents</h3>
 
@@ -51,19 +71,14 @@
                                 {
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal-@doc.Id">
                                         <img src="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })"
-                                             alt="Image Preview"
-                                             class="img-thumbnail"
-                                             style="max-height:80px;" />
+                                             alt="Image Preview" class="img-thumbnail" style="max-height:80px;" />
                                     </a>
-
-                                    <!-- Image Modal -->
                                     <div class="modal fade" id="imageModal-@doc.Id" tabindex="-1">
                                         <div class="modal-dialog modal-dialog-centered modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-body text-center">
                                                     <img src="@Url.Action("DownloadDoc", "Home", new { docId = doc.Id })"
-                                                         class="img-fluid rounded"
-                                                         alt="Zoomed Image" />
+                                                         class="img-fluid rounded" alt="Zoomed Image" />
                                                 </div>
                                             </div>
                                         </div>
@@ -90,41 +105,228 @@
             </table>
         </div>
     </div>
-@if (Model.EmployerDetails.Status == "For Approval" || Model.EmployerDetails.Status == "Pending")
+
+    @if (Model.EmployerDetails.Status == "For Approval" || Model.EmployerDetails.Status == "Pending")
     {
         <div class="card-footer">
-            <div class="text-end">
+            <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
+                  asp-route-Id="@Model.Id"
+                  asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
+                  method="post">
 
-                <div class="form-check form-switch mb-4 text-start">
-                    <input class="form-check-input" type="checkbox" id="AllowReapplyToggle">
-                    <label class="form-check-label fw-semibold" for="AllowReapplyToggle">
-                        Allow Reapplication if Declined
-                    </label>
+                <!--begin::Hidden Inputs-->
+                <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
+                <input type="hidden" id="AllowReapply" name="isAllowed" value="false" />
+                <input type="hidden" id="IsBusinessName" name="IsBusinessName" value="false" />
+                <input type="hidden" id="IsBusinessDescription" name="IsBusinessDescription" value="false" />
+                <input type="hidden" id="IsSecDti" name="IsSecDti" value="false" />
+                <input type="hidden" id="IsBirCertificate" name="IsBirCertificate" value="false" />
+                <input type="hidden" id="IsBusinessPermit" name="IsBusinessPermit" value="false" />
+                <input type="hidden" id="IsPoeaLicense" name="IsPoeaLicense" value="false" />
+                <input type="hidden" id="IsProofPartnerShip" name="IsProofPartnerShip" value="false" />
+                <!--end::Hidden Inputs-->
+                <!--begin::Document Checklist Card-->
+                <div class="card card-bordered mb-5">
+                    <div class="card-header min-h-50px">
+                        <h5 class="card-title fw-bold">
+                            <i class="ki-duotone ki-document-validated fs-3 me-2 text-primary">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            Document Verification
+                        </h5>
+                    </div>
+                    <div class="card-body py-4">
+
+                        <!--begin::Allow Resubmission Toggle-->
+                        <label class="d-flex align-items-center gap-3 cursor-pointer mb-4">
+                            <span class="form-check form-check-custom form-check-solid form-check-danger">
+                                <input class="form-check-input" type="checkbox"
+                                       id="chk_AllowReapply"
+                                       onchange="toggleDocumentFlags(this)" />
+                            </span>
+                            <div>
+                                <span class="fw-bold text-gray-800">Allow Resubmission</span>
+                                <span class="text-muted fs-7 d-block">Check this to flag specific documents for resubmission (only applicable on decline)</span>
+                            </div>
+                        </label>
+                        <!--end::Allow Resubmission Toggle-->
+
+                        <div class="separator separator-dashed mb-4"></div>
+
+                        <!--begin::Document Flags-->
+                        <div id="documentFlagsWrapper" class="d-none">
+
+                            <div class="notice d-flex bg-light-warning rounded border border-warning border-dashed mb-5 p-4">
+                                <i class="ki-duotone ki-information fs-2x text-warning me-3 mt-1">
+                                    <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                                </i>
+                                <div class="fs-7 text-gray-700">
+                                    Check the documents that need to be <strong>resubmitted</strong>.
+                                    Only checked items will be flagged for the employer to resubmit.
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+
+                                <!--begin::Business Name (all types)-->
+                                <div class="col-md-6">
+                                    <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                        <span class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="checkbox" id="chk_IsBusinessName"
+                                                   @(Model.EmployerDetails?.IsBusinessName == true ? "checked" : "") />
+                                        </span>
+                                        <span class="fw-semibold text-gray-700">Business Name</span>
+                                    </label>
+                                </div>
+                                <!--end::Business Name-->
+                                <!--begin::Business Description (all types)-->
+                                <div class="col-md-6">
+                                    <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                        <span class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="checkbox" id="chk_IsBusinessDescription"
+                                                   @(Model.EmployerDetails?.IsBusinessDescription == true ? "checked" : "") />
+                                        </span>
+                                        <span class="fw-semibold text-gray-700">Business Description</span>
+                                    </label>
+                                </div>
+                                <!--end::Business Description-->
+                                <!--begin::SEC/DTI (Training Center + Both)-->
+                                @if (isTrainingCenter || isBoth)
+                                {
+                                    <div class="col-md-6">
+                                        <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                            <span class="form-check form-check-custom form-check-solid">
+                                                <input class="form-check-input" type="checkbox" id="chk_IsSecDti"
+                                                       @(Model.EmployerDetails?.IsSecDti == true ? "checked" : "") />
+                                            </span>
+                                            <span class="fw-semibold text-gray-700">SEC / DTI Certificate</span>
+                                        </label>
+                                    </div>
+                                }
+                                <!--end::SEC/DTI-->
+                                <!--begin::BIR Certificate (Training Center + Both)-->
+                                @if (isTrainingCenter || isBoth)
+                                {
+                                    <div class="col-md-6">
+                                        <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                            <span class="form-check form-check-custom form-check-solid">
+                                                <input class="form-check-input" type="checkbox" id="chk_IsBirCertificate"
+                                                       @(Model.EmployerDetails?.IsBirCertificate == true ? "checked" : "") />
+                                            </span>
+                                            <span class="fw-semibold text-gray-700">BIR Certificate</span>
+                                        </label>
+                                    </div>
+                                }
+                                <!--end::BIR Certificate-->
+                                <!--begin::Business Permit (Training Center + Both)-->
+                                @if (isTrainingCenter || isBoth)
+                                {
+                                    <div class="col-md-6">
+                                        <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                            <span class="form-check form-check-custom form-check-solid">
+                                                <input class="form-check-input" type="checkbox" id="chk_IsBusinessPermit"
+                                                       @(Model.EmployerDetails?.IsBusinessPermit == true ? "checked" : "") />
+                                            </span>
+                                            <span class="fw-semibold text-gray-700">Business Permit</span>
+                                        </label>
+                                    </div>
+                                }
+                                <!--end::Business Permit-->
+                                <!--begin::POEA License (Employer + Both)-->
+                                @if (isEmployer || isBoth)
+                                {
+                                    <div class="col-md-6">
+                                        <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                            <span class="form-check form-check-custom form-check-solid">
+                                                <input class="form-check-input" type="checkbox" id="chk_IsPoeaLicense"
+                                                       @(Model.EmployerDetails?.IsPoeaLicense == true ? "checked" : "") />
+                                            </span>
+                                            <span class="fw-semibold text-gray-700">POEA License</span>
+                                        </label>
+                                    </div>
+                                }
+                                <!--end::POEA License-->
+                                <!--begin::Proof of Partnership (Employer + Both)-->
+                                @if (isEmployer || isBoth)
+                                {
+                                    <div class="col-md-6">
+                                        <label class="d-flex align-items-center gap-3 cursor-pointer">
+                                            <span class="form-check form-check-custom form-check-solid">
+                                                <input class="form-check-input" type="checkbox" id="chk_IsProofPartnerShip"
+                                                       @(Model.EmployerDetails?.IsProofPartnerShip == true ? "checked" : "") />
+                                            </span>
+                                            <span class="fw-semibold text-gray-700">Proof of Partnership</span>
+                                        </label>
+                                    </div>
+                                }
+                                <!--end::Proof of Partnership-->
+
+                            </div>
+                        </div>
+                        <!--end::Document Flags-->
+
+                    </div>
                 </div>
+                <!--end::Document Checklist Card-->
+                <!--begin::Action Buttons-->
+                <div class="text-end">
+                    <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">
+                        <i class="ki-duotone ki-check fs-3 me-1"><span class="path1"></span></i>
+                        Approve
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">
+                        <i class="ki-duotone ki-cross fs-3 me-1"><span class="path1"></span></i>
+                        Decline
+                    </button>
+                </div>
+                <!--end::Action Buttons-->
 
-                <form id="approvalForm" asp-controller="Home" asp-action="ApplicationApproval"
-                      asp-route-Id="@Model.Id"
-                      asp-route-SubscriptionId="@Model.Subscription.FirstOrDefault()?.Id"
-                      method="post">
-
-                    <input type="hidden" id="ApprovalDetails" name="ApprovalDetails" />
-                    <input type="hidden" id="AllowReapply" name="isAllowed" value="false" />
-
-                    <button type="button" class="btn btn-success me-2" onclick="confirmAction('approve')">Approve</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmAction('decline')">Decline</button>
-                </form>
-
-            </div>
+            </form>
         </div>
     }
 </div>
+
 @section Scripts {
     <script>
-        function updateReapplyValue() {
-            const toggle = document.getElementById("AllowReapplyToggle");
-            document.getElementById("AllowReapply").value = toggle.checked;
+        function toggleDocumentFlags(checkbox) {
+            const wrapper = document.getElementById('documentFlagsWrapper');
+            if (checkbox.checked) {
+                wrapper.classList.remove('d-none');
+            } else {
+                wrapper.classList.add('d-none');
+                const fields = [
+                    'IsBusinessName', 'IsBusinessDescription', 'IsSecDti',
+                    'IsBirCertificate', 'IsBusinessPermit', 'IsPoeaLicense', 'IsProofPartnerShip'
+                ];
+                fields.forEach(field => {
+                    const cb = document.getElementById(`chk_${field}`);
+                    const hidden = document.getElementById(field);
+                    if (cb) cb.checked = false;
+                    if (hidden) hidden.value = "false";
+                });
+            }
         }
-                function confirmAction(action) {
+
+        function updateReapplyValue() {
+            const toggle = document.getElementById("chk_AllowReapply");
+            document.getElementById("AllowReapply").value = toggle ? toggle.checked : false;
+        }
+
+        function collectDocumentFlags() {
+            const fields = [
+                'IsBusinessName', 'IsBusinessDescription', 'IsSecDti',
+                'IsBirCertificate', 'IsBusinessPermit', 'IsPoeaLicense', 'IsProofPartnerShip'
+            ];
+            fields.forEach(field => {
+                const checkbox = document.getElementById(`chk_${field}`);
+                const hidden = document.getElementById(field);
+                if (checkbox && hidden) {
+                    hidden.value = checkbox.checked ? "true" : "false";
+                }
+            });
+        }
+
+        function confirmAction(action) {
             if (action === "decline") {
                 const reasons = [
                     "Does not meet qualifications",
@@ -135,7 +337,7 @@
                     "Others"
                 ];
 
-                const radioOptions = reasons.map((reason, i) => `
+                const radioOptions = reasons.map((reason) => `
                     <div style="text-align:left; margin-bottom:8px;">
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="declineReason" value="${reason}"
@@ -176,7 +378,6 @@
                             Swal.showValidationMessage('Please select a reason for declining.');
                             return false;
                         }
-
                         if (selected.value === "Others") {
                             const details = document.getElementById("othersDetail").value.trim();
                             if (!details) {
@@ -185,7 +386,6 @@
                             }
                             return { reason: "Others", details: details };
                         }
-
                         return { reason: selected.value, details: "" };
                     }
                 }).then((result) => {
@@ -195,14 +395,14 @@
 
                         document.getElementById("ApprovalDetails").value = action;
 
-                        // Remove old hidden inputs if any
                         document.querySelectorAll("input[name='DeclineReason']").forEach(e => e.remove());
-
                         let reasonInput = document.createElement("input");
                         reasonInput.type = "hidden";
                         reasonInput.name = "DeclineReason";
                         reasonInput.value = finalReason;
                         document.getElementById("approvalForm").appendChild(reasonInput);
+
+                        collectDocumentFlags();
                         updateReapplyValue();
                         document.getElementById("approvalForm").submit();
                     }
@@ -220,6 +420,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         document.getElementById("ApprovalDetails").value = action;
+                        collectDocumentFlags();
                         updateReapplyValue();
                         document.getElementById("approvalForm").submit();
                     }

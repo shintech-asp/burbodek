@@ -45,6 +45,106 @@ namespace burbodek.Controllers
             }
             
         }
+        [HttpPost]
+        public async Task<IActionResult> Resubmit(
+    string? BusinessName,
+    string? BusinessDescription,
+    IFormFile? SecDti,
+    IFormFile? BirCertificate,
+    IFormFile? BusinessPermit,
+    IFormFile? PoeaLicense,
+    IFormFile? ProofPartnerShip)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+                var employer = await _context.EmployerDetails
+                    .Include(e => e.Users)
+                    .FirstOrDefaultAsync(e => e.UsersId == userId);
+
+                if (employer == null)
+                    return NotFound();
+
+                // Update text fields if flagged
+                if (employer.IsBusinessName == true && !string.IsNullOrEmpty(BusinessName))
+                    employer.BusinessName = BusinessName;
+
+                if (employer.IsBusinessDescription == true && !string.IsNullOrEmpty(BusinessDescription))
+                    employer.BusinessDescription = BusinessDescription;
+                async Task SaveFile(IFormFile? file, string fieldName)
+                {
+                    if (file == null || file.Length == 0) return;
+
+                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    var allowed = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+                    if (!allowed.Contains(ext)) return;
+
+                    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    Directory.CreateDirectory(folder);
+
+                    // Delete existing file record with same UsersId and ImageDetails
+                    var existing = await _context.Files
+                        .Where(f => f.UsersId == userId && f.ImageDetails == fieldName)
+                        .ToListAsync();
+
+                    foreach (var old in existing)
+                    {
+                        // Delete physical file from server
+                        var oldFullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", old.File.TrimStart('/'));
+                        if (System.IO.File.Exists(oldFullPath))
+                            System.IO.File.Delete(oldFullPath);
+
+                        _context.Files.Remove(old);
+                    }
+
+                    // Save new physical file
+                    var fileName = $"{userId}_{fieldName}_{Guid.NewGuid()}{ext}";
+                    var filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await file.CopyToAsync(stream);
+
+                    // Add new file record
+                    var fileRecord = new Files
+                    {
+                        UsersId = userId,
+                        FileName = file.FileName,
+                        File = $"/uploads/{fileName}",
+                        ContentType = file.ContentType,
+                        ImageDetails = fieldName,
+                        isArchive = null
+                    };
+                    _context.Files.Add(fileRecord);
+                }
+
+                if (employer.IsSecDti == true) await SaveFile(SecDti, "sec_dti");
+                if (employer.IsBirCertificate == true) await SaveFile(BirCertificate, "bir_certificate");
+                if (employer.IsBusinessPermit == true) await SaveFile(BusinessPermit, "business_permit");
+                if (employer.IsPoeaLicense == true) await SaveFile(PoeaLicense, "poea_license");
+                if (employer.IsProofPartnerShip == true) await SaveFile(ProofPartnerShip, "proof_partnership");
+
+                // Reset status and clear all flags
+                employer.Status = "For Approval";
+                employer.RejectionReason = null;
+                employer.IsBusinessName = null;
+                employer.IsBusinessDescription = null;
+                employer.IsSecDti = null;
+                employer.IsBirCertificate = null;
+                employer.IsBusinessPermit = null;
+                employer.IsPoeaLicense = null;
+                employer.IsProofPartnerShip = null;
+
+                _context.EmployerDetails.Update(employer);
+                await _context.SaveChangesAsync();
+
+                TempData["success"] = "Your application has been resubmitted successfully.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return Content($"Error: {ex.Message}<br><br>Stack Trace: {ex.StackTrace}");
+            }
+        }
         public IActionResult SubmitJobAppeal(int JobId, string Description)
         {
             if(Description != null)
@@ -195,14 +295,15 @@ namespace burbodek.Controllers
             var training = _context.Training.Include(u => u.TrainingApplication).Where(u => u.UsersId == userId && u.isDeleted != true).ToList();
             var campaigns = _context.Campaign.Where(u => u.CreatedByUserId == userId).ToList();
             var userPaymentOption = _context.PaymentDetails.Where(u => u.UsersId == userId).ToList();
-
+            var usersData = _context.Users.Include(u => u.EmployerDetails).Where(u => u.Id == userId).FirstOrDefault();
             var dashboard = new EmployerCampaignViewModel
             {
                 Subscription = data,
                 Jobs = jobs,
                 Training = training,
                 Campaign = campaigns,
-                PaymentDetails = userPaymentOption
+                PaymentDetails = userPaymentOption,
+                Users = usersData
             };
             return View(dashboard);
         }
