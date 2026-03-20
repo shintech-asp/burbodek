@@ -1,0 +1,352 @@
+﻿@{
+    ViewData["Title"] = "Interview Applicants";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+@model IEnumerable<burbodek.Models.Interview>
+@using System.Globalization
+
+@{
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+
+    <!--end::Toolbar-->
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+
+            <!--begin::Legend-->
+            <div class="d-flex gap-4 mb-6 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge badge-light-danger px-3 py-2">
+                        <i class="ki-duotone ki-calendar-8 fs-6 me-1 text-danger">
+                            <span class="path1"></span><span class="path2"></span>
+                            <span class="path3"></span><span class="path4"></span>
+                            <span class="path5"></span><span class="path6"></span>
+                        </i>
+                        Today's Interview
+                    </span>
+                    <span class="text-muted fs-7">— Scheduled for today</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge badge-light-primary px-3 py-2">
+                        <i class="ki-duotone ki-calendar-tick fs-6 me-1 text-primary">
+                            <span class="path1"></span><span class="path2"></span>
+                            <span class="path3"></span><span class="path4"></span>
+                            <span class="path5"></span><span class="path6"></span>
+                        </i>
+                        Upcoming
+                    </span>
+                    <span class="text-muted fs-7">— Future schedule</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge badge-light-success px-3 py-2">
+                        <i class="ki-duotone ki-check-circle fs-6 me-1 text-success">
+                            <span class="path1"></span><span class="path2"></span>
+                        </i>
+                        Done
+                    </span>
+                    <span class="text-muted fs-7">— Interview completed</span>
+                </div>
+            </div>
+            <!--end::Legend-->
+            <!--begin::Filter Row-->
+            <div class="card mb-5">
+                <div class="card-body py-4">
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <div class="position-relative">
+                            <i class="ki-duotone ki-magnifier fs-3 text-gray-500 position-absolute top-50 translate-middle-y ms-4">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            <input type="text" id="searchInput" class="form-control form-control-solid w-250px ps-12" placeholder="Search applicant..." />
+                        </div>
+                        <select id="statusFilter" class="form-select form-select-solid w-180px">
+                            <option value="">All Status</option>
+                            <option value="today">Today's Interview</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="done">Done</option>
+                        </select>
+                        <select id="formatFilter" class="form-select form-select-solid w-180px">
+                            <option value="">All Formats</option>
+                            <option value="Online">Online</option>
+                            <option value="On-site">On-site</option>
+                            <option value="Phone">Phone</option>
+                        </select>
+                        <span class="text-muted fs-7 ms-auto">
+                            Total: <strong id="totalCount" class="text-gray-800">@Model.Count()</strong> applicant(s)
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <!--end::Filter Row-->
+            <!--begin::Cards Grid-->
+            <div class="row g-5 g-xl-8" id="interviewGrid">
+
+                @foreach (var item in Model.OrderBy(x => x.InterviewDate).ThenBy(x => x.InterviewTime))
+                {
+                    var isToday = item.InterviewDate == today;
+                    var isPast = item.InterviewDate < today || item.Status == "Hired" || item.Status == "Rejected";
+                    var isDone = isPast;
+
+                    string badgeClass, badgeText, badgeIcon, cardBorder;
+
+                    if (isDone)
+                    {
+                        badgeClass = "badge-light-success";
+                        badgeText = "Done";
+                        badgeIcon = "ki-check-circle";
+                        cardBorder = "border-success";
+                    }
+                    else if (isToday)
+                    {
+                        badgeClass = "badge-light-danger";
+                        badgeText = "Today";
+                        badgeIcon = "ki-calendar-8";
+                        cardBorder = "border-danger";
+                    }
+                    else
+                    {
+                        badgeClass = "badge-light-primary";
+                        badgeText = "Upcoming";
+                        badgeIcon = "ki-calendar-tick";
+                        cardBorder = "border-primary";
+                    }
+
+                    var statusTag = isDone ? "done" : (isToday ? "today" : "upcoming");
+                    var applicantFullName = $"{item.Users?.UserProfile?.FirstName} {item.Users?.UserProfile?.LastName}";
+                    var formattedDate = item.InterviewDate.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+                    var formattedTime = item.InterviewTime.ToString("hh:mm tt", CultureInfo.InvariantCulture);
+
+                    <div class="col-md-6 col-xl-4 interview-card"
+                         data-name="@applicantFullName.ToLower()"
+                         data-status="@statusTag"
+                         data-format="@item.InterviewFormat?.ToLower()">
+
+                        <div class="card card-flush border border-2 @cardBorder h-100 hover-elevate-up">
+
+                            <!--begin::Card Header-->
+                            <div class="card-header pt-5 pb-0 border-0">
+                                <div class="d-flex align-items-center w-100">
+                                    <!--begin::Avatar-->
+                                    <div class="symbol symbol-50px me-4">
+                                        <div class="symbol-label fs-2 fw-bold
+                                                @(isDone ? "bg-light-success text-success" : isToday ? "bg-light-danger text-danger" : "bg-light-primary text-primary")">
+                                            @(applicantFullName.Length > 0 ? applicantFullName[0].ToString().ToUpper() : "?")
+                                        </div>
+                                    </div>
+                                    <!--end::Avatar-->
+                                    <!--begin::Info-->
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <span class="text-gray-900 fw-bold fs-5 d-block text-truncate">
+                                            @applicantFullName
+                                        </span>
+                                        <span class="text-muted fw-semibold fs-7 d-block text-truncate">
+                                            @item.Jobs?.JobTitle
+                                        </span>
+                                    </div>
+                                    <!--end::Info-->
+                                    <!--begin::Badge-->
+                                    <span class="badge @badgeClass fs-7 fw-bold ms-2 d-flex align-items-center gap-1">
+                                        <i class="ki-duotone @badgeIcon fs-6">
+                                            <span class="path1"></span><span class="path2"></span>
+                                            @if (badgeIcon == "ki-calendar-8")
+                                            {
+                                                <span class="path3"></span>
+                                        
+                                                <span class="path4"></span>
+                                                <span class="path5"></span>
+
+                                                <span class="path6"></span>
+                                            }
+                                        </i>
+                                        @badgeText
+                                    </span>
+                                    <!--end::Badge-->
+                                </div>
+                            </div>
+                            <!--end::Card Header-->
+                            <!--begin::Card Body-->
+                            <div class="card-body pt-4">
+
+                                <!--begin::Separator-->
+                                <div class="separator separator-dashed mb-4"></div>
+
+                                <!--begin::Details-->
+                                <div class="d-flex flex-column gap-3">
+
+                                    <!--Date-->
+                                    <div class="d-flex align-items-center">
+                                        <span class="w-35px h-35px d-flex align-items-center justify-content-center rounded bg-light me-3">
+                                            <i class="ki-duotone ki-calendar fs-4
+                                                    @(isDone ? "text-success" : isToday ? "text-danger" : "text-primary")">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </span>
+                                        <div>
+                                            <span class="text-muted fs-8 d-block">Date</span>
+                                            <span class="text-gray-800 fw-semibold fs-7">
+                                                @formattedDate
+                                                @if (isToday)
+                                                {
+                                                    <span class="badge badge-danger ms-1 py-1 px-2 fs-8">TODAY</span>
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!--Time-->
+                                    <div class="d-flex align-items-center">
+                                        <span class="w-35px h-35px d-flex align-items-center justify-content-center rounded bg-light me-3">
+                                            <i class="ki-duotone ki-time fs-4
+                                                    @(isDone ? "text-success" : isToday ? "text-danger" : "text-primary")">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </span>
+                                        <div>
+                                            <span class="text-muted fs-8 d-block">Time</span>
+                                            <span class="text-gray-800 fw-semibold fs-7">@formattedTime</span>
+                                        </div>
+                                    </div>
+
+                                    <!--Format-->
+                                    <div class="d-flex align-items-center">
+                                        <span class="w-35px h-35px d-flex align-items-center justify-content-center rounded bg-light me-3">
+                                            <i class="ki-duotone ki-profile-circle fs-4
+                                                    @(isDone ? "text-success" : isToday ? "text-danger" : "text-primary")">
+                                                <span class="path1"></span><span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </span>
+                                        <div>
+                                            <span class="text-muted fs-8 d-block">Format</span>
+                                            <span class="text-gray-800 fw-semibold fs-7">@item.InterviewFormat</span>
+                                        </div>
+                                    </div>
+
+                                    <!--Location-->
+                                    <div class="d-flex align-items-center">
+                                        <span class="w-35px h-35px d-flex align-items-center justify-content-center rounded bg-light me-3">
+                                            <i class="ki-duotone ki-geolocation fs-4
+                                                    @(isDone ? "text-success" : isToday ? "text-danger" : "text-primary")">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </span>
+                                        <div class="overflow-hidden">
+                                            <span class="text-muted fs-8 d-block">Location / Link</span>
+                                            <span class="text-gray-800 fw-semibold fs-7 text-truncate d-block" style="max-width:200px;"
+                                                  title="@item.InterviewLocation">
+                                                @item.InterviewLocation
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!--Interviewer-->
+                                    <div class="d-flex align-items-center">
+                                        <span class="w-35px h-35px d-flex align-items-center justify-content-center rounded bg-light me-3">
+                                            <i class="ki-duotone ki-people fs-4
+                                                    @(isDone ? "text-success" : isToday ? "text-danger" : "text-primary")">
+                                                <span class="path1"></span><span class="path2"></span>
+                                                <span class="path3"></span><span class="path4"></span>
+                                                <span class="path5"></span>
+                                            </i>
+                                        </span>
+                                        <div>
+                                            <span class="text-muted fs-8 d-block">Interviewer</span>
+                                            <span class="text-gray-800 fw-semibold fs-7">@item.InterviewerName</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!--end::Details-->
+                                <!--begin::Separator-->
+                                <div class="separator separator-dashed mt-4 mb-3"></div>
+
+                                <!--begin::Footer-->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted fs-8">
+                                        Job: <strong class="text-gray-700">@item.Jobs?.JobTitle</strong>
+                                    </span>
+                                    <a asp-controller="Employer"
+                                       asp-action="ApplicantInfo"
+                                       asp-route-Id="@item.JobsId"
+                                       asp-route-ApplicantId="@item.UsersId"
+                                       class="btn btn-sm
+                                               @(isDone ? "btn-light-success" : isToday ? "btn-light-danger" : "btn-light-primary")
+                                               py-1 px-3">
+                                        View
+                                        <i class="ki-duotone ki-arrow-right fs-6 ms-1">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
+                                    </a>
+                                </div>
+                                <!--end::Footer-->
+
+                            </div>
+                            <!--end::Card Body-->
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+            <!--end::Cards Grid-->
+            <!--begin::Empty State-->
+            <div id="emptyState" class="text-center py-20" style="display:none;">
+                <i class="ki-duotone ki-calendar-remove fs-5x text-muted mb-5">
+                    <span class="path1"></span><span class="path2"></span>
+                    <span class="path3"></span><span class="path4"></span>
+                    <span class="path5"></span><span class="path6"></span>
+                </i>
+                <p class="text-muted fs-5">No applicants found matching your filters.</p>
+            </div>
+            <!--end::Empty State-->
+
+        </div>
+    </div>
+    <!--end::Content-->
+
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const searchInput  = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const formatFilter = document.getElementById('formatFilter');
+            const cards        = document.querySelectorAll('.interview-card');
+            const emptyState   = document.getElementById('emptyState');
+            const totalCount   = document.getElementById('totalCount');
+
+            function filterCards() {
+                const search = searchInput.value.toLowerCase().trim();
+                const status = statusFilter.value;
+                const format = formatFilter.value.toLowerCase();
+                let visible  = 0;
+
+                cards.forEach(card => {
+                    const nameMatch   = card.dataset.name.includes(search);
+                    const statusMatch = !status || card.dataset.status === status;
+                    const formatMatch = !format || card.dataset.format === format;
+
+                    if (nameMatch && statusMatch && formatMatch) {
+                        card.style.display = '';
+                        visible++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                totalCount.textContent = visible;
+                emptyState.style.display = visible === 0 ? 'block' : 'none';
+                document.getElementById('interviewGrid').style.display = visible === 0 ? 'none' : '';
+            }
+
+            searchInput.addEventListener('input', filterCards);
+            statusFilter.addEventListener('change', filterCards);
+            formatFilter.addEventListener('change', filterCards);
+
+        });
+    </script>
+}

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using burbodek.Data;
 
@@ -11,9 +12,11 @@ using burbodek.Data;
 namespace burbodek.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260320131903_AddInterviewForPaging")]
+    partial class AddInterviewForPaging
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -575,7 +578,7 @@ namespace burbodek.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("JobsId")
+                    b.Property<int>("JobApplicationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -587,7 +590,7 @@ namespace burbodek.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JobsId");
+                    b.HasIndex("JobApplicationId");
 
                     b.HasIndex("UsersId");
 
@@ -1470,9 +1473,6 @@ namespace burbodek.Migrations
                     b.Property<string>("Picture")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Resume")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("UsersId")
                         .HasColumnType("int");
 
@@ -1709,9 +1709,9 @@ namespace burbodek.Migrations
 
             modelBuilder.Entity("burbodek.Models.Interview", b =>
                 {
-                    b.HasOne("burbodek.Models.Jobs", "Jobs")
+                    b.HasOne("burbodek.Models.JobApplication", "JobApplication")
                         .WithMany()
-                        .HasForeignKey("JobsId")
+                        .HasForeignKey("JobApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1721,7 +1721,7 @@ namespace burbodek.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Jobs");
+                    b.Navigation("JobApplication");
 
                     b.Navigation("Users");
                 });

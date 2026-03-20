@@ -907,6 +907,8 @@ namespace burbodek.Controllers
                             .ThenInclude(u => u.EmployerDetails)
                         .Include(u => u.JobBenefits)
                         .Include(u => u.JobApplication)
+                            .ThenInclude(u => u.Users)
+                                .ThenInclude(u => u.UserBadge)
                         .Include(u => u.JobRequirements)
                         .Include(u => u.PostReport)
                         .Include(u => u.JobRole)
@@ -918,8 +920,193 @@ namespace burbodek.Controllers
             {
                 return NotFound(); // or redirect to an error page
             }
+            var requiredBadges = data.JobRequiredBadge?.Select(b => b.Badge).ToList() ?? new List<string>();
 
+            // Users who have already applied
+            var appliedUserIds = data.JobApplication?.Select(a => a.AppliedBy).ToHashSet() ?? new HashSet<int>();
+
+            List<Users> recommendedUsers = new();
+
+            if (requiredBadges.Any())
+            {
+                recommendedUsers = _context.Users
+                    .Include(u => u.UserProfile)
+                    .Include(u => u.UserBadge)
+                    .Where(u =>
+                        // Not already applied
+                        !appliedUserIds.Contains(u.Id) &&
+                        // Has all required badges (valid ones only)
+                        requiredBadges.All(rb =>
+                            u.UserBadge.Any(ub =>
+                                ub.Badge == rb &&
+                                (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today)
+                            )
+                        )
+                    )
+                    .ToList();
+            }
+
+            ViewBag.RecommendedUsers = recommendedUsers;
             return View(data);
+        }
+        [HttpPost]
+        public async Task<IActionResult> SendJobInvite(int RecipientUserId, int JobId)
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            var sender = _context.Users
+                .Include(u => u.EmployerDetails)
+                .FirstOrDefault(u => u.Id == userId);
+
+            var recipient = _context.Users
+                .Include(u => u.UserProfile)
+                .FirstOrDefault(u => u.Id == RecipientUserId);
+
+            var job = _context.Jobs.Find(JobId);
+
+            if (sender == null || recipient == null || job == null)
+                return Json(new { success = false, message = "Invalid data." });
+
+            var recipientProfile = recipient.UserProfile;
+            var recipientFirstName = recipientProfile?.FirstName ?? recipient.Username ?? "Applicant";
+            var recipientLastName = recipientProfile?.LastName ?? "";
+            var businessName = sender.EmployerDetails?.BusinessName ?? sender.Username;
+
+            // ── Build email body ─────────────────────────────────────────────
+            var emailBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;
+        }}
+        .container {{
+            max-width: 600px; margin: 20px auto; background-color: #ffffff;
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #1a7a3e 0%, #28a745 100%);
+            color: white; padding: 40px 20px; text-align: center;
+        }}
+        .header h1 {{ margin: 0; font-size: 26px; font-weight: 600; }}
+        .content {{ padding: 40px; }}
+        .greeting {{ font-size: 16px; margin-bottom: 20px; color: #333; }}
+        .highlight-box {{
+            background-color: #e9f7ef; border-left: 4px solid #28a745;
+            padding: 20px; margin: 25px 0; border-radius: 4px;
+        }}
+        .highlight-label {{
+            font-weight: 600; color: #28a745; font-size: 12px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }}
+        .highlight-value {{ font-size: 18px; font-weight: 600; color: #333; margin-top: 5px; }}
+        .body-text {{ font-size: 15px; line-height: 1.7; color: #555; margin-bottom: 20px; }}
+        .footer {{
+            background-color: #f9f9f9; padding: 20px; border-top: 1px solid #e0e0e0;
+            text-align: center; font-size: 12px; color: #888;
+        }}
+        .divider {{ height: 1px; background-color: #e0e0e0; margin: 30px 0; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🌟 You've Been Invited!</h1>
+        </div>
+        <div class='content'>
+            <p class='greeting'>Dear {recipientFirstName} {recipientLastName},</p>
+            <p class='body-text'>
+                We came across your profile and were impressed by your qualifications and badges.
+                We would like to personally invite you to apply for the following position at
+                <strong>{businessName}</strong>.
+            </p>
+            <div class='highlight-box'>
+                <p class='highlight-label'>Position</p>
+                <p class='highlight-value'>{job.JobTitle}</p>
+            </div>
+            <p class='body-text'>
+                We believe your skills and credentials are an excellent match for what we're looking for.
+                We encourage you to visit our job listing and submit your application at your earliest convenience.
+            </p>
+            <p class='body-text'>
+                If you have any questions about the role or our company, please don't hesitate to reach out through the platform's messaging system.
+            </p>
+
+            <div style='text-align:center; margin: 30px 0;'>
+                <a href='https://techasp-001-site1.atempurl.com/Employee/JobInfo/{job.Id}'
+                   style='display:inline-block;
+                          background: linear-gradient(135deg, #1a7a3e, #28a745);
+                          color:#ffffff;
+                          text-decoration:none;
+                          padding: 14px 36px;
+                          border-radius: 8px;
+                          font-size: 15px;
+                          font-weight: 600;
+                          letter-spacing: 0.3px;
+                          box-shadow: 0 4px 12px rgba(40,167,69,0.35);'>
+                    View Job &amp; Apply Now →
+                </a>
+            </div>
+
+            <p class='body-text' style='font-size:13px; color:#999; text-align:center;'>
+                Or copy this link: 
+                <a href='https://techasp-001-site1.atempurl.com/Employee/JobInfo/{job.Id}'
+                   style='color:#28a745;'>
+                    https://techasp-001-site1.atempurl.com/Employee/JobInfo/{job.Id}
+                </a>
+            </p>
+            <div class='divider'></div>
+            <p class='body-text' style='font-size:13px;color:#888;'>
+                Best regards,<br><strong>The {businessName} Team</strong>
+            </p>
+        </div>
+        <div class='footer'>
+            <p>This is an automated message from {businessName}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            // ── Save to EmailThread → Email → EmailRecipient ──────────────────
+            var thread = new EmailThread
+            {
+                Subject = $"You're Invited to Apply – {job.JobTitle} at {businessName}",
+                CreatedBy = userId,
+                CreatedAt = DateTime.Now
+            };
+            _context.EmailThreads.Add(thread);
+            await _context.SaveChangesAsync();
+
+            var email = new Email
+            {
+                ThreadID = thread.Id,
+                SenderID = userId,
+                Body = emailBody,
+                SentAt = DateTime.Now,
+                IsDraft = false,
+                IsTrashed = false,
+                IsRead = false,
+                IsStarred = false
+            };
+            _context.Emails.Add(email);
+            await _context.SaveChangesAsync();
+
+            var recipient2 = new EmailRecipient
+            {
+                EmailID = email.Id,
+                RecipientID = RecipientUserId,
+                IsRead = false,
+                IsTrashed = false,
+                IsStarred = false
+            };
+            _context.EmailRecipients.Add(recipient2);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
         public IActionResult SetAsPaid(int Id)
         {
@@ -2343,8 +2530,22 @@ namespace burbodek.Controllers
 
             return View(applicant);
         }
+        public IActionResult Interview()
+        {
+            var userId = int.Parse(User.FindFirst("UsersId")?.Value);
+
+            var interviews = _context.Interview
+                .Include(i => i.Users)
+                    .ThenInclude(u => u.UserProfile)
+                .Include(i => i.Jobs)
+                .OrderBy(i => i.InterviewDate)
+                .ThenBy(i => i.InterviewTime)
+                .ToList();
+
+            return View(interviews);
+        }
         [HttpPost]
-        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody, IFormFile? Attachment)
+        public IActionResult ApplicantInfo(int ApplicantId, string Status, int Id, string EmailSubject, string EmailBody, IFormFile? Attachment, Interview interview)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
             // Get the applicant for this job
@@ -2387,7 +2588,30 @@ namespace burbodek.Controllers
             }
             else
             {
-                getStatus.Status = Status;
+                var interviewData = _context.Interview.FirstOrDefault(u => u.JobsId == Id && u.UsersId == ApplicantId);
+                if (interview != null && Status == "For Interview" && interviewData == null)
+                {
+                    var inter = new Interview
+                    {
+                        InterviewDate = interview.InterviewDate,
+                        InterviewFormat = interview.InterviewFormat,
+                        InterviewTime = interview.InterviewTime,
+                        JobsId = Id,
+                        UsersId = ApplicantId,
+                        InterviewerName = interview.InterviewerName,
+                        InterviewLocation = interview.InterviewLocation,
+                        Status = interview.Status
+                    };
+                    _context.Interview.Add(inter);
+                    _context.SaveChanges();
+                }
+                if(Status != "For Interview" && interviewData != null)
+                {
+                    interviewData.Status = "Done";
+                    _context.Interview.Update(interviewData);
+                    _context.SaveChanges();
+                }
+                    getStatus.Status = Status;
                 _context.Update(getStatus);
                 _context.SaveChanges();
                 TempData["success"] = "Applicant status updated successfully.";
@@ -2421,7 +2645,7 @@ namespace burbodek.Controllers
                 };
                 _context.EmailRecipients.Add(emailRecipient);
                 _context.SaveChanges();
-                if(Attachment != null || Attachment.Length > 0)
+                if(Attachment != null || Attachment?.Length > 0)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads","email-attachments");
 

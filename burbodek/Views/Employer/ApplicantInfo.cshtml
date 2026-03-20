@@ -201,12 +201,31 @@
 				<form asp-controller="Employer" asp-action="ApplicantInfo" class="form mb-15 fv-plugins-bootstrap5 fv-plugins-framework" method="post" asp-route-Id="@Model.Jobs.Id" asp-route-ApplicantId="@Model.Jobs.JobApplication?.FirstOrDefault()?.AppliedBy" enctype="multipart/form-data">
 					<div class="mb-5">
 						<select class="form-select" name="Status" id="Status">
-							<option value="@Model.Jobs.JobApplication.FirstOrDefault()?.Status" hidden selected>@Model.Jobs.JobApplication.FirstOrDefault()?.Status</option>
-							<option value="Applied">Applied</option>
-							<option value="For Interview">Interview</option>
-							<option value="Job Offer">Job Offer</option>
-							<option value="Hired">Hired</option>
-							<option value="Rejected">Reject</option>
+							@{
+								var currentStatus = Model.Jobs.JobApplication.FirstOrDefault()?.Status;
+							}
+
+							<option value="@currentStatus" hidden selected>@currentStatus</option>
+
+							@if (currentStatus == "Applied")
+							{
+								<option value="For Interview">Interview</option>
+								<option value="Rejected">Reject</option>
+							}
+							else if (currentStatus == "For Interview")
+							{
+								<option value="Job Offer">Job Offer</option>
+								<option value="Rejected">Reject</option>
+							}
+							else if (currentStatus == "Job Offer")
+							{
+								<option value="Hired">Hired</option>
+								<option value="Rejected">Reject</option>
+							}
+							else if (currentStatus == "Hired")
+							{
+								<option value="Hired">Hired</option>
+							}
 						</select>
 					</div>
 					<!--begin::Separator-->
@@ -228,6 +247,41 @@
 								</div>
 
 								<div class="modal-body">
+
+									<!-- Interview Details (only shown for For Interview status) -->
+									<div id="interviewDetailsSection" style="display:none;">
+										<h6 class="fw-bold mb-3">📋 Interview Details</h6>
+										<div class="row mb-3">
+											<div class="col-md-6">
+												<label class="form-label">Interview Date</label>
+												<input type="date" id="interviewDate" name="InterviewDate" class="form-control" />
+											</div>
+											<div class="col-md-6">
+												<label class="form-label">Interview Time</label>
+												<input type="time" id="interviewTime" name="InterviewTime" class="form-control" />
+											</div>
+										</div>
+										<div class="row mb-3">
+											<div class="col-md-6">
+												<label class="form-label">Format</label>
+												<select id="interviewFormat" name="InterviewFormat" class="form-select">
+													<option value="">-- Select --</option>
+													<option value="Online">Online</option>
+													<option value="On-site">On-site</option>
+													<option value="Phone">Phone</option>
+												</select>
+											</div>
+											<div class="col-md-6">
+												<label class="form-label">Interviewer Name</label>
+												<input type="text" id="interviewerName" name="InterviewerName" class="form-control" placeholder="HR Team" />
+											</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label">Location / Meeting Link</label>
+											<input type="text" id="interviewLocation" name="InterviewLocation" class="form-control" placeholder="https://meet.google.com/..." />
+										</div>
+										<hr />
+									</div>
 
 									<div class="mb-3" id="Subject">
 										<label class="form-label">Subject</label>
@@ -336,55 +390,113 @@
 			// ==============================
 			// PREVIEW BUTTON
 			// ==============================
-			document.getElementById("previewEmailBtn").addEventListener("click", function () {
+					document.getElementById("previewEmailBtn").addEventListener("click", function () {
 
-				var selectedStatus = document.querySelector("select[name='Status']").value;
-				var template = emailTemplates.find(t => t.TypeOfEmail === selectedStatus);
+			var selectedStatus = document.querySelector("select[name='Status']").value;
+			var template = emailTemplates.find(t => t.TypeOfEmail === selectedStatus);
 
-				if (!template) {
-					alert("No email template found for this status.");
-					return;
+			if (!template) {
+				alert("No email template found for this status.");
+				return;
+			}
+
+			if (selectedStatus === "For Interview") {
+				document.getElementById("interviewDetailsSection").style.display = "block";
+			} else {
+				document.getElementById("interviewDetailsSection").style.display = "none";
+			}
+
+			if (selectedStatus == "Job Offer") {
+				if (!document.getElementById("AttachmentWrapper")) {
+					$("#Subject").append(`
+						<div class="mb-3" id="AttachmentWrapper">
+							<label class="form-label">Attachments</label>
+							<input type="file" id="Attachment" class="form-control" name="Attachment">
+						</div>
+					`);
 				}
-						if (selectedStatus == "Job Offer") {
-			$("#Subject").append(`
-				<div class="mb-3" id="AttachmentWrapper">
-					<label class="form-label">Attachments</label>
-					<input type="file" id="Attachment" class="form-control" name="Attachment">
-				</div>
-			`);
-		} else {
-			$("#AttachmentWrapper").remove();
+			} else {
+				$("#AttachmentWrapper").remove();
+			}
+
+			var applicantName = "@Model.Jobs.JobApplication?.FirstOrDefault()?.LastName, @Model.Jobs.JobApplication?.FirstOrDefault()?.FirstName";
+			var jobTitle = "@Model.Jobs.JobTitle";
+			var companyName = "@Model.Jobs.Users.Username";
+
+			// Store original template body (with placeholders still intact)
+			window._originalEmailBody = template.Body
+				.replaceAll("{{ApplicantName}}", applicantName)
+				.replaceAll("{{JobTitle}}", jobTitle)
+				.replaceAll("{{CompanyName}}", companyName);
+
+			var subject = template.Subject
+				.replaceAll("{{JobTitle}}", jobTitle)
+				.replaceAll("{{CompanyName}}", companyName);
+
+			document.getElementById("emailSubject").value = subject;
+
+			// Load template with current field values
+			updateEditorWithFields();
+
+			const modalEl = document.getElementById('emailPreviewModal');
+			const modal = new bootstrap.Modal(modalEl);
+			modalEl.addEventListener('shown.bs.modal', function () {
+				editor.refresh();
+			}, { once: true });
+
+			modal.show();
+		});
+
+
+		// ==============================
+		// LIVE UPDATE FUNCTION
+		// ==============================
+		function updateEditorWithFields() {
+			if (!window._originalEmailBody) return;
+
+			const date         = document.getElementById("interviewDate")?.value || "[ Date Here ]";
+			const time         = document.getElementById("interviewTime")?.value || "[ Time Here ]";
+			const location     = document.getElementById("interviewLocation")?.value || "[ Location or Meeting Link Here ]";
+			const format       = document.getElementById("interviewFormat")?.value || "[ Online / On-site / Phone ]";
+			const interviewer  = document.getElementById("interviewerName")?.value || "[ Interviewer Name / HR Team ]";
+
+			// Format date nicely if filled
+			let formattedDate = "[ Date Here ]";
+			if (date && date !== "[ Date Here ]") {
+				const dateObj = new Date(date);
+				formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+			}
+
+			// Format time nicely if filled
+			let formattedTime = "[ Time Here ]";
+			if (time && time !== "[ Time Here ]") {
+				formattedTime = new Date(`1970-01-01T${time}`)
+					.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+			}
+
+			// Replace placeholders from the stored original
+			let updatedBody = window._originalEmailBody
+				.replaceAll("[ Date Here ]",                        formattedDate)
+				.replaceAll("[ Time Here ]",                        formattedTime)
+				.replaceAll("[ Location or Meeting Link Here ]",    location)
+				.replaceAll("[ Online / On-site / Phone ]",         format)
+				.replaceAll("[ Interviewer Name / HR Team ]",       interviewer);
+
+			editor.setComponents(updatedBody);
 		}
-				// Replace placeholders
-				var applicantName = "@Model.Jobs.JobApplication?.FirstOrDefault()?.LastName, @Model.Jobs.JobApplication?.FirstOrDefault()?.FirstName";
-				var jobTitle = "@Model.Jobs.JobTitle";
-				var companyName = "@Model.Jobs.Users.Username";
 
-				var body = template.Body
-					.replaceAll("{{ApplicantName}}", applicantName)
-					.replaceAll("{{JobTitle}}", jobTitle)
-					.replaceAll("{{CompanyName}}", companyName);
 
-				var subject = template.Subject
-					.replaceAll("{{JobTitle}}", jobTitle)
-					.replaceAll("{{CompanyName}}", companyName);
-
-				// Set subject
-				document.getElementById("emailSubject").value = subject;
-
-				// Load full HTML into GrapesJS (renders with styles!)
-				editor.setComponents(body);
-
-				// Show modal — wait for modal to be visible before rendering
-				const modalEl = document.getElementById('emailPreviewModal');
-				const modal = new bootstrap.Modal(modalEl);
-
-				modalEl.addEventListener('shown.bs.modal', function () {
-					editor.refresh(); // Re-render inside modal
-				}, { once: true });
-
-				modal.show();
-			});
+		// ==============================
+		// ATTACH LIVE LISTENERS
+		// ==============================
+		const liveFields = ["interviewDate", "interviewTime", "interviewLocation", "interviewFormat", "interviewerName"];
+		liveFields.forEach(function (fieldId) {
+			const el = document.getElementById(fieldId);
+			if (el) {
+				el.addEventListener("input", updateEditorWithFields);
+				el.addEventListener("change", updateEditorWithFields);
+			}
+		});
 
 			// ==============================
 			// CONFIRM SUBMIT

@@ -1,506 +1,724 @@
 ﻿@using Humanizer
+@using System.Text.Json
+@using System.Web
 @{
     Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
     ViewData["Title"] = "Job Details";
+    string[] videoExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
+    var requiredBadges = Model.JobRequiredBadge?.Select(b => b.Badge).ToList() ?? new List<string>();
+    var recommendedUsers = (ViewBag.RecommendedUsers as List<Users>) ?? new List<Users>();
 }
 @model Jobs
-<div class="card">
-	<!--begin::Body-->
-	<div class="card-body p-lg-17">
-		<!--begin::Hero-->
-@{
-	string[] videoExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
+
+<style>
+    .job-media-item {
+        width: 100%;
+        height: 450px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .recommended-card {
+        transition: box-shadow 0.25s ease, transform 0.2s ease;
+        border: 1.5px solid #e4f0e8;
+        cursor: pointer;
+    }
+
+        .recommended-card:hover {
+            box-shadow: 0 6px 28px rgba(39,174,96,0.15);
+            transform: translateY(-3px);
+            border-color: #28a745;
+        }
+
+    .badge-pill-sm {
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .profile-cover {
+        height: 110px;
+        background: linear-gradient(135deg, #1a7a3e 0%, #28a745 60%, #5cb85c 100%);
+        position: relative;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .profile-avatar-wrap {
+        position: absolute;
+        bottom: -38px;
+        left: 28px;
+    }
+
+    .profile-avatar {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        object-fit: cover;
+    }
+
+    .profile-avatar-initials {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        background: linear-gradient(135deg, #28a745, #1a7a3e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .profile-info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #f0f0f0;
+        font-size: 14px;
+    }
+
+        .profile-info-row:last-child {
+            border-bottom: none;
+        }
+
+    .profile-info-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #e9f7ef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+
+@if (Model.isDeleted == true && (Model.isFinal == null || Model.isFinal == false))
+{
+    <div class="alert alert-danger">
+        <p><span class="fw-bold">Note: </span> This job is deleted</p>
+        @if (Model.Appeal == null)
+        {
+            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#appealModal">Appeal</button>
+        }
+        else
+        {
+            <button class="btn btn-success btn-sm" disabled>Appeal submitted</button>
+        }
+    </div>
 }
 
-		<style>
-			.job-media-item {
-				width: 100%;
-				height: 450px; /* fixed landscape height */
-				object-fit: cover; /* crop & center */
-				border-radius: 12px;
-			}
-		</style>
+@if (Model.isFinal == true)
+{
+    <div class="alert alert-danger">
+        <p><span class="fw-bold">Note: </span> This job is permanently deleted by the admin</p>
+    </div>
+}
 
-		@if (Model.isDeleted == true && (Model.isFinal == null || Model.isFinal == false))
-		{
-			<div class="alert alert-danger">
-				<p><span class="fw-bold">Note: </span> This job is deleted</p>
-				@if(Model.Appeal == null)
-				{
-					<button class="btn btn-success btn-sm" id="appeal"
-							data-bs-toggle="modal"
-							data-bs-target="#appealModal">
-						Appeal
-					</button>
-				}
-				else
-				{
-					<button class="btn btn-success btn-sm" disabled>
-						Appeal submitted
-					</button>
-					
-				}
-			</div>
-		}
-		@if(Model.isFinal == true)
-		{
-			<div class="alert alert-danger">
-				<p><span class="fw-bold">Note: </span> This job is permanently deleted by the admin</p>
-			</div>
-		}
-		<div class="position-relative mb-17">
-			<div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
-				<div class="carousel-inner">
-					@if (Model?.JobMedia != null && Model.JobMedia.Any())
-					{
-						var index = 0;
-						foreach (var media in Model.JobMedia)
-						{
-							var isActive = index == 0 ? "active" : "";
-							var ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower();
+<div class="card">
+    <div class="card-body p-lg-17">
 
-							<div class="carousel-item @isActive">
-								@if (!string.IsNullOrEmpty(ext) && videoExtensions.Contains(ext))
-								{
-									<!-- Video -->
-									<video class="d-block job-media-item"
-										   loop playsinline muted>
-										<source src="@Url.Content(media.FilePath)" type="video/mp4">
-										Your browser does not support the video tag.
-									</video>
-								}
-								else
-								{
-									<!-- Image -->
-									<img src="@Url.Content(media.FilePath)" class="d-block job-media-item" alt="Job Media" />
-								}
-							</div>
-							index++;
-						}
-					}
-					else
-					{
-						<!-- Fallback if no media -->
-						<div class="carousel-item active">
-							<div class="job-media-item d-flex align-items-center justify-content-center bg-light text-muted">
-								No media available
-							</div>
-						</div>
-					}
-				</div>
+        <!--begin::Carousel-->
+        <div class="position-relative mb-17">
+            <div id="jobMediaCarousel" class="carousel slide card-rounded overflow-hidden" data-bs-ride="false">
+                <div class="carousel-inner">
+                    @if (Model.JobMedia != null && Model.JobMedia.Any())
+                    {
+                        int idx = 0;
+                        foreach (var media in Model.JobMedia)
+                        {
+                            string isActive = idx == 0 ? "active" : "";
+                            string ext = System.IO.Path.GetExtension(media.FilePath)?.ToLower() ?? "";
+                            <div class="carousel-item @isActive">
+                                @if (videoExtensions.Contains(ext))
+                                {
+                                    <video class="d-block job-media-item" loop playsinline muted>
+                                        <source src="@Url.Content(media.FilePath)" type="video/mp4" />
+                                    </video>
+                                }
+                                else
+                                {
+                                    <img src="@Url.Content(media.FilePath)" class="d-block job-media-item" alt="Job Media" />
+                                }
+                            </div>
+                            idx++;
+                        }
+                    }
+                    else
+                    {
+                        <div class="carousel-item active">
+                            <div class="job-media-item d-flex align-items-center justify-content-center bg-light text-muted">
+                                No media available
+                            </div>
+                        </div>
+                    }
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+            <div class="overlay-layer rounded bg-black position-absolute top-0 start-0 w-100 h-100" style="opacity:0.4"></div>
+            <div class="position-absolute text-white mb-8 ms-10 bottom-0">
+                <h3 class="text-white fs-2qx fw-bold mb-3">@Model.JobTitle</h3>
+                <div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
+            </div>
+        </div>
+        <!--end::Carousel-->
 
-				<!-- Controls -->
-				<button class="carousel-control-prev" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="prev">
-					<span class="carousel-control-prev-icon"></span>
-				</button>
-				<button class="carousel-control-next" type="button" data-bs-target="#jobMediaCarousel" data-bs-slide="next">
-					<span class="carousel-control-next-icon"></span>
-				</button>
-			</div>
+        <div class="d-flex flex-column flex-lg-row mb-17">
 
-			<!-- Overlay -->
-			<div class="overlay-layer rounded bg-black position-absolute top-0 start-0 w-100 h-100" style="opacity: 0.4"></div>
+            <!--begin::Content-->
+            <div class="flex-lg-row-fluid me-0 me-lg-20">
 
-			<!-- Business Info -->
-			<div class="position-absolute text-white mb-8 ms-10 bottom-0">
-				<h3 class="text-white fs-2qx fw-bold mb-3">@Model.JobTitle</h3>
-				<div class="fs-5 fw-semibold">@Model.Users.EmployerDetails?.BusinessDescription</div>
-			</div>
-		</div>
-		<!--begin::Layout-->
-		<div class="d-flex flex-column flex-lg-row mb-17">
-			<!--begin::Content-->
-			<div class="flex-lg-row-fluid me-0 me-lg-20">
-				<div class="mb-17">
-					<div class="card bg-light">
-						<!--begin::Top-->
-						<div class="p-5">
-							<!--begin::Title-->
-							<h2 class="fs-1 text-gray-800 w-bolder">Applicants</h2>
-							<!--end::Title-->
-						</div>
-						<!--end::Top-->
-						<div class="card-body">
-							<div >
-								<div class="table-responsive">
-									<table class="table table-row-dashed table-row-gray-300 gy-7">
-										<thead>
-											<tr class="fw-bold fs-6 text-gray-800">
-												<th>Name</th>
-												<th>Status</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											@if(Model.isDeleted == null || Model.isDeleted == false)
-											{
-												@if (Model?.JobApplication?.Count > 0)
-												{
-													@foreach (var data in Model.JobApplication)
-													{
-														@if (data.Status != "Hired")
-														{
-															<tr>
-																<td>@data.FirstName, @data.LastName</td>
+                <!--begin::Applicants Table-->
+                <div class="mb-10">
+                    <div class="card bg-light">
+                        <div class="p-5">
+                            <h2 class="fs-1 text-gray-800 fw-bolder">Applicants</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-row-dashed table-row-gray-300 gy-7">
+                                    <thead>
+                                        <tr class="fw-bold fs-6 text-gray-800">
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.isDeleted == null || Model.isDeleted == false)
+                                        {
+                                            if (Model.JobApplication != null && Model.JobApplication.Any())
+                                            {
+                                                foreach (var data in Model.JobApplication.Where(d => d.Status != "Hired"))
+                                                {
+                                                    <tr>
+                                                        <td>@data.FirstName, @data.LastName</td>
+                                                        <td><span class="badge badge-primary">@data.Status</span></td>
+                                                        <td class="text-center">
+                                                            <a class="btn btn-sm btn-primary"
+                                                               asp-action="ApplicantInfo"
+                                                               asp-controller="Employer"
+                                                               asp-route-ApplicantId="@data.AppliedBy"
+                                                               asp-route-Id="@Model.Id">View</a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="3" class="fst-italic text-danger">This job is deleted by the admin.</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Applicants Table-->
+                <!--begin::Recommendation Section-->
+                <div class="mb-10">
+                    <div class="card border-0 shadow-sm">
 
-																<td>
-																	<span class="badge badge-primary">@data.Status</span>
-																</td>
-																<td class="text-center">
-																	<a class="btn btn-sm btn-primary" asp-action="ApplicantInfo" asp-controller="Employer" asp-route-ApplicantId="@data.AppliedBy" asp-route-Id="@Model.Id">
-																		View
-																	</a>
-																</td>
-															</tr>
-														}
-													}
-												}
-												else
-												{
-													
-												}
-											}
-											else
-											{
-												@if (Model.isDeleted == true)
-												{
-													<tr>
-														<td colspan="4" class="fst-italic text-danger">This job is deleted by the admin.</td>
-													</tr>
-												}
-											}
-											
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!--end::Content-->
-			<!--begin::Sidebar-->
-			<div class="flex-lg-row-auto w-100 w-lg-275px w-xxl-350px">
-				<!--begin::Careers about-->
-				<div class="card bg-light">
-					<!--begin::Body-->
-					<div class="card-body">
-						<!--begin::Top-->
-						<div class="mb-7">
-							<!--begin::Title-->
-							<h2 class="fs-1 text-gray-800 w-bolder mb-6">About Us</h2>
-							<!--end::Title-->
-							<!--begin::Text-->
-							<p class="fw-semibold fs-6 text-gray-600">@Model.Users.EmployerDetails.BusinessDescription</p>
-							<!--end::Text-->
-						</div>
-						<!--end::Top-->
-						@if(Model.JobRequiredBadge.Count > 0)
-						{
-							<!--begin::Item-->
-							<div class="mb-8">
-								<!--begin::Title-->
-								<h4 class="text-gray-700 w-bolder mb-0">Badge requirements</h4>
-								<!--end::Title-->
-								<!--begin::Section-->
-								<div class="my-2">
-									<!--begin::Row-->
-									<div class="d-flex align-items-center mb-3">
-										<!--begin::Bullet-->
-										<span class="bullet me-3"></span>
-										<!--end::Bullet-->
-										<!--begin::Label-->
-										<div class="text-gray-600 fw-semibold fs-6">
-											@foreach(var data in Model.JobRequiredBadge)
-											{
-												<span class="badge badge-light-primary">@data.Badge</span>
-											}
-										</div>
+                        <div class="card-header border-0 pt-6 pb-0 rounded-top" style="background: linear-gradient(135deg,#e9f7ef 0%,#d4edda 100%);">
+                            <div class="d-flex align-items-center gap-3 w-100">
+                                <span class="w-48px h-48px d-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-15">
+                                    <i class="ki-duotone ki-verify fs-2 text-success">
+                                        <span class="path1"></span><span class="path2"></span>
+                                    </i>
+                                </span>
+                                <div class="flex-grow-1">
+                                    <h3 class="fs-4 fw-bold text-gray-800 mb-0">⭐ Recommended Candidates</h3>
+                                    <span class="text-muted fs-7">Users with <strong>all required badges</strong> who haven't applied yet</span>
+                                </div>
+                                <span class="badge badge-success fs-7 px-4 py-2">@recommendedUsers.Count found</span>
+                            </div>
+                            @if (requiredBadges.Any())
+                            {
+                                <div class="d-flex align-items-center flex-wrap gap-2 mt-4 pb-4">
+                                    <span class="text-muted fs-8 fw-semibold me-1">Requires:</span>
+                                    @foreach (var badge in requiredBadges)
+                                    {
+                                        <span class="badge badge-light-warning badge-pill-sm">
+                                            <i class="ki-duotone ki-medal-star fs-8 me-1 text-warning">
+                                                <span class="path1"></span><span class="path2"></span>
+                                                <span class="path3"></span><span class="path4"></span>
+                                            </i>
+                                            @badge
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
 
-										<!--end::Label-->
-									</div>
-								</div>
-								<!--end::Section-->
-							</div>
-							<!--end::Item-->
-						}
-						<!--begin::Item-->
-						<div class="mb-8">
-							<!--begin::Title-->
-							<h4 class="text-gray-700 w-bolder mb-0">Salary</h4>
-							<!--end::Title-->
-							<!--begin::Section-->
-							<div class="my-2">
-								<!--begin::Row-->
-								<div class="d-flex align-items-center mb-3">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">₱@Model.SalaryMin.ToString("N0") - ₱@Model.SalaryMax.ToString("N0") / month</div>
+                        <div class="card-body pt-6">
+                            @if (!recommendedUsers.Any())
+                            {
+                                <div class="text-center py-12">
+                                    <i class="ki-duotone ki-people fs-5x text-muted mb-4">
+                                        <span class="path1"></span><span class="path2"></span>
+                                        <span class="path3"></span><span class="path4"></span>
+                                        <span class="path5"></span>
+                                    </i>
+                                    <p class="text-muted fs-6 mb-1">No matching candidates found yet.</p>
+                                    <span class="text-muted fs-7">Candidates with all required badges will appear here automatically.</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="row g-4">
+                                    @foreach (var user in recommendedUsers)
+                                    {
+                                        var profile = user.UserProfile;
+                                        var firstName = profile?.FirstName ?? user.Username ?? "User";
+                                        var lastName = profile?.LastName ?? "";
+                                        var fullName = (firstName + " " + lastName).Trim();
+                                        var initial = fullName.Length > 0 ? fullName[0].ToString().ToUpper() : "?";
+                                        var city = profile?.City ?? "—";
+                                        var mobile = profile?.MobileNo ?? "";
+                                        var birthdate = profile?.Birthdate?.ToString("MMM dd, yyyy") ?? "";
+                                        var picturePath = profile?.Picture;
+                                        var resumePath = profile?.Resume;
 
-									<!--end::Label-->
-								</div>
-								<!--end::Row-->
-								<div class="d-flex align-items-center mb-3">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.JobType</div>
-								</div>
-							</div>
-							<!--end::Section-->
-						</div>
-						<!--end::Item-->
-						<!--begin::Item-->
-						<div class="mb-8">
-							<!--begin::Title-->
-							<h4 class="text-gray-700 w-bolder mb-0">Will Expire In</h4>
-							<!--end::Title-->
-							<!--begin::Section-->
-							<div class="my-2">
-								<!--begin::Row-->
-								<div class="d-flex align-items-center mb-3">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@Model.ExpirationDate.Humanize()</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Row-->
-							</div>
-							<!--end::Section-->
-						</div>
-						<!--end::Item-->
-						<!--begin::Item-->
-						<div class="mb-8">
-							<!--begin::Title-->
-							<h4 class="text-gray-700 w-bolder mb-0">Looking for</h4>
-							<!--end::Title-->
-							<!--begin::Section-->
-							<div class="my-2">
-								<!--begin::Row-->
-								<div class="d-flex align-items-center mb-3">
-									<!--begin::Bullet-->
-									<span class="bullet me-3"></span>
-									<!--end::Bullet-->
-									<!--begin::Label-->
-									<div class="text-gray-600 fw-semibold fs-6">@(Model.WillHire != null ? Model.WillHire : "Potential") Employees</div>
-									<!--end::Label-->
-								</div>
-								<!--end::Row-->
-							</div>
-							<!--end::Section-->
-						</div>
-						<!--end::Item-->
-					</div>
-					<!--end::Body-->
-				</div>
-				<!--end::Careers about-->
-			</div>
-			<!--end::Sidebar-->
-		</div>
-		<!--end::Layout-->
+                                        var pictureUrl = string.IsNullOrEmpty(picturePath) ? "" : Url.Content(picturePath);
+                                        var resumeUrl = string.IsNullOrEmpty(resumePath) ? "" : Url.Content(resumePath);
 
-		<div class="modal fade" id="appealModal" tabindex="-1" aria-labelledby="appealModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered modal-lg">
-				<div class="modal-content">
-					<div class="modal-header border-0 pb-0">
-						<h5 class="modal-title fw-bold" id="appealModalLabel">⚠️ Reports Against This Post</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-					</div>
-					<div class="modal-body">
-						<p class="text-muted" style="font-size:13px;">
-							The following reports were submitted against your post. Review each reason before submitting your appeal.
-						</p>
+                                        var matchedBadges = user.UserBadge?
+                                        .Where(ub => requiredBadges.Contains(ub.Badge) && (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today))
+                                        .Select(ub => ub.Badge).ToList() ?? new List<string>();
 
-						<!-- Reports List -->
-						<div class="table-responsive mb-4">
-							<table class="table table-bordered table-sm align-middle">
-								<thead class="table-light">
-									<tr>
-										<th>#</th>
-										<th>Reason</th>
-										<th>Description</th>
-										<th>Date Reported</th>
-									</tr>
-								</thead>
-								<tbody>
-									@foreach (var (report, i) in Model.PostReport.Select((r, i) => (r, i + 1)))
-									{
-										<tr>
-											<td>@i</td>
-											<td><span class="badge bg-danger">@report.Reason</span></td>
-											<td>@report.Description</td>
-											<td>@report.DateReported.ToString("MMM dd, yyyy")</td>
-										</tr>
-									}
-								</tbody>
-							</table>
-						</div>
+                                        var extraBadges = user.UserBadge?
+                                        .Where(ub => !requiredBadges.Contains(ub.Badge) && (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today))
+                                        .Select(ub => ub.Badge).ToList() ?? new List<string>();
 
-						<div class="alert alert-warning" role="alert" style="font-size:13px;">
-							<strong>⚠️ Note:</strong> Submitting a false or invalid appeal may result in permanent removal of your post.
-						</div>
-					</div>
-					<div class="modal-footer border-0 pt-0">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-success" id="submitAppealBtn">
-							<i class="bi bi-send"></i> Appeal This Post
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		@if(Model.isDeleted != true)
-		{
-			<form asp-controller="Employer" asp-action="JobDelete" asp-route-Id="@Model.Id">
-				<div class="text-center mt-5">
-					<a class="btn btn-sm btn-warning w-25" asp-action="JobEdit" asp-controller="Employer" asp-route-Id="@Model.Id">
-						Edit Job
-					</a>
-					<button type="submit" id="deleteJobBtn" class="btn btn-sm btn-danger w-25">
-						Delete this Job
-					</button>
-				</div>
-			</form>
-		}
-	</div>
+                                        var matchedJson = JsonSerializer.Serialize(matchedBadges);
+                                        var extraJson = JsonSerializer.Serialize(extraBadges);
+
+                                        <div class="col-md-6 col-xl-4">
+                                            <div class="card recommended-card h-100"
+                                                 data-userid="@user.Id"
+                                                 data-fullname="@fullName"
+                                                 data-city="@city"
+                                                 data-picture="@pictureUrl"
+                                                 data-mobile="@mobile"
+                                                 data-birthdate="@birthdate"
+                                                 data-matched="@HttpUtility.HtmlEncode(matchedJson)"
+                                                 data-extra="@HttpUtility.HtmlEncode(extraJson)"
+                                                 data-resume="@resumeUrl">
+                                                <div class="card-body p-5">
+
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        @if (!string.IsNullOrEmpty(pictureUrl))
+                                                        {
+                                                            <img src="@pictureUrl"
+                                                                 class="rounded-circle me-3"
+                                                                 style="width:46px;height:46px;object-fit:cover;border:2px solid #28a745;flex-shrink:0;"
+                                                                 alt="@fullName" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="me-3 d-flex align-items-center justify-content-center rounded-circle fw-bold text-white"
+                                                                 style="width:46px;height:46px;font-size:20px;background:linear-gradient(135deg,#28a745,#1a7a3e);flex-shrink:0;">
+                                                                @initial
+                                                            </div>
+                                                        }
+                                                        <div class="flex-grow-1 overflow-hidden">
+                                                            <span class="text-gray-900 fw-bold fs-6 d-block text-truncate">@fullName</span>
+                                                            <span class="text-muted fs-8">
+                                                                <i class="ki-duotone ki-geolocation fs-8 me-1">
+                                                                    <span class="path1"></span><span class="path2"></span>
+                                                                </i>
+                                                                @city
+                                                            </span>
+                                                        </div>
+                                                        <span class="w-28px h-28px d-flex align-items-center justify-content-center rounded-circle bg-light-success flex-shrink-0">
+                                                            <i class="ki-duotone ki-verify fs-5 text-success">
+                                                                <span class="path1"></span><span class="path2"></span>
+                                                            </i>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="separator separator-dashed mb-3"></div>
+
+                                                    <div class="mb-2">
+                                                        <span class="text-muted fs-8 fw-semibold d-block mb-2">
+                                                            ✅ Matched (@matchedBadges.Count / @requiredBadges.Count)
+                                                        </span>
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            @foreach (var b in matchedBadges)
+                                                            {
+                                                                <span class="badge badge-light-success badge-pill-sm">@b</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                    @if (extraBadges.Any())
+                                                    {
+                                                        <div class="mb-2">
+                                                            <span class="text-muted fs-8 fw-semibold d-block mb-2">➕ Extra</span>
+                                                            <div class="d-flex flex-wrap gap-1">
+                                                                @foreach (var b in extraBadges)
+                                                                {
+                                                                    <span class="badge badge-light-info badge-pill-sm">@b</span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                    <div class="separator separator-dashed mt-3 mb-3"></div>
+
+                                                    <div class="d-flex justify-content-end">
+                                                        <span class="btn btn-sm btn-light-success py-1 px-3" style="pointer-events:none;">
+                                                            View Profile
+                                                            <i class="ki-duotone ki-arrow-right fs-6 ms-1">
+                                                                <span class="path1"></span><span class="path2"></span>
+                                                            </i>
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+                <!--end::Recommendation Section-->
+
+            </div>
+            <!--end::Content-->
+            <!--begin::Sidebar-->
+            <div class="flex-lg-row-auto w-100 w-lg-275px w-xxl-350px">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="mb-7">
+                            <h2 class="fs-1 text-gray-800 fw-bolder mb-6">About Us</h2>
+                            <p class="fw-semibold fs-6 text-gray-600">@Model.Users.EmployerDetails.BusinessDescription</p>
+                        </div>
+                        @if (Model.JobRequiredBadge != null && Model.JobRequiredBadge.Count > 0)
+                        {
+                            <div class="mb-8">
+                                <h4 class="text-gray-700 fw-bolder mb-0">Badge requirements</h4>
+                                <div class="my-2">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <span class="bullet me-3"></span>
+                                        <div class="text-gray-600 fw-semibold fs-6">
+                                            @foreach (var data in Model.JobRequiredBadge)
+                                            {
+                                                <span class="badge badge-light-primary">@data.Badge</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="mb-8">
+                            <h4 class="text-gray-700 fw-bolder mb-0">Salary</h4>
+                            <div class="my-2">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="bullet me-3"></span>
+                                    <div class="text-gray-600 fw-semibold fs-6">₱@Model.SalaryMin.ToString("N0") - ₱@Model.SalaryMax.ToString("N0") / month</div>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="bullet me-3"></span>
+                                    <div class="text-gray-600 fw-semibold fs-6">@Model.JobType</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-8">
+                            <h4 class="text-gray-700 fw-bolder mb-0">Will Expire In</h4>
+                            <div class="my-2">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="bullet me-3"></span>
+                                    <div class="text-gray-600 fw-semibold fs-6">@Model.ExpirationDate.Humanize()</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-8">
+                            <h4 class="text-gray-700 fw-bolder mb-0">Looking for</h4>
+                            <div class="my-2">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="bullet me-3"></span>
+                                    <div class="text-gray-600 fw-semibold fs-6">@(Model.WillHire != null ? Model.WillHire : "Potential") Employees</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Sidebar-->
+
+        </div>
+
+        <!--begin::Profile Modal-->
+        <div class="modal fade" id="profileModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+                <div class="modal-content border-0 overflow-hidden" style="border-radius:16px;">
+                    <div class="profile-cover">
+                        <div class="profile-avatar-wrap" id="modalAvatarWrap"></div>
+                        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" style="padding-top:52px;">
+                        <div class="ms-2 mb-4" style="margin-top:40px;">
+                            <h4 class="fw-bold text-gray-900 mb-0" id="modalFullName"></h4>
+                            <span class="text-muted fs-7" id="modalCity"></span>
+                        </div>
+                        <div class="separator mb-4"></div>
+                        <div id="modalInfoRows" class="px-1 mb-4"></div>
+                        <div class="separator mb-4"></div>
+                        <div class="px-1 mb-3">
+                            <span class="text-muted fs-8 fw-bold text-uppercase d-block mb-2">Matched Badges</span>
+                            <div id="modalMatchedBadges" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="px-1 mb-4" id="modalExtraBadgesSection">
+                            <span class="text-muted fs-8 fw-bold text-uppercase d-block mb-2">Additional Badges</span>
+                            <div id="modalExtraBadges" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        <div id="modalResumeSection" class="px-1 mb-2"></div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light" style="border-radius:0 0 16px 16px;">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" id="inviteBtn">
+                            <i class="ki-duotone ki-send fs-5 me-2">
+                                <span class="path1"></span><span class="path2"></span>
+                            </i>
+                            Invite to Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Profile Modal-->
+        <!--begin::Appeal Modal-->
+        <div class="modal fade" id="appealModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">⚠️ Reports Against This Post</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted" style="font-size:13px;">Review each report reason before submitting your appeal.</p>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Reason</th>
+                                        <th>Description</th>
+                                        <th>Date Reported</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var (report, i) in Model.PostReport.Select((r, i) => (r, i + 1)))
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td><span class="badge bg-danger">@report.Reason</span></td>
+                                            <td>@report.Description</td>
+                                            <td>@report.DateReported.ToString("MMM dd, yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-warning" style="font-size:13px;">
+                            <strong>⚠️ Note:</strong> Submitting a false appeal may result in permanent removal.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" id="submitAppealBtn">Appeal This Post</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Appeal Modal-->
+        @if (Model.isDeleted != true)
+        {
+            <form asp-controller="Employer" asp-action="JobDelete" asp-route-Id="@Model.Id" id="deleteJobForm">
+                <div class="text-center mt-5">
+                    <a class="btn btn-sm btn-warning w-25" asp-action="JobEdit" asp-controller="Employer" asp-route-Id="@Model.Id">Edit Job</a>
+                    <button type="button" id="deleteJobBtn" class="btn btn-sm btn-danger w-25">Delete this Job</button>
+                </div>
+            </form>
+        }
+
+    </div>
 </div>
 
 @section Scripts {
-	<script>
+    <script>
+        // ── Carousel ──────────────────────────────────────────────────────
+        const carousel = document.getElementById('jobMediaCarousel');
+        function handleVideoPlayback() {
+            carousel.querySelectorAll('video').forEach(v => { v.pause(); v.muted = true; });
+            const active = carousel.querySelector('.carousel-item.active video');
+            if (active) { active.muted = false; active.play(); }
+        }
+        carousel.addEventListener('slid.bs.carousel', handleVideoPlayback);
+        window.addEventListener('load', handleVideoPlayback);
 
-		document.getElementById("deleteJobBtn").addEventListener("click", function (e) {
-			e.preventDefault(
-			Swal.fire({
-				title: 'Are you sure?',
-				text: "This action cannot be undone. The job will be permanently deleted.",
-				icon: 'warning',
-				showCancelButton: true,
-				confirmButtonColor: '#d33',
-				cancelButtonColor: '#3085d6',
-				confirmButtonText: 'Yes, delete it!'
-			}).then((result) => {
-				if (result.isConfirmed) {
-					document.getElementById("deleteJobForm").submit();
-				}
-			});
-		});
-				document.getElementById("submitAppealBtn").addEventListener("click", function () {
-				$("#appealModal").modal('hide');
-					Swal.fire({
-			title: 'Submit Appeal',
-			html: `
-				<p style="font-size:13px; color:#666; margin-bottom:12px; text-align:left;">
-					Please provide a detailed explanation for your appeal. Be honest and specific.
-				</p>
-				<textarea id="appealDescription"
-					style="width:100%;
-						   height:120px;
-						   font-size:13px;
-						   resize:vertical;
-						   padding: 10px;
-						   border: 1px solid #ced4da;
-						   border-radius: 6px;
-						   font-family: inherit;
-						   outline: none;
-						   box-sizing: border-box;">
-				</textarea>
-			`,
-			icon: 'question',
-			showCancelButton: true,
-			confirmButtonText: 'Submit Appeal',
-			cancelButtonText: 'Cancel',
-			confirmButtonColor: '#28a745',
-			didOpen: () => {
-				document.getElementById('appealDescription').focus();
+        // ── Delete ────────────────────────────────────────────────────────
+        document.getElementById("deleteJobBtn")?.addEventListener("click", function () {
+            Swal.fire({
+                title: 'Are you sure?', text: "This action cannot be undone.", icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then(r => { if (r.isConfirmed) document.getElementById("deleteJobForm").submit(); });
+        });
 
-				// Focus ring on click
-				const ta = document.getElementById('appealDescription');
-				ta.addEventListener('focus', () => ta.style.borderColor = '#28a745');
-				ta.addEventListener('blur', () => ta.style.borderColor = '#ced4da');
-			},
-			preConfirm: () => {
-				const description = document.getElementById("appealDescription").value.trim();
-				if (!description) {
-					Swal.showValidationMessage("Please provide a description for your appeal.");
-					return false;
-				}
-				if (description.length < 20) {
-					Swal.showValidationMessage("Appeal description must be at least 20 characters.");
-					return false;
-				}
-				return { description };
-			}
-		}).then((result) => {
-				if (result.isConfirmed) {
+        // ── Appeal ────────────────────────────────────────────────────────
+        document.getElementById("submitAppealBtn")?.addEventListener("click", function () {
+            $("#appealModal").modal('hide');
+            Swal.fire({
+                title: 'Submit Appeal',
+                html: `<textarea id="appealDescription" style="width:100%;height:120px;font-size:13px;resize:vertical;padding:10px;border:1px solid #ced4da;border-radius:6px;font-family:inherit;outline:none;box-sizing:border-box;"></textarea>`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'Submit Appeal', confirmButtonColor: '#28a745',
+                preConfirm: () => {
+                    const d = document.getElementById("appealDescription").value.trim();
+                    if (!d) { Swal.showValidationMessage("Please provide a description."); return false; }
+                    if (d.length < 20) { Swal.showValidationMessage("At least 20 characters required."); return false; }
+                    return { description: d };
+                }
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                $.ajax({
+                    url: '/Employer/SubmitJobAppeal', type: 'POST',
+                    data: { JobId: @Model.Id, Description: result.value.description },
+                    success: res => {
+                        if (res.success) {
+                            Swal.fire({ title: 'Submitted!', icon: 'success', confirmButtonColor: '#28a745' }).then(() => location.reload());
+                        } else {
+                            Swal.fire({ title: 'Failed', text: res.message, icon: 'error' });
+                        }
+                    },
+                    error: () => Swal.fire({ title: 'Error', text: 'Something went wrong.', icon: 'error' })
+                });
+            });
+        });
 
-					// Show loading
-					Swal.fire({
-						title: 'Submitting Appeal...',
-						allowOutsideClick: false,
-						didOpen: () => Swal.showLoading()
-					});
+        // ── Profile Modal ─────────────────────────────────────────────────
+        let _inviteUserId = null;
 
-					$.ajax({
-						url: '/Employer/SubmitJobAppeal',
-						type: 'POST',
-						data: {
-							JobId: @Model.Id,
-							Description: result.value.description
-						},
-						success: function (res) {
-							if (res.success) {
-								Swal.fire({
-									title: 'Appeal Submitted!',
-									text: 'Your appeal has been submitted and is now under review.',
-									icon: 'success',
-									confirmButtonColor: '#28a745'
-								}).then(() => {
-									location.reload();
-								});
-							} else {
-								Swal.fire({
-									title: 'Failed',
-									text: res.message,
-									icon: 'error'
-								});
-							}
-						},
-						error: function () {
-							Swal.fire({
-								title: 'Error',
-								text: 'Something went wrong. Please try again.',
-								icon: 'error'
-							});
-						}
-					});
-				}
-			});
-		});
-		const carousel = document.getElementById('jobMediaCarousel');
+        function openProfileModal(userId, fullName, city, picture, mobile, birthdate, matchedBadges, extraBadges, resume) {
+            _inviteUserId = userId;
 
-		function handleVideoPlayback() {
-			const videos = carousel.querySelectorAll('video');
-			videos.forEach(v => {
-				v.pause();
-				v.muted = true;
-			});
+            // Avatar
+            const wrap = document.getElementById('modalAvatarWrap');
+            wrap.innerHTML = picture
+                ? `<img src="${picture}" class="profile-avatar" alt="${fullName}" />`
+                : `<div class="profile-avatar-initials">${fullName.charAt(0).toUpperCase()}</div>`;
 
-			const activeVideo = carousel.querySelector('.carousel-item.active video');
-			if (activeVideo) {
-				activeVideo.muted = false;
-				activeVideo.play();
-			}
-		}
+            // Name & city
+            document.getElementById('modalFullName').textContent = fullName;
+            document.getElementById('modalCity').innerHTML =
+                `<i class="ki-duotone ki-geolocation fs-8 me-1"><span class="path1"></span><span class="path2"></span></i>${city}`;
 
-		// Run on slide change
-		carousel.addEventListener('slid.bs.carousel', handleVideoPlayback);
+            // Info rows
+            const rows = document.getElementById('modalInfoRows');
+            rows.innerHTML = [
+                { icon: 'ki-phone',    label: 'Mobile',    value: mobile    || '—' },
+                { icon: 'ki-calendar', label: 'Birthdate', value: birthdate || '—' },
+            ].map(item => `
+                <div class="profile-info-row">
+                    <div class="profile-info-icon">
+                        <i class="ki-duotone ${item.icon} fs-5 text-success">
+                            <span class="path1"></span><span class="path2"></span>
+                        </i>
+                    </div>
+                    <div>
+                        <span class="text-muted fs-8 d-block">${item.label}</span>
+                        <span class="text-gray-800 fw-semibold fs-7">${item.value}</span>
+                    </div>
+                </div>`).join('');
 
-		// Run on page load
-		window.addEventListener('load', handleVideoPlayback);
-	</script>
+            // Matched badges
+            document.getElementById('modalMatchedBadges').innerHTML = matchedBadges.length
+                ? matchedBadges.map(b => `<span class="badge badge-light-success badge-pill-sm">${b}</span>`).join('')
+                : `<span class="text-muted fs-8">None</span>`;
+
+            // Extra badges
+            const extraSection = document.getElementById('modalExtraBadgesSection');
+            if (extraBadges.length) {
+                extraSection.style.display = '';
+                document.getElementById('modalExtraBadges').innerHTML =
+                    extraBadges.map(b => `<span class="badge badge-light-info badge-pill-sm">${b}</span>`).join('');
+            } else {
+                extraSection.style.display = 'none';
+            }
+
+            // Resume
+            document.getElementById('modalResumeSection').innerHTML = resume
+                ? `<a href="${resume}" target="_blank" class="btn btn-sm btn-light-primary w-100">
+                       <i class="ki-duotone ki-document fs-5 me-2"><span class="path1"></span><span class="path2"></span></i>
+                       View Resume
+                   </a>`
+                : '';
+
+            new bootstrap.Modal(document.getElementById('profileModal')).show();
+        }
+        document.querySelectorAll('.recommended-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                const userId    = this.dataset.userid;
+                const fullName  = this.dataset.fullname;
+                const city      = this.dataset.city;
+                const picture   = this.dataset.picture;
+                const mobile    = this.dataset.mobile;
+                const birthdate = this.dataset.birthdate;
+                const resume    = this.dataset.resume;
+
+                // dataset automatically HTML-decodes the value, so JSON.parse works cleanly
+                let matchedBadges = [];
+                let extraBadges   = [];
+
+                try { matchedBadges = JSON.parse(this.dataset.matched || '[]'); } catch(e) { matchedBadges = []; }
+                try { extraBadges   = JSON.parse(this.dataset.extra   || '[]'); } catch(e) { extraBadges   = []; }
+
+                openProfileModal(userId, fullName, city, picture, mobile, birthdate, matchedBadges, extraBadges, resume);
+            });
+        });
+        // ── Invite ────────────────────────────────────────────────────────
+        document.getElementById('inviteBtn').addEventListener('click', function () {
+            if (!_inviteUserId) return;
+            Swal.fire({
+                title: 'Send Invite?',
+                html: `<p style="font-size:14px;color:#555;">An invitation email will be sent to this candidate for <strong>@Model.JobTitle</strong>.</p>`,
+                icon: 'question', showCancelButton: true,
+                confirmButtonText: 'Yes, Send Invite', confirmButtonColor: '#28a745', cancelButtonColor: '#6c757d'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                $.ajax({
+                    url: '@Url.Action("SendJobInvite", "Employer")',
+                    type: 'POST',
+                    data: { RecipientUserId: _inviteUserId, JobId: @Model.Id },
+                    success: res => {
+                        if (res.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('profileModal'))?.hide();
+                            Swal.fire({ title: 'Invite Sent!', text: 'The candidate has been notified.', icon: 'success', confirmButtonColor: '#28a745' });
+                        } else {
+                            Swal.fire({ title: 'Failed', text: res.message || 'Could not send invite.', icon: 'error' });
+                        }
+                    },
+                    error: () => Swal.fire({ title: 'Error', text: 'Something went wrong.', icon: 'error' })
+                });
+            });
+        });
+    </script>
 }
