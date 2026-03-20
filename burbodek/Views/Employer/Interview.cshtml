@@ -86,7 +86,7 @@
                 @foreach (var item in Model.OrderBy(x => x.InterviewDate).ThenBy(x => x.InterviewTime))
                 {
                     var isToday = item.InterviewDate == today;
-                    var isPast = item.InterviewDate < today || item.Status == "Hired" || item.Status == "Rejected";
+                    var isPast = item.InterviewDate < today || item.Status == "Done";
                     var isDone = isPast;
 
                     string badgeClass, badgeText, badgeIcon, cardBorder;
