@@ -11,5 +11,6 @@
         public DateOnly? Birthdate { get; set; }
         public string? City { get; set; }
         public string? Picture { get; set; }
+        public string? Resume { get; set; }
     }
 }

@@ -506,68 +506,169 @@ namespace burbodek.Controllers
             return System.IO.File.ReadAllText(path);
         }
         [HttpPost]
-        public async Task<IActionResult> ApplicationApproval(int SubscriptionId, int Id, string ApprovalDetails, string? DeclineReason, bool? isAllowed)
+        public async Task<IActionResult> ApplicationApproval(
+            int SubscriptionId,
+            int Id,
+            string ApprovalDetails,
+            string? DeclineReason,
+            bool? isAllowed,
+            bool IsBusinessName,
+            bool IsBusinessDescription,
+            bool IsSecDti,
+            bool IsBirCertificate,
+            bool IsBusinessPermit,
+            bool IsPoeaLicense,
+            bool IsProofPartnerShip)
         {
             try
             {
-                var employer = _context.EmployerDetails.Include(u => u.Users).Where(u => u.UsersId == Id).FirstOrDefault();
+                var employer = _context.EmployerDetails
+                    .Include(u => u.Users)
+                    .Where(u => u.UsersId == Id)
+                    .FirstOrDefault();
+
+                if (employer == null)
+                {
+                    TempData["error"] = "Employer not found.";
+                    return RedirectToAction("Application");
+                }
 
                 if (ApprovalDetails == "decline" && DeclineReason != null)
                 {
                     var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
 
-                    // Load decline email template
                     string emailBody = LoadTemplate("Declined.html");
 
-                    // Create resubmit message
                     string resubmitMessage = isAllowed == true
-                        ? "You may submit a new employer application after correcting the issue mentioned above."
+                        ? "You may submit a new employer application after correcting the issues mentioned above."
                         : "At this time, resubmission of your employer application is not allowed.";
 
-                    // Replace placeholders in template
-                    emailBody = emailBody.Replace("{{RejectionReason}}", DeclineReason);
-                    emailBody = emailBody.Replace("{{ResubmitMessage}}", resubmitMessage);
+                    // Build document checklist section
+                    string documentSection = "";
+                    if (isAllowed == true)
+                    {
+                        var flaggedDocs = new List<string>();
 
-                    // Send email
-                    await _email.SendEmailAsync(employer.Users.Email, "Application Declined", emailBody);
+                        if (IsBusinessName) flaggedDocs.Add("Business Name");
+                        if (IsBusinessDescription) flaggedDocs.Add("Business Description");
+                        if (IsSecDti) flaggedDocs.Add("SEC / DTI Certificate");
+                        if (IsBirCertificate) flaggedDocs.Add("BIR Certificate");
+                        if (IsBusinessPermit) flaggedDocs.Add("Business Permit");
+                        if (IsPoeaLicense) flaggedDocs.Add("POEA License");
+                        if (IsProofPartnerShip) flaggedDocs.Add("Proof of Partnership");
 
-                    data.Expiration = DateTime.Now;
-                    data.Status = "Expired";
-                    _context.Subscription.Update(data);
+                        if (flaggedDocs.Any())
+                        {
+                            var docRows = string.Join("", flaggedDocs.Select(doc => $@"
+                <tr>
+                    <td style='padding:10px 12px;border-bottom:1px solid #fed7d7;'>
+                        <span style='display:inline-block;width:10px;height:10px;background:#e53e3e;border-radius:50%;margin-right:10px;'></span>
+                        <span style='color:#2d3748;font-size:14px;'>{doc}</span>
+                    </td>
+                </tr>
+            "));
 
-                    employer.RejectionReason = DeclineReason;
-                    employer.Status = "Decline";
-                    employer.isAllowedForResubmission = isAllowed;
+                            documentSection = $@"
+                <div style='margin:30px 0;'>
+                    <div style='background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;overflow:hidden;'>
+                        <div style='background:#e53e3e;padding:14px 20px;'>
+                            <p style='margin:0;color:#ffffff;font-size:15px;font-weight:bold;'>
+                                📋 Documents Requiring Resubmission
+                            </p>
+                        </div>
+                        <div style='padding:16px 20px 8px;'>
+                            <p style='margin:0 0 12px;color:#742a2a;font-size:13px;line-height:1.6;'>
+                                Please prepare and resubmit the following documents when reapplying:
+                            </p>
+                        </div>
+                        <table role='presentation' style='width:100%;border-collapse:collapse;'>
+                            {docRows}
+                        </table>
+                        <div style='padding:16px 20px;'>
+                            <p style='margin:0;color:#742a2a;font-size:13px;line-height:1.6;'>
+                                ⚠️ Please ensure all documents are <strong>clear, valid, and up to date</strong> before resubmitting your application.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ";
+                        }
 
+                        emailBody = emailBody.Replace("{{RejectionReason}}", DeclineReason);
+                        emailBody = emailBody.Replace("{{ResubmitMessage}}", resubmitMessage);
+                        emailBody = emailBody.Replace("{{DocumentSection}}", documentSection);
+
+                        await _email.SendEmailAsync(employer.Users.Email, "Application Declined", emailBody);
+
+
+                        // Update subscription
+                        data.Expiration = DateTime.Now;
+                        data.Status = "Expired";
+                        _context.Subscription.Update(data);
+
+                        // Update employer status
+                        employer.RejectionReason = DeclineReason;
+                        employer.Status = "Decline";
+                        employer.isAllowedForResubmission = isAllowed;
+                            }
                     if (isAllowed == true)
                     {
                         employer.RegistrationCount += 1;
+
+                        // Only save document flags when resubmission is allowed
+                        employer.IsBusinessName = IsBusinessName;
+                        employer.IsBusinessDescription = IsBusinessDescription;
+                        employer.IsSecDti = IsSecDti;
+                        employer.IsBirCertificate = IsBirCertificate;
+                        employer.IsBusinessPermit = IsBusinessPermit;
+                        employer.IsPoeaLicense = IsPoeaLicense;
+                        employer.IsProofPartnerShip = IsProofPartnerShip;
+                    }
+                    else
+                    {
+                        // Clear all flags if resubmission is not allowed
+                        employer.IsBusinessName = null;
+                        employer.IsBusinessDescription = null;
+                        employer.IsSecDti = null;
+                        employer.IsBirCertificate = null;
+                        employer.IsBusinessPermit = null;
+                        employer.IsPoeaLicense = null;
+                        employer.IsProofPartnerShip = null;
                     }
 
                     _context.EmployerDetails.Update(employer);
-
                     await _context.SaveChangesAsync();
 
-                    TempData["success"] = "Employer declined";
+                    TempData["success"] = "Employer declined.";
                     return RedirectToAction("Index");
                 }
                 else if (ApprovalDetails == "approve")
                 {
                     var data = _context.Subscription.Where(e => e.Id == SubscriptionId).FirstOrDefault();
-                    // Load approval template
-                    string emailBody = LoadTemplate("Approved.html");
 
-                    // Send email
+                    // Load approval email template
+                    string emailBody = LoadTemplate("Approved.html");
                     await _email.SendEmailAsync(employer.Users.Email, "Employer Approved!", emailBody);
+
+                    // Update subscription
                     data.Expiration = null;
                     data.Status = "Current";
                     _context.Subscription.Update(data);
 
+                    // Update employer status and clear all flags on approval
                     employer.Status = "Approved";
+                    employer.RejectionReason = null;
+                    employer.isAllowedForResubmission = null;
+                    employer.IsBusinessName = null;
+                    employer.IsBusinessDescription = null;
+                    employer.IsSecDti = null;
+                    employer.IsBirCertificate = null;
+                    employer.IsBusinessPermit = null;
+                    employer.IsPoeaLicense = null;
+                    employer.IsProofPartnerShip = null;
+
                     _context.EmployerDetails.Update(employer);
-
                     await _context.SaveChangesAsync();
-
 
                     TempData["success"] = "Employer successfully approved!";
                     return RedirectToAction("Index");
@@ -581,7 +682,6 @@ namespace burbodek.Controllers
             catch (Exception ex)
             {
                 return Content($"Error: {ex.Message}<br><br>Stack Trace: {ex.StackTrace}");
-
             }
         }
     }

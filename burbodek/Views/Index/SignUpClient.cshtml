@@ -83,7 +83,7 @@
 							<!--begin::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
 								<!--begin::Email-->
-								<input type="date" placeholder="Birth date" name="UserProfile.BirthDate" autocomplete="off" class="form-control bg-transparent" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
+								<input type="date" placeholder="Birth date" name="UserProfile.BirthDate" autocomplete="off" class="form-control bg-transparent" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")" min="@DateTime.Now.AddYears(-60).ToString("yyyy-MM-dd")">
 								<!--end::Email-->
 								<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"><span asp-validation-for="UserProfile.Birthdate" class="text-danger"></span></div>
 							</div>

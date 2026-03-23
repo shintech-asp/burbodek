@@ -274,13 +274,6 @@ namespace burbodek.Controllers
                         + "</h5><br>Thank you for applying.";
                     return View();
                 }
-                else if(user.EmployerDetails.Status == "Decline" && (user.EmployerDetails.isAllowedForResubmission == true))
-                {
-                    TempData["Status"] = "Your account is declined: <br><br>Reason for declined: <br><h5>"
-                        + user.EmployerDetails.RejectionReason
-                        + "</h5><br>You may re-apply again by signing up the same email.";
-                    return View();
-                }
             }
 
             var passwordHasher = new PasswordHasher<Users>();

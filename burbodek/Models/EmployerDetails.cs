@@ -16,5 +16,13 @@
         public string Longitude { get; set; }
         public int? RegistrationCount { get; set; }
         public bool? isAllowedForResubmission { get; set; }
+
+        public bool? IsBusinessName { get; set; }
+        public bool? IsBusinessDescription { get; set; }
+        public bool? IsSecDti { get; set; }
+        public bool? IsBirCertificate { get; set; }
+        public bool? IsBusinessPermit { get; set; }
+        public bool? IsPoeaLicense { get; set; }
+        public bool? IsProofPartnerShip { get; set; }
     }
 }

@@ -364,6 +364,28 @@
 
 					</div>
 					<!--end::Input group-->
+					<!--begin::Input group-->
+					<div class="row mb-6">
+						<!--begin::Label-->
+						<label class="col-lg-4 col-form-label fw-semibold fs-6">
+							<span class="required">Resume</span>
+							<span class="ms-1" data-bs-toggle="tooltip" aria-label="Phone number must be active" data-bs-original-title="Phone number must be active" data-kt-initialized="1">
+								<i class="ki-duotone ki-information-5 text-gray-500 fs-6">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+								</i>
+							</span>
+						</label>
+						<!--end::Label-->
+						<!--begin::Col-->
+						<div class="col-lg-8 fv-row fv-plugins-icon-container">
+							<input type="file" name="Resume" class="form-control form-control-lg form-control-solid" accept="application/pdf" />
+							<div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+						</div>
+						<!--end::Col-->
+					</div>
+					<!--end::Input group-->
 				</div>
 				<!--end::Card body-->
 				<!--begin::Actions-->
@@ -593,15 +615,8 @@
 			// Show the Change Password button again
 			$('#kt_signin_password_button button').show();
 		});
-		 $('#kt_account_profile_details_form').submit(function(e) {
+				 $('#kt_account_profile_details_form').submit(function(e) {
 			e.preventDefault();
-
-			// Get form values
-			var firstName = $('input[name="FirstName"]').val();
-			var lastName = $('input[name="LastName"]').val();
-			var mobileNumber = $('input[name="MobileNo"]').val();
-			var birthDay = $('input[name="Birthday"]').val();
-			var nationality = $('select[name="Nationality"]').val();
 
 			Swal.fire({
 				title: 'Are you sure?',
@@ -612,18 +627,30 @@
 				cancelButtonText: 'Cancel'
 			}).then((result) => {
 				if (result.isConfirmed) {
+
+					// ✅ Use FormData to support file upload
+					var formData = new FormData();
+					formData.append('Firstname',     $('input[name="FirstName"]').val());
+					formData.append('Lastname',      $('input[name="LastName"]').val());
+					formData.append('MobileNumber',  $('input[name="MobileNo"]').val());
+					formData.append('Birthday',      $('input[name="Birthday"]').val());
+					formData.append('Nationality',   $('select[name="Nationality"]').val());
+
+					// ✅ Grab the actual file from the input
+					var resumeFile = $('input[name="Resume"]')[0].files[0];
+					if (resumeFile) {
+						formData.append('Resume', resumeFile);
+					}
+
 					$.ajax({
 						url: '/Employee/ChangeProfileDetails',
 						type: 'POST',
-						data: {
-							Firstname: firstName,
-							Lastname: lastName,
-							MobileNumber: mobileNumber,
-							Birthday: birthDay,
-							Nationality: nationality,
-						},
+						data: formData,
+						// ✅ These two are required for FormData to work correctly
+						processData: false,
+						contentType: false,
 						success: function(response) {
-							if(response.response) {
+							if (response.response) {
 								Swal.fire({
 									icon: 'success',
 									title: 'Profile Updated',
@@ -641,7 +668,7 @@
 							Swal.fire({
 								icon: 'error',
 								title: 'Server Error',
-								text: `An unexpected error occurred. Please try again later. ${xhr.responseText}`
+								text: 'An unexpected error occurred. Please try again later.'
 							});
 							console.log(xhr.responseText);
 						}

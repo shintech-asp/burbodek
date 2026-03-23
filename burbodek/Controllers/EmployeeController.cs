@@ -2196,7 +2196,9 @@ namespace burbodek.Controllers
                             
                             <div class='highlight-box'>
                                 <p class='highlight-label'>What's Next?</p>
-                                <p class='body-text' style='margin: 10px 0; font-size: 14px;'>Our team is currently reviewing applications. If your qualifications match what we're looking for, we'll reach out to schedule an interview.</p>
+                               <p class='body-text' style='margin: 10px 0; font-size: 14px;'>
+                                Please wait while the training center provides the training details. Once the schedule and information are available, we will notify you with the next steps.
+                                </p>
                             </div>
                             
                             <p class='body-text'>In the meantime, feel free to explore more about " + trainingDesc.Users.EmployerDetails.BusinessName + @" and learn about our training programs and values.</p>
@@ -2443,26 +2445,49 @@ namespace burbodek.Controllers
 
             return View(data);
         }
-        public IActionResult ChangeProfileDetails(string Firstname, string Lastname, string Nationality, string Birthday, string MobileNumber)
+        public IActionResult ChangeProfileDetails(string Firstname, string Lastname, string Nationality, string Birthday, string MobileNumber, IFormFile? Resume)
         {
             var userId = int.Parse(User.FindFirst("UsersId")?.Value);
-            var user = _context.UserProfile
-                        .FirstOrDefault(u => u.UsersId == userId);
+            var user = _context.UserProfile.FirstOrDefault(u => u.UsersId == userId);
             DateOnly parsedBirthday = DateOnly.Parse(Birthday);
+
+            // Handle resume upload
+            string? resumePath = null;
+            if (Resume != null && Resume.Length > 0)
+            {
+                // Validate PDF only
+                var ext = Path.GetExtension(Resume.FileName)?.ToLower();
+                if (ext != ".pdf")
+                    return Json(new { response = false, message = "Only PDF files are allowed for Resume." });
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "resume");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + Resume.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    Resume.CopyTo(stream);
+                }
+
+                resumePath = "/uploads/resume/" + uniqueFileName;
+            }
+
             if (user == null)
             {
-                var users = new UserProfile
+                var newUser = new UserProfile
                 {
                     FirstName = Firstname,
                     LastName = Lastname,
                     City = Nationality,
                     Birthdate = parsedBirthday,
                     MobileNo = MobileNumber,
-                    UsersId = userId
+                    UsersId = userId,
+                    Resume = resumePath  // null if no file uploaded
                 };
-
-
-                _context.UserProfile.Add(users);
+                _context.UserProfile.Add(newUser);
                 _context.SaveChanges();
             }
             else
@@ -2473,12 +2498,15 @@ namespace burbodek.Controllers
                 user.Birthdate = parsedBirthday;
                 user.MobileNo = MobileNumber;
 
+                // Only update resume if a new file was uploaded
+                if (resumePath != null)
+                    user.Resume = resumePath;
+
                 _context.UserProfile.Update(user);
                 _context.SaveChanges();
-
             }
 
-                return Json(new { response = true });
+            return Json(new { response = true });
         }
 
         public IActionResult ChangePassword(string CurrentPassword, string NewPassword, string ConfirmNewPassword)

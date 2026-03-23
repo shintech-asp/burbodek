@@ -700,103 +700,204 @@
 					});
 				</text>
 		}
-		document.addEventListener('DOMContentLoaded', function() {
-				   // Default: Batangas Port
-		document.querySelectorAll(".file-upload").forEach(input => {
-			input.addEventListener("change", function () {
-				const file = this.files[0];
-				const maxSize = 5 * 1024 * 1024; // 5MB
 
-				if (file && file.size > maxSize) {
-					alert("File must not exceed 5MB.");
-					this.value = "";
+		document.addEventListener('DOMContentLoaded', function () {
+
+			// ─── File size validation ───────────────────────────────────────────
+			document.querySelectorAll(".file-upload").forEach(input => {
+				input.addEventListener("change", function () {
+					const file = this.files[0];
+					const maxSize = 5 * 1024 * 1024;
+					if (file && file.size > maxSize) {
+						alert("File must not exceed 5MB.");
+						this.value = "";
+					}
+				});
+			});
+
+			// ─── Map setup (Metro Manila only) ─────────────────────────────────
+			const manilaBounds = [
+				[14.3500, 120.8000],
+				[14.9500, 121.2000]
+			];
+
+			const map = L.map('map', {
+				center: [14.5995, 120.9842],
+				zoom: 11,
+				scrollWheelZoom: true,
+				maxBounds: manilaBounds,
+				maxBoundsViscosity: 1.0,
+				minZoom: 10,
+				maxZoom: 19
+			});
+
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '© OpenStreetMap contributors',
+				maxZoom: 19
+			}).addTo(map);
+
+			let marker = null;
+
+			// ─── Stepper next → invalidate map size ────────────────────────────
+			const nextButtons = document.querySelectorAll('[data-kt-stepper-action="next"]');
+			nextButtons.forEach(btn => {
+				btn.addEventListener('click', () => {
+					setTimeout(() => { map.invalidateSize(); }, 150);
+				});
+			});
+
+			// ─── Metro Manila city list ─────────────────────────────────────────
+			const validRegions = [
+				'Metro Manila', 'National Capital Region', 'NCR',
+				'Manila', 'Quezon City', 'Makati', 'Pasig', 'Taguig',
+				'Mandaluyong', 'Marikina', 'Pasay', 'Parañaque',
+				'Las Piñas', 'Muntinlupa', 'Valenzuela', 'Navotas',
+				'Malabon', 'Caloocan', 'San Juan', 'Pateros'
+			];
+
+			// ─── Map click handler ──────────────────────────────────────────────
+			map.on('click', async function (e) {
+				const lat = e.latlng.lat.toFixed(6);
+				const lng = e.latlng.lng.toFixed(6);
+				const latNum = parseFloat(lat);
+				const lngNum = parseFloat(lng);
+
+				// Hard bounding box check first (before API call)
+				if (
+					latNum < 14.3500 || latNum > 14.9500 ||
+					lngNum < 120.8000 || lngNum > 121.2000
+				) {
+					Swal.fire({
+						title: 'Out of Range',
+						text: 'Please select a location within the Metro Manila area only.',
+						icon: 'warning',
+						confirmButtonText: 'OK'
+					});
+					return;
+				}
+
+				document.getElementById("Latitude").value = '0';
+				document.getElementById("Longitude").value = '0';
+
+				try {
+					const response = await fetch(
+						`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+					);
+					if (!response.ok) throw new Error('Geocoding service unavailable');
+
+					const data = await response.json();
+					const address = data.address || {};
+
+					// Block water/ocean clicks
+					if (!address.state && !address.county && !address.city) {
+						if (marker) { map.removeLayer(marker); marker = null; }
+						Swal.fire({
+							title: 'Invalid Location',
+							text: 'You selected a water area. Please pin a location on land within Metro Manila.',
+							icon: 'warning',
+							confirmButtonText: 'OK'
+						});
+						return;
+					}
+
+					// Block non-Philippines
+					if (address.country !== 'Philippines') {
+						if (marker) { map.removeLayer(marker); marker = null; }
+						Swal.fire({
+							title: 'Outside Philippines',
+							text: 'Please pin a location within the Philippines only.',
+							icon: 'error',
+							confirmButtonText: 'OK'
+						});
+						return;
+					}
+
+					// Block outside Metro Manila
+					const fullAddressText = data.display_name || '';
+					const stateText = address.state || address.county || '';
+					const isInManila = validRegions.some(region =>
+						fullAddressText.includes(region) || stateText.includes(region)
+					);
+
+					if (!isInManila) {
+						if (marker) { map.removeLayer(marker); marker = null; }
+						Swal.fire({
+							title: 'Outside Metro Manila',
+							text: 'Please select a location within Metro Manila / NCR only.',
+							icon: 'error',
+							confirmButtonText: 'OK'
+						});
+						return;
+					}
+
+					// ✅ Valid — place/move marker
+					if (marker) {
+						marker.setLatLng([lat, lng]);
+					} else {
+						marker = L.marker([lat, lng]).addTo(map);
+					}
+
+					const city     = address.city || address.town || address.municipality || address.county || 'N/A';
+					const province = address.state || 'Metro Manila';
+					const fullAddr = data.display_name || 'Address not found';
+
+					document.getElementById("Latitude").value  = lat;
+					document.getElementById("Longitude").value = lng;
+
+					// Update any address fields if they exist
+					const cityEl    = document.getElementById("locationCity");
+					const provEl    = document.getElementById("locationProvince");
+					const addrEl    = document.getElementById("locationFullAddress");
+					if (cityEl) cityEl.value = city;
+					if (provEl) provEl.value = province;
+					if (addrEl) addrEl.value = fullAddr;
+
+					marker.bindPopup(
+						`<strong>${city}, ${province}</strong><br>${fullAddr}`
+					).openPopup();
+
+					map.setView([lat, lng], 14);
+
+				} catch (err) {
+					console.error('Reverse geocoding failed:', err);
+					Swal.fire({
+						title: 'Error',
+						text: 'Unable to fetch address details. Please try again.',
+						icon: 'error',
+						confirmButtonText: 'OK'
+					});
 				}
 			});
-		});
-		const batangasPort = [13.7586, 121.0584];
-		const map = L.map('map').setView(batangasPort, 13);
 
-		// Base tiles
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		  attribution: '© OpenStreetMap contributors',
-		  maxZoom: 19
-		}).addTo(map);
-
-		// Default marker
-		let marker = L.marker(batangasPort).addTo(map)
-		  .bindPopup("📍 Batangas Port (Default)").openPopup();
-			  const stepper = document.getElementById('kt_create_account_stepper');
-		const nextButtons = document.querySelectorAll('[data-kt-stepper-action="next"]');
-		// 📌 Allow manual pinning by clicking map
-			nextButtons.forEach(btn => {
-			btn.addEventListener('click', () => {
-				setTimeout(() => {
-					if (map) {
-						map.invalidateSize();
-					}
-				}, 150);  // give time for step transition animation
-			});
-		});
-		map.on('click', function(e) {
-		  const coords = e.latlng;
-
-		  // Move marker
-		  marker.setLatLng(coords)
-			.bindPopup(`📍 Selected Location<br>Lat: ${coords.lat.toFixed(5)}, Lng: ${coords.lng.toFixed(5)}`)
-			.openPopup();
-
-		  // Update hidden inputs
-		  document.getElementById("Latitude").value = coords.lat;
-		  document.getElementById("Longitude").value = coords.lng;
-		});
-
+			// ─── Checkbox / stepper logic (unchanged) ──────────────────────────
 			const trainingCheckbox = document.getElementById('kt_create_account_form_account_type_personal');
 			const employerCheckbox = document.getElementById('kt_create_account_form_account_type_corporate');
 
-			// Store original field HTML for restoration if needed
 			let originalTrainingFields = [];
 			let originalEmployerFields = [];
 
-			// Get all field containers in Step 4 and store their HTML
 			const trainingFields = document.querySelectorAll('[data-account="training"]');
 			const employerFields = document.querySelectorAll('[data-account="employer"]');
 
-			// Store original HTML content
-			trainingFields.forEach(field => {
-				originalTrainingFields.push(field.cloneNode(true));
-			});
+			trainingFields.forEach(field => originalTrainingFields.push(field.cloneNode(true)));
+			employerFields.forEach(field => originalEmployerFields.push(field.cloneNode(true)));
 
-			employerFields.forEach(field => {
-				originalEmployerFields.push(field.cloneNode(true));
-			});
-
-			// Function to toggle field visibility and requirements
 			function toggleFields() {
 				const isTrainingSelected = trainingCheckbox.checked;
 				const isEmployerSelected = employerCheckbox.checked;
 				const step4Container = document.querySelector('[data-kt-stepper-element="content"]:nth-child(4) .w-100');
 
-				// Remove all existing dynamic fields first
-				const existingTrainingFields = document.querySelectorAll('[data-account="training"]');
-				const existingEmployerFields = document.querySelectorAll('[data-account="employer"]');
+				document.querySelectorAll('[data-account="training"]').forEach(f => f.remove());
+				document.querySelectorAll('[data-account="employer"]').forEach(f => f.remove());
 
-				existingTrainingFields.forEach(field => field.remove());
-				existingEmployerFields.forEach(field => field.remove());
-
-				// Add back only the needed fields
 				if (isTrainingSelected) {
 					originalTrainingFields.forEach(originalField => {
 						const clonedField = originalField.cloneNode(true);
 						const input = clonedField.querySelector('input[type="file"]');
 						const label = clonedField.querySelector('label');
-
-						// Make required and visible
 						clonedField.style.display = 'flex';
 						input.setAttribute('required', 'required');
-						if (label && !label.classList.contains('required')) {
-							label.classList.add('required');
-						}
-
+						if (label && !label.classList.contains('required')) label.classList.add('required');
 						step4Container.appendChild(clonedField);
 					});
 				}
@@ -806,21 +907,14 @@
 						const clonedField = originalField.cloneNode(true);
 						const input = clonedField.querySelector('input[type="file"]');
 						const label = clonedField.querySelector('label');
-
-						// Make required and visible
 						clonedField.style.display = 'flex';
 						input.setAttribute('required', 'required');
-						if (label && !label.classList.contains('required')) {
-							label.classList.add('required');
-						}
-
+						if (label && !label.classList.contains('required')) label.classList.add('required');
 						step4Container.appendChild(clonedField);
 					});
 				}
 
-				// Update form validation if using FormValidation plugin
 				if (typeof FormValidation !== 'undefined' && window.stepperFormValidator) {
-					// Revalidate the form to account for new required fields
 					if (isTrainingSelected) {
 						setTimeout(() => {
 							window.stepperFormValidator.revalidateField('sec_dti');
@@ -837,85 +931,51 @@
 				}
 			}
 
-			// Function to handle checkbox behavior (allow multiple selections)
 			function handleCheckboxSelection() {
-				// Both checkboxes can be selected simultaneously
-				// No need to uncheck the other when one is selected
 				toggleFields();
-
-				// Update Step 2 visibility based on selections
 				updateStep2Visibility();
 			}
 
-			// Function to update Step 2 content based on selection
 			function updateStep2Visibility() {
 				const step2 = document.querySelector('[data-kt-stepper-element="content"]:nth-child(2)');
 				const accountNameField = step2?.querySelector('[name="account_name"]');
 				const accountNameLabel = step2?.querySelector('label[class*="form-label"]');
-
 				if (accountNameField && accountNameLabel) {
-					const isEmployerSelected = employerCheckbox.checked;
-
-					if (isEmployerSelected) {
-						accountNameLabel.textContent = 'Name of Employer';
-						accountNameField.placeholder = 'Enter employer name';
-					} else {
-						accountNameLabel.textContent = 'Name of Training Center';
-						accountNameField.placeholder = 'Enter training center name';
-					}
+					accountNameLabel.textContent = employerCheckbox.checked
+						? 'Name of Employer'
+						: 'Name of Training Center';
+					accountNameField.placeholder = employerCheckbox.checked
+						? 'Enter employer name'
+						: 'Enter training center name';
 				}
 			}
 
-			// Event listeners for checkboxes
-			if (trainingCheckbox) {
-				trainingCheckbox.addEventListener('change', handleCheckboxSelection);
-			}
+			if (trainingCheckbox) trainingCheckbox.addEventListener('change', handleCheckboxSelection);
+			if (employerCheckbox) employerCheckbox.addEventListener('change', handleCheckboxSelection);
 
-			if (employerCheckbox) {
-				employerCheckbox.addEventListener('change', handleCheckboxSelection);
-			}
-
-			// Initial setup - run on page load
 			toggleFields();
 			updateStep2Visibility();
 
-			// Additional validation for stepper navigation
 			function validateStepTransition(currentStep, nextStep) {
 				if (currentStep === 1 && nextStep === 2) {
-					// Validate that at least one account type is selected
-					const isTrainingSelected = trainingCheckbox.checked;
-					const isEmployerSelected = employerCheckbox.checked;
-
-					if (!isTrainingSelected && !isEmployerSelected) {
-						// Show error message using Metronic's toast or alert
-						if (typeof Swal !== 'undefined') {
-							Swal.fire({
-								text: "Please select at least one account type.",
-								icon: "error",
-								buttonsStyling: false,
-								confirmButtonText: "Ok, got it!",
-								customClass: {
-									confirmButton: "btn btn-primary"
-								}
-							});
-						} else {
-							alert('Please select at least one account type.');
-						}
+					if (!trainingCheckbox.checked && !employerCheckbox.checked) {
+						Swal.fire({
+							text: "Please select at least one account type.",
+							icon: "error",
+							buttonsStyling: false,
+							confirmButtonText: "Ok, got it!",
+							customClass: { confirmButton: "btn btn-primary" }
+						});
 						return false;
 					}
 				}
 
 				if (currentStep === 4) {
-					// Validate required files are uploaded
 					let hasError = false;
 					const errorMessages = [];
 
-					// Get current fields in DOM (not the original stored ones)
-					const currentTrainingFields = document.querySelectorAll('[data-account="training"]');
-					const currentEmployerFields = document.querySelectorAll('[data-account="employer"]');
-
 					if (trainingCheckbox.checked) {
-						currentTrainingFields.forEach(field => {
+						document.querySelectorAll('[data-account="training"]').forEach(field => {
 							const input = field.querySelector('input[type="file"]');
 							const label = field.querySelector('label');
 							if (input.hasAttribute('required') && !input.files.length) {
@@ -926,7 +986,7 @@
 					}
 
 					if (employerCheckbox.checked) {
-						currentEmployerFields.forEach(field => {
+						document.querySelectorAll('[data-account="employer"]').forEach(field => {
 							const input = field.querySelector('input[type="file"]');
 							const label = field.querySelector('label');
 							if (input.hasAttribute('required') && !input.files.length) {
@@ -937,19 +997,13 @@
 					}
 
 					if (hasError) {
-						if (typeof Swal !== 'undefined') {
-							Swal.fire({
-								text: errorMessages.join('\n'),
-								icon: "error",
-								buttonsStyling: false,
-								confirmButtonText: "Ok, got it!",
-								customClass: {
-									confirmButton: "btn btn-primary"
-								}
-							});
-						} else {
-							alert(errorMessages.join('\n'));
-						}
+						Swal.fire({
+							text: errorMessages.join('\n'),
+							icon: "error",
+							buttonsStyling: false,
+							confirmButtonText: "Ok, got it!",
+							customClass: { confirmButton: "btn btn-primary" }
+						});
 						return false;
 					}
 				}
@@ -957,23 +1011,17 @@
 				return true;
 			}
 
-			// Expose validation function globally for stepper integration
 			window.validateStepTransition = validateStepTransition;
 
-			// If using KTStepper, integrate with existing stepper instance
 			if (typeof KTStepper !== 'undefined') {
-				// Wait for stepper to be initialized
 				setTimeout(() => {
 					const stepperElement = document.querySelector('[data-kt-stepper="true"]');
 					if (stepperElement && stepperElement.stepper) {
 						const stepper = stepperElement.stepper;
-
-						// Override the stepper's next function
 						const originalNext = stepper.goNext;
-						stepper.goNext = function() {
+						stepper.goNext = function () {
 							const currentIndex = stepper.getCurrentStepIndex();
 							const nextIndex = currentIndex + 1;
-
 							if (validateStepTransition(currentIndex, nextIndex)) {
 								originalNext.call(this);
 							}
@@ -982,14 +1030,10 @@
 				}, 100);
 			}
 
-			// Debug function to check current state
-			window.debugFormState = function() {
+			window.debugFormState = function () {
 				console.log('Training Center selected:', trainingCheckbox.checked);
 				console.log('Employer selected:', employerCheckbox.checked);
-				console.log('Training fields visible:', Array.from(trainingFields).map(f => f.style.display !== 'none'));
-				console.log('Employer fields visible:', Array.from(employerFields).map(f => f.style.display !== 'none'));
 			};
-
 		});
 	</script>
 

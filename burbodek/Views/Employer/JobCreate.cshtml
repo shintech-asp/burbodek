@@ -19,7 +19,7 @@
 
             <div class="mb-5">
                 <label class="form-label fw-bold">No. of Candidates</label>
-                <input type="number" class="form-control" name="WillHire" placeholder="5" />
+                <input type="number" class="form-control" name="WillHire" placeholder="5" min="1" max="200"/>
             </div>
             <!-- Salary Range -->
             <div class="row mb-5">
@@ -59,10 +59,10 @@
                 <textarea class="form-control" rows="4" name="JobDescription" placeholder="Write a detailed job description..." required></textarea>
             </div>
 
-            <!-- Requirements -->
+            <!-- Criteria -->
             <div class="mb-5">
-                <label class="form-label fw-bold">Requirements</label>
-                <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select roles...">
+                <label class="form-label fw-bold">Criteria</label>
+                <select id="requirementSelect" name="Requirement[]" multiple placeholder="Add or select Criteria...">
                     <option value="Curriculum Vitae">Curriculum Vitae</option>
                     <option value="Diploma">Diploma</option>
                     <option value="5 Years Experience">5 Years Experience</option>
