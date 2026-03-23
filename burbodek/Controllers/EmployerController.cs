@@ -938,8 +938,7 @@ namespace burbodek.Controllers
                         // Has all required badges (valid ones only)
                         requiredBadges.All(rb =>
                             u.UserBadge.Any(ub =>
-                                ub.Badge == rb &&
-                                (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today)
+                                ub.Badge == rb
                             )
                         )
                     )

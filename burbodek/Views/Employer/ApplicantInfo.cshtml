@@ -254,7 +254,8 @@
 										<div class="row mb-3">
 											<div class="col-md-6">
 												<label class="form-label">Interview Date</label>
-												<input type="date" id="interviewDate" name="InterviewDate" class="form-control" />
+												<input type="date" id="interviewDate" name="InterviewDate" class="form-control"
+													   min="@DateTime.Now.AddDays(3).ToString("yyyy-MM-dd")" />
 											</div>
 											<div class="col-md-6">
 												<label class="form-label">Interview Time</label>

@@ -295,11 +295,11 @@
                                         var resumeUrl = string.IsNullOrEmpty(resumePath) ? "" : Url.Content(resumePath);
 
                                         var matchedBadges = user.UserBadge?
-                                        .Where(ub => requiredBadges.Contains(ub.Badge) && (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today))
+                                        .Where(ub => requiredBadges.Contains(ub.Badge))
                                         .Select(ub => ub.Badge).ToList() ?? new List<string>();
 
                                         var extraBadges = user.UserBadge?
-                                        .Where(ub => !requiredBadges.Contains(ub.Badge) && (ub.ValidUntil == null || ub.ValidUntil >= DateTime.Today))
+                                        .Where(ub => !requiredBadges.Contains(ub.Badge))
                                         .Select(ub => ub.Badge).ToList() ?? new List<string>();
 
                                         var matchedJson = JsonSerializer.Serialize(matchedBadges);
@@ -313,8 +313,8 @@
                                                  data-picture="@pictureUrl"
                                                  data-mobile="@mobile"
                                                  data-birthdate="@birthdate"
-                                                 data-matched="@HttpUtility.HtmlEncode(matchedJson)"
-                                                 data-extra="@HttpUtility.HtmlEncode(extraJson)"
+                                                 data-matched="@matchedJson"
+                                                 data-extra="@extraJson"
                                                  data-resume="@resumeUrl">
                                                 <div class="card-body p-5">
 
@@ -563,8 +563,8 @@
 
 @section Scripts {
     <script>
-        // ── Carousel ──────────────────────────────────────────────────────
-        const carousel = document.getElementById('jobMediaCarousel');
+        document.addEventListener('DOMContentLoaded', function () {
+            const carousel = document.getElementById('jobMediaCarousel');
         function handleVideoPlayback() {
             carousel.querySelectorAll('video').forEach(v => { v.pause(); v.muted = true; });
             const active = carousel.querySelector('.carousel-item.active video');
@@ -720,5 +720,6 @@
                 });
             });
         });
+        })
     </script>
 }
